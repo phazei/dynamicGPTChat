@@ -11,4 +11,6 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="todo">TODO</string>
     <string name="new_chat">New Chat</string>
+    <string name="tree_title">Title</string>
+    <string name="tree_settings">Settings</string>
 </resources>
