@@ -82,6 +82,13 @@ class ChatTreeAdapter(
                     itemClickListener.onEditClick(chatTrees[position], position)
                 }
             }
+
+            binding.chatTreeCardView.setOnClickListener {
+                val position = bindingAdapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    itemClickListener.onItemClick(chatTrees[position], position)
+                }
+            }
         }
 
         @SuppressLint("ClickableViewAccessibility")
@@ -103,6 +110,7 @@ class ChatTreeAdapter(
     interface ChatTreeItemClickListener {
         fun onDeleteClick(chatTree: ChatTree, position: Int)
         fun onEditClick(chatTree: ChatTree, position: Int)
+        fun onItemClick(chatTree: ChatTree, position: Int)
     }
 
 }

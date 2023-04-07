@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/ChatTreeListFragment"
         android:name="com.phazei.dynamicgptchat.ChatTreeListFragment"
-        android:label="@string/first_fragment_label"
+        android:label="@string/chat_tree_list_label"
         tools:layout="@layout/fragment_chat_tree_list">
 
         <action
@@ -18,19 +18,39 @@
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
             app:popExitAnim="@anim/slide_out_right" />
+        <action
+            android:id="@+id/action_ChatTreeListFragment_to_chatTreeSettingsFragment"
+            app:destination="@id/chatTreeSettingsFragment"
+            app:enterAnim="@anim/slide_in_up"
+            app:exitAnim="@anim/stationary"
+            app:popEnterAnim="@anim/stationary"
+            app:popExitAnim="@anim/slide_out_down"/>
     </fragment>
     <fragment
         android:id="@+id/ChatNodeListFragment"
         android:name="com.phazei.dynamicgptchat.ChatNodeListFragment"
-        android:label="@string/second_fragment_label"
+        android:label="@string/chat_node_list_label"
         tools:layout="@layout/fragment_chat_node_list">
 
         <action
             android:id="@+id/action_ChatNodeListFragment_to_ChatTreeListFragment"
-            app:destination="@id/ChatTreeListFragment"
-            app:enterAnim="@anim/slide_in_down"
-            app:exitAnim="@anim/slide_out_down"
-            app:popEnterAnim="@anim/slide_in_up"
-            app:popExitAnim="@anim/slide_out_up" />
+            app:destination="@id/ChatTreeListFragment" />
+        <action
+            android:id="@+id/action_ChatNodeListFragment_to_chatTreeSettingsFragment"
+            app:destination="@id/chatTreeSettingsFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
+
+    <fragment
+        android:id="@+id/chatTreeSettingsFragment"
+        android:name="com.phazei.dynamicgptchat.ChatTreeSettingsFragment"
+        android:label="@string/chat_tree_settings_label"
+        tools:layout="@layout/fragment_chat_tree_settings">
+    </fragment>
+    <fragment
+        android:id="@+id/AppSettingsFragment"
+        />
 </navigation>

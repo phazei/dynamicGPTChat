@@ -8,8 +8,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.util.Log
 import android.view.MotionEvent
+import androidx.activity.viewModels
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
+import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.google.android.material.snackbar.Snackbar
+import androidx.navigation.fragment.findNavController
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeListBinding
 import androidx.recyclerview.widget.LinearLayoutManager
 
@@ -22,26 +27,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListener {
 
     private var _binding: FragmentChatTreeListBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
+    // This property is only valid between onCreateView and onDestroyView.
     private val binding get() = _binding!!
 
     private lateinit var chatTreeAdapter: ChatTreeAdapter
     private lateinit var chatTreeDataSource: MutableList<ChatTree>
+    private val sharedViewModel: SharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         _binding = FragmentChatTreeListBinding.inflate(inflater, container, false)
-
-//        if (context is MainActivity) {
-//            context.newChatTree = binding.newChatTree
-//        }
-//        val mainActivity = activity as MainActivity
-
         return binding.root
     }
 
@@ -50,15 +47,6 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
-
-//        binding.chatTreeRecyclerView.setOnClickListener {
-//            Log.d("TAG", "RECYCLE CLICK")
-//        }
-        binding.chatTreeRecyclerView.setOnTouchListener { view: View, motionEvent: MotionEvent ->
-            var eID = motionEvent.action
-            Log.d("TAG", "recycler touchmotionEvent: $eID")
-            false
-        }
 
         var counter = 0
         binding.newChatTree.setOnClickListener {
@@ -72,15 +60,10 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
             chatTreeAdapter.notifyItemInserted(chatTreeDataSource.lastIndex)
 
         }
-
-//        binding.buttonFirst.setOnClickListener {
-//            findNavController().navigate(R.id.action_FirstFragment_to_SecondFragment)
-//        }
-
     }
 
     private fun setupRecyclerView() {
-        chatTreeDataSource = mutableListOf()
+        chatTreeDataSource = sharedViewModel.chatTrees.value ?: mutableListOf()
         chatTreeDataSource.add(ChatTree(0, "Title 1", "System Message 1", GPTSettings()))
         chatTreeDataSource.add(ChatTree(1, "Title 2", "System Message 2", GPTSettings()))
 
@@ -95,11 +78,22 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
         }
     }
 
+    override fun onItemClick(chatTree: ChatTree, position: Int) {
+
+        Snackbar.make(binding.root, "Chat Screen", Snackbar.LENGTH_LONG)
+            .setAction(""){}.show()
+//        TODO("Not yet implemented")
+        sharedViewModel.activeChatTree = chatTree
+        findNavController().navigate(R.id.action_ChatTreeListFragment_to_ChatNodeListFragment)
+    }
+
     override fun onEditClick(chatTree: ChatTree, position: Int) {
 
         Snackbar.make(binding.root, "Edit Screen", Snackbar.LENGTH_LONG)
             .setAction(""){}.show()
 //        TODO("Not yet implemented")
+        sharedViewModel.activeChatTree = chatTree
+        findNavController().navigate(R.id.action_ChatTreeListFragment_to_chatTreeSettingsFragment)
     }
 
     override fun onDeleteClick(chatTree: ChatTree, position: Int) {

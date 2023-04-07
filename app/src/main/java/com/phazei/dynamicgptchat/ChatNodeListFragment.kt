@@ -8,25 +8,21 @@ import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
 
+
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
 class ChatNodeListFragment : Fragment() {
 
     private var _binding: FragmentChatNodeListBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-
+    ): View {
         _binding = FragmentChatNodeListBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -34,6 +30,9 @@ class ChatNodeListFragment : Fragment() {
 
         binding.buttonSecond.setOnClickListener {
             findNavController().navigate(R.id.action_ChatNodeListFragment_to_ChatTreeListFragment)
+        }
+        binding.buttonChatSettings.setOnClickListener {
+            findNavController().navigate(R.id.action_ChatNodeListFragment_to_chatTreeSettingsFragment)
         }
     }
 

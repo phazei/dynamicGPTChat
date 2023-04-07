@@ -2,8 +2,9 @@
     <string name="app_name">DynamicGPTChat</string>
     <string name="action_settings">Settings</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">Dynamic GPT Chats</string>
-    <string name="second_fragment_label">Second Fragment</string>
+    <string name="chat_tree_list_label">Dynamic GPT Chats</string>
+    <string name="chat_node_list_label">Conversation</string>
+    <string name="chat_tree_settings_label">Chat Settings</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
