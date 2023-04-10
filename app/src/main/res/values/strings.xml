@@ -15,6 +15,7 @@
     <string name="tree_title">Title</string>
     <string name="tree_settings">Settings</string>
 
+<!--    Settings Page-->
     <string name="undo">Undo</string>
     <string name="items_not_saved">Items Not Saved</string>
 
@@ -25,18 +26,16 @@
     <string name="system_message_hint">Pre-message before all others</string>
     <string name="mode_label">Mode</string>
     <string name="model_label">Model</string>
-    <string name="temperature_label">Temperature</string>
-    <string name="max_tokens_label">Max Tokens</string>
-    <string name="top_p_label">TopP</string>
-    <string name="frequency_penalty_label">Frequency Penalty</string>
-    <string name="presence_penalty_label">Presence Penalty</string>
-    <string name="best_of_label">Best of</string>
+    <string name="temperature_label">Temperature (%.2f)</string>
+    <string name="max_tokens_label">Max Tokens (%.0f)</string>
+    <string name="top_p_label">TopP (%.2f)</string>
+    <string name="frequency_penalty_label">Frequency Penalty (%.2f)</string>
+    <string name="presence_penalty_label">Presence Penalty (%.2f)</string>
+    <string name="best_of_label">Best of (%.0f)</string>
     <string name="inject_start_text_label">Inject Start Text</string>
     <string name="inject_start_text_hint">Enter text to inject at the start</string>
     <string name="inject_restart_text_label">Inject Restart Text</string>
     <string name="inject_restart_text_hint">Enter text to inject when restarting</string>
-
-
     <string-array name="mode_options">
         <item>Completion</item>
         <item>Chat</item>
@@ -48,5 +47,17 @@
         <item>text-babbage-002</item>
         <item>text-ada-002</item>
     </string-array>
+    <string name="title_tooltip"></string>
+    <string name="mode_tooltip">The "completion" mode generates text to complete a prompt or sentence, while the "chat" mode generates text in a conversational context.</string>
+    <string name="model_tooltip">The GPT model to use. Different models have different capabilities and may perform better or worse depending on the task.</string>
+    <string name="temperature_tooltip">The "temperature" parameter controls the "creativity" of the generated text. Lower values will result in more conservative, predictable text, while higher values will result in more unexpected and creative text.</string>
+    <string name="max_tokens_tooltip">The maximum number of tokens (words or symbols) to generate in the output.</string>
+    <string name="top_p_tooltip">The "TopP" parameter controls the amount of "diversity" in the generated text. Higher values will result in more diverse output, while lower values will result in more repetitive output.</string>
+    <string name="frequency_penalty_tooltip">The frequency penalty adjusts how much the model will try to avoid repeating the same words or phrases in the output.</string>
+    <string name="presence_penalty_tooltip">The presence penalty adjusts how much the model will try to avoid including words or phrases that were in the prompt in the output.</string>
+    <string name="best_of_tooltip">The "Best of" parameter controls how many output sequences the model generates, and returns the highest-scoring one.</string>
+    <string name="inject_start_text_tooltip">Text to inject at the start of the generated output, before the generated text.</string>
+    <string name="inject_restart_text_tooltip">Text to inject when the model generates multiple output sequences, between each sequence.</string>
+    <string name="system_message_tooltip">A "system message" is a message that is used to instruct the ChatGPT model on how it should behave and any context it should reference when generating a response</string>
 
 </resources>

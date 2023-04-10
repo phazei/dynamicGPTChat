@@ -19,23 +19,23 @@ object Utils {
 
 }
 
-fun View.setChangeListener(listener: () -> Unit) {
+fun View.setChangeListener(listener: (view: View) -> Unit) {
     when (this) {
         is EditText -> {
             addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
-                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) { listener() }
-                override fun afterTextChanged(s: Editable) { listener() }
+                override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) { listener(this@setChangeListener) }
+                override fun afterTextChanged(s: Editable) { listener(this@setChangeListener) }
             })
         }
         is Spinner -> {
             onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(parent: AdapterView<*>, v: View?, position: Int, id: Long) { listener() }
-                override fun onNothingSelected(parent: AdapterView<*>) { listener() }
+                override fun onItemSelected(parent: AdapterView<*>, v: View?, position: Int, id: Long) { listener(this@setChangeListener) }
+                override fun onNothingSelected(parent: AdapterView<*>) { listener(this@setChangeListener) }
             }
         }
         is Slider -> {
-            addOnChangeListener { _, _, _ -> listener() }
+            addOnChangeListener { _, _, _ -> listener(this@setChangeListener) }
         }
         is ViewGroup -> {
             for (i in 0 until childCount) {

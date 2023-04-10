@@ -5,17 +5,25 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import androidx.fragment.app.Fragment
+import android.util.Log
+import android.util.TypedValue
 import android.view.*
 import android.widget.ArrayAdapter
+import android.widget.EditText
+import android.widget.Spinner
+import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
+import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
 import com.phazei.utils.setChangeListener
-import androidx.activity.addCallback
+import com.tomergoldst.tooltips.ToolTip
+import com.tomergoldst.tooltips.ToolTipsManager
 
 
 class ChatTreeSettingsFragment : Fragment() {
@@ -27,6 +35,7 @@ class ChatTreeSettingsFragment : Fragment() {
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private var backPressedOnce = false
     private var saved = true
+    private lateinit var mToolTipsManager: ToolTipsManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,8 +50,13 @@ class ChatTreeSettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         chatTree = sharedViewModel.activeChatTree!!
+        mToolTipsManager = ToolTipsManager()
+
         setupMenu()
         setupInputs()
+        setupToolTips()
+
+
 
         // saves items
         binding.saveChatSettingsButton.setOnClickListener {
@@ -53,7 +67,7 @@ class ChatTreeSettingsFragment : Fragment() {
 
         // if anything is modified, this will be sure to mark it as not saved
         // and change the background color as an indicator
-        binding.chatSettings.setChangeListener {
+        binding.chatSettings.setChangeListener { view ->
             checkModifiedSettings()
         }
 
@@ -66,10 +80,11 @@ class ChatTreeSettingsFragment : Fragment() {
         }
     }
 
-
+    /**
+     * If anything's changed, it will update the background color to indicate something has changed
+     * and set "saved" to false
+     */
     private fun checkModifiedSettings() {
-        // Put your logic here to compare editingGPTsettings and chatTree.GPTsettings
-        // and update the background color if needed
         val settings = getGPTSettingsModel()
         if (chatTree.gptSettings == settings && chatTree.title == binding.titleEditText.text.toString()) {
             saved = true
@@ -120,6 +135,9 @@ class ChatTreeSettingsFragment : Fragment() {
     }
 
     private fun setupInputs() {
+        //first setup change listener for all the sliders
+        setupSliderText()
+
         // Retrieve the default settings from ChatTree
         val settings = chatTree.gptSettings
 
@@ -169,6 +187,92 @@ class ChatTreeSettingsFragment : Fragment() {
 
         // Populate the inject restart text input
         binding.injectRestartText.setText(settings.injectRestartText)
+
+    }
+
+    //Update all slider labels to include the value next to the label text
+    private fun setupSliderText() {
+        val sliderIds = listOf(R.id.temperature_slider, R.id.max_tokens_slider, R.id.top_p_slider, R.id.frequency_penalty_slider, R.id.presence_penalty_slider, R.id.best_of_slider)
+        val textViewIds = listOf(R.id.temperature_text, R.id.max_tokens_text, R.id.top_p_text, R.id.frequency_penalty_text, R.id.presence_penalty_text, R.id.best_of_text)
+        val stringResourceIds = listOf(R.string.temperature_label, R.string.max_tokens_label, R.string.top_p_label, R.string.frequency_penalty_label, R.string.presence_penalty_label, R.string.best_of_label)
+
+        for (i in sliderIds.indices) {
+            val slider = binding.root.findViewById<Slider>(sliderIds[i])
+            val textView = binding.root.findViewById<TextView>(textViewIds[i])
+            val stringResourceId = stringResourceIds[i]
+            // Set initial text
+
+            textView.text = getString(stringResourceId, slider.value)
+            slider.addOnChangeListener { _, value, _ ->
+                textView.text = getString(stringResourceId, value)
+            }
+        }
+    }
+
+    private fun setupToolTips() {
+        //items with empty strings will only close the previous tooltip when triggered
+        setupTooltip(binding.titleEditText, "")
+        setupTooltip(binding.modeSpinner, "")
+        setupTooltip(binding.modelSpinner, getString(R.string.model_tooltip))
+        setupTooltip(binding.temperatureSlider, getString(R.string.temperature_tooltip))
+        setupTooltip(binding.maxTokensSlider, getString(R.string.max_tokens_tooltip))
+        setupTooltip(binding.topPSlider, getString(R.string.top_p_tooltip))
+        setupTooltip(binding.frequencyPenaltySlider, getString(R.string.frequency_penalty_tooltip))
+        setupTooltip(binding.presencePenaltySlider, getString(R.string.presence_penalty_tooltip))
+        setupTooltip(binding.bestOfSlider, getString(R.string.best_of_tooltip))
+        setupTooltip(binding.injectStartText, getString(R.string.inject_start_text_tooltip))
+        setupTooltip(binding.injectRestartText, getString(R.string.inject_restart_text_tooltip))
+        setupTooltip(binding.systemMessageText, getString(R.string.system_message_tooltip))
+        setupTooltip(binding.saveChatSettingsButton, "")
+    }
+
+    private var previousView: View? = null
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupTooltip(
+        view: View,
+        message: String,
+        position: Int = ToolTip.POSITION_ABOVE
+    ) {
+
+        com.tomergoldst.tooltips.R.style.TooltipDefaultStyle
+        val parentView = binding.chatSettingsBody
+        val builder = ToolTip.Builder(requireContext(), view, parentView, message, position)
+        val typedValue = TypedValue()
+        view.context.theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
+        builder.setBackgroundColor(typedValue.data)
+        builder.setTextAppearance(R.style.TooltipTextAppearance)
+
+        var tipView: View? = null
+
+        //if this is set in the XML it's just ignored and doesn't work
+        view.isFocusable = true;
+        view.isFocusableInTouchMode = true;
+        when (view) {
+            is Slider -> {
+                view.setOnTouchListener() { _, motionEvent ->
+                    if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                        view.requestFocus()
+                    }
+                    false//not consumed
+                }
+            }
+        }
+        view.setOnFocusChangeListener { v, hasFocus ->
+                if (hasFocus) {
+                    if (tipView == null || !mToolTipsManager.isVisible(tipView)) {
+                        //it hasn't been created, and it's not currently being shown
+                        if (message != "") {
+                            //need to include empty messages so Focus listener will still close previous popup
+                            tipView = mToolTipsManager.show(builder.build())
+                        }
+                    }
+                    if (previousView != null && previousView != v) {
+                        //it wasn't the one just opened
+                        mToolTipsManager.findAndDismiss(previousView);
+                    }
+                }
+                previousView = v
+            }
     }
 
     private fun onBackPressed(): Boolean {

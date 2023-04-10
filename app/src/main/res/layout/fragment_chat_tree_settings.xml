@@ -1,5 +1,11 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+<FrameLayout
+    android:id="@+id/chat_settings_body"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <LinearLayout
@@ -7,14 +13,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
-        >
+        android:padding="16dp">
 
         <!-- Title -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/title_label" />
+            android:text="@string/title_label"
+            android:labelFor="@id/title_edit_text"
+            />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -24,7 +31,9 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/title_edit_text"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:maxLines="1" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -32,7 +41,9 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/system_message_label"/>
+            android:text="@string/system_message_label"
+            android:labelFor="@id/system_message_text"
+            />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -53,19 +64,26 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/mode_label" />
+            android:text="@string/mode_label"
+            android:labelFor="@id/mode_spinner"
+            />
 
         <Spinner
             android:id="@+id/mode_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:entries="@array/mode_options" />
+            android:entries="@array/mode_options"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            />
 
         <!-- Model -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/model_label" />
+            android:text="@string/model_label"
+            android:labelFor="@id/model_spinner"
+            />
 
         <Spinner
             android:id="@+id/model_spinner"
@@ -75,9 +93,12 @@
 
         <!-- Temperature -->
         <TextView
+            android:id="@+id/temperature_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/temperature_label" />
+            android:text="@string/temperature_label"
+            android:labelFor="@id/temperature_slider"
+            />
 
         <com.google.android.material.slider.Slider
             android:id="@+id/temperature_slider"
@@ -86,13 +107,17 @@
             android:stepSize="0.01"
             android:value="0.5"
             android:valueFrom="0"
-            android:valueTo="1" />
+            android:valueTo="1"
+            app:labelBehavior="floating" />
 
         <!-- Max Tokens -->
         <TextView
+            android:id="@+id/max_tokens_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/max_tokens_label" />
+            android:text="@string/max_tokens_label"
+            android:labelFor="@id/max_tokens_slider"
+            />
 
         <com.google.android.material.slider.Slider
             android:id="@+id/max_tokens_slider"
@@ -101,13 +126,17 @@
             android:stepSize="1"
             android:value="2000"
             android:valueFrom="0"
-            android:valueTo="8000" />
+            android:valueTo="8000"
+            app:labelBehavior="floating" />
 
         <!-- TopP -->
         <TextView
+            android:id="@+id/top_p_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/top_p_label" />
+            android:text="@string/top_p_label"
+            android:labelFor="@id/top_p_slider"
+            />
 
         <com.google.android.material.slider.Slider
             android:id="@+id/top_p_slider"
@@ -116,13 +145,17 @@
             android:stepSize="0.01"
             android:value="0.5"
             android:valueFrom="0"
-            android:valueTo="1" />
+            android:valueTo="1"
+            app:labelBehavior="floating" />
 
         <!-- Frequency Penalty -->
         <TextView
+            android:id="@+id/frequency_penalty_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/frequency_penalty_label" />
+            android:text="@string/frequency_penalty_label"
+            android:labelFor="@id/frequency_penalty_slider"
+            />
 
         <com.google.android.material.slider.Slider
             android:id="@+id/frequency_penalty_slider"
@@ -131,13 +164,17 @@
             android:stepSize="0.01"
             android:value="0"
             android:valueFrom="-2"
-            android:valueTo="2" />
+            android:valueTo="2"
+            app:labelBehavior="floating" />
 
         <!-- Presence Penalty -->
         <TextView
+            android:id="@+id/presence_penalty_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/presence_penalty_label" />
+            android:text="@string/presence_penalty_label"
+            android:labelFor="@id/presence_penalty_slider"
+            />
 
         <com.google.android.material.slider.Slider
             android:id="@+id/presence_penalty_slider"
@@ -146,13 +183,17 @@
             android:stepSize="0.01"
             android:value="0"
             android:valueFrom="-2"
-            android:valueTo="2" />
+            android:valueTo="2"
+            app:labelBehavior="floating" />
 
         <!-- Best of -->
         <TextView
+            android:id="@+id/best_of_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/best_of_label" />
+            android:text="@string/best_of_label"
+            android:labelFor="@id/best_of_slider"
+            />
 
         <com.google.android.material.slider.Slider
             android:id="@+id/best_of_slider"
@@ -161,13 +202,16 @@
             android:stepSize="1"
             android:value="1"
             android:valueFrom="1"
-            android:valueTo="20" />
+            android:valueTo="20"
+            app:labelBehavior="floating" />
 
         <!-- Inject Start Text -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/inject_start_text_label" />
+            android:text="@string/inject_start_text_label"
+            android:labelFor="@id/inject_start_text"
+            />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -177,7 +221,9 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inject_start_text"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:maxLines="1" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -185,7 +231,9 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/inject_restart_text_label" />
+            android:text="@string/inject_restart_text_label"
+            android:labelFor="@id/inject_restart_text"
+            />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -195,18 +243,21 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inject_restart_text"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:maxLines="1" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
+
         <Button
             android:id="@+id/save_chat_settings_button"
-            android:layout_width="200dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_margin="10dp"
             android:text="@string/save" />
 
     </LinearLayout>
+</FrameLayout>
 </ScrollView>
-
