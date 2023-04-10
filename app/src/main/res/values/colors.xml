@@ -1,6 +1,7 @@
 <!-- Color generator: https://m3.material.io/theme-builder#/custom -->
 <resources>
     <color name="seed">#3e0075</color>
+
     <color name="md_theme_light_primary">#7646AD</color>
     <color name="md_theme_light_onPrimary">#FFFFFF</color>
     <color name="md_theme_light_primaryContainer">#9A79E6</color>
@@ -31,10 +32,11 @@
     <color name="md_theme_light_surfaceTint">#7646AD</color>
     <color name="md_theme_light_outlineVariant">#CCC4CF</color>
     <color name="md_theme_light_scrim">#000000</color>
-    <color name="md_theme_dark_primary">#DAB9FF</color>
-    <color name="md_theme_dark_onPrimary">#450D7C</color>
-    <color name="md_theme_dark_primaryContainer">#5D2C93</color>
-    <color name="md_theme_dark_onPrimaryContainer">#EEDBFF</color>
+
+    <color name="md_theme_dark_primary">#712AE4</color>
+    <color name="md_theme_dark_onPrimary">#DAB9FF</color>
+    <color name="md_theme_dark_primaryContainer">#3D0079</color>
+    <color name="md_theme_dark_onPrimaryContainer">#C5B7D3</color>
     <color name="md_theme_dark_secondary">#CFC1DA</color>
     <color name="md_theme_dark_onSecondary">#362D40</color>
     <color name="md_theme_dark_secondaryContainer">#4D4357</color>
@@ -64,4 +66,5 @@
 
     <color name="green">#00FF00</color>
     <color name="yellow">#FFFF00</color>
+    <color name="teal">#00FFFF</color>
 </resources>

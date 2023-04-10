@@ -33,7 +33,7 @@
         <item name="colorPrimaryInverse">@color/md_theme_light_inversePrimary</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">@color/md_theme_light_onPrimaryContainer</item>
         <!-- Customize your theme here. -->
 
     </style>
@@ -46,4 +46,11 @@
     <style name="Theme.DynamicGPTChat.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="Theme.DynamicGPTChat.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="TooltipTextAppearance">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
 </resources>
