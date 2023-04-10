@@ -2,12 +2,10 @@ package com.phazei.dynamicgptchat
 
 import android.annotation.SuppressLint
 import android.util.Log
-import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.databinding.ChatTreeItemBinding
 import com.phazei.dynamicgptchat.swipereveal.ViewBinderHelper
@@ -96,7 +94,7 @@ class ChatTreeAdapter(
             Log.d("TAG", "INITIALIZATION OF BIND VIEW ITEM")
             binding.apply {
                 chatTreeTitleText.text = chatTree.title
-                chatTreeSettingsText.text = chatTree.defaultGPTSettings.toString()
+                chatTreeSettingsText.text = chatTree.gptSettings.toString()
             }
         }
     }

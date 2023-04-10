@@ -1,21 +1,212 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground"
-    >
+    android:layout_height="wrap_content">
 
-    <!-- Add your GPT-3 settings UI elements here -->
-    <TextView
-        android:id="@+id/settingsTextView"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/chat_settings"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Chat Settings:"
-        android:padding="10dp"
-        android:textSize="34sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical"
+        android:padding="16dp"
+        >
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/title_label" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/title_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/title_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- System Message -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/system_message_label"/>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/system_message_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/system_message_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:maxLines="10"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Mode -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/mode_label" />
+
+        <Spinner
+            android:id="@+id/mode_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/mode_options" />
+
+        <!-- Model -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/model_label" />
+
+        <Spinner
+            android:id="@+id/model_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/model_options" />
+
+        <!-- Temperature -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/temperature_label" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/temperature_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stepSize="0.01"
+            android:value="0.5"
+            android:valueFrom="0"
+            android:valueTo="1" />
+
+        <!-- Max Tokens -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/max_tokens_label" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/max_tokens_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stepSize="1"
+            android:value="2000"
+            android:valueFrom="0"
+            android:valueTo="8000" />
+
+        <!-- TopP -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/top_p_label" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/top_p_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stepSize="0.01"
+            android:value="0.5"
+            android:valueFrom="0"
+            android:valueTo="1" />
+
+        <!-- Frequency Penalty -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/frequency_penalty_label" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/frequency_penalty_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stepSize="0.01"
+            android:value="0"
+            android:valueFrom="-2"
+            android:valueTo="2" />
+
+        <!-- Presence Penalty -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/presence_penalty_label" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/presence_penalty_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stepSize="0.01"
+            android:value="0"
+            android:valueFrom="-2"
+            android:valueTo="2" />
+
+        <!-- Best of -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/best_of_label" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/best_of_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stepSize="1"
+            android:value="1"
+            android:valueFrom="1"
+            android:valueTo="20" />
+
+        <!-- Inject Start Text -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/inject_start_text_label" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/inject_start_text_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inject_start_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Inject Restart Text -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/inject_restart_text_label" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/inject_restart_text_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inject_restart_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Button
+            android:id="@+id/save_chat_settings_button"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_margin="10dp"
+            android:text="@string/save" />
+
+    </LinearLayout>
+</ScrollView>
+

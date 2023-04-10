@@ -14,4 +14,39 @@
     <string name="new_chat">New Chat</string>
     <string name="tree_title">Title</string>
     <string name="tree_settings">Settings</string>
+
+    <string name="undo">Undo</string>
+    <string name="items_not_saved">Items Not Saved</string>
+
+    <string name="save">Save</string>
+    <string name="title_label">Title</string>
+    <string name="title_hint">Enter a title</string>
+    <string name="system_message_label">System Message</string>
+    <string name="system_message_hint">Pre-message before all others</string>
+    <string name="mode_label">Mode</string>
+    <string name="model_label">Model</string>
+    <string name="temperature_label">Temperature</string>
+    <string name="max_tokens_label">Max Tokens</string>
+    <string name="top_p_label">TopP</string>
+    <string name="frequency_penalty_label">Frequency Penalty</string>
+    <string name="presence_penalty_label">Presence Penalty</string>
+    <string name="best_of_label">Best of</string>
+    <string name="inject_start_text_label">Inject Start Text</string>
+    <string name="inject_start_text_hint">Enter text to inject at the start</string>
+    <string name="inject_restart_text_label">Inject Restart Text</string>
+    <string name="inject_restart_text_hint">Enter text to inject when restarting</string>
+
+
+    <string-array name="mode_options">
+        <item>Completion</item>
+        <item>Chat</item>
+    </string-array>
+    <string-array name="model_options">
+        <item>gpt-3.5-turbo</item>
+        <item>text-davinci-002</item>
+        <item>text-curie-002</item>
+        <item>text-babbage-002</item>
+        <item>text-ada-002</item>
+    </string-array>
+
 </resources>

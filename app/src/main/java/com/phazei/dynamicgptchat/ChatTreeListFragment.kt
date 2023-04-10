@@ -79,10 +79,6 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
     }
 
     override fun onItemClick(chatTree: ChatTree, position: Int) {
-
-        Snackbar.make(binding.root, "Chat Screen", Snackbar.LENGTH_LONG)
-            .setAction(""){}.show()
-//        TODO("Not yet implemented")
         sharedViewModel.activeChatTree = chatTree
         findNavController().navigate(R.id.action_ChatTreeListFragment_to_ChatNodeListFragment)
     }
