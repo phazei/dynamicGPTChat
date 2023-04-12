@@ -96,7 +96,7 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
                 }.addCallback(object : Snackbar.Callback() {
                     override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                         super.onDismissed(transientBottomBar, event)
-                        if (event != Snackbar.Callback.DISMISS_EVENT_ACTION) {
+                        if (event != DISMISS_EVENT_ACTION) {
                             sharedViewModel.deleteChatTree(chatTree, position)
                         }
                     }

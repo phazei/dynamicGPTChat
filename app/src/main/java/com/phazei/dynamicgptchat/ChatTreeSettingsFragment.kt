@@ -282,6 +282,7 @@ class ChatTreeSettingsFragment : Fragment() {
         }
     }
 
+    @Suppress("LiftReturnOrAssignment")
     private fun onBackPressed(): Boolean {
         if (!saved && !backPressedOnce) {
             Snackbar.make(binding.root, "Not saved, hit back again to leave", Snackbar.LENGTH_LONG)

@@ -32,10 +32,10 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.ViewCompat;
 import androidx.customview.widget.ViewDragHelper;
@@ -47,6 +47,7 @@ import com.phazei.dynamicgptchat.R;
  *  https://github.com/chthai64/SwipeRevealLayout
  */
 @SuppressLint("RtlHardcoded")
+@SuppressWarnings("ALL")
 public class SwipeRevealLayout extends ViewGroup {
     // These states are used only for ViewBindHelper
     protected static final int STATE_CLOSE     = 0;

@@ -9,7 +9,7 @@ import com.phazei.dynamicgptchat.data.*
 import kotlinx.coroutines.launch
 
 class SharedViewModel(appDatabase: AppDatabase, chatTreeDao: ChatTreeDao, chatNodeDao: ChatNodeDao) : ViewModel() {
-    val chatRepository = ChatRepository(appDatabase, chatTreeDao, chatNodeDao)
+    private val chatRepository = ChatRepository(appDatabase, chatTreeDao, chatNodeDao)
     val chatTrees = MutableLiveData<MutableList<ChatTree>>()
     val modifiedChatTree = MutableLiveData<Pair<Int, ChatTree>>()
     var activeChatTree: ChatTree? = null

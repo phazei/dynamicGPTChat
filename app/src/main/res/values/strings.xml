@@ -59,5 +59,9 @@
     <string name="inject_start_text_tooltip">Text to inject at the start of the generated output, before the generated text.</string>
     <string name="inject_restart_text_tooltip">Text to inject when the model generates multiple output sequences, between each sequence.</string>
     <string name="system_message_tooltip">A "system message" is a message that is used to instruct the ChatGPT model on how it should behave and any context it should reference when generating a response</string>
+    <string name="submit">Submit</string>
+    <string name="enter_prompt">Enter prompt</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
 
 </resources>

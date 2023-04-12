@@ -29,7 +29,7 @@ class ChatTreeAdapter(
 
     override fun onBindViewHolder(holder: ChatTreeViewHolder, position: Int) {
         val chatTree = chatTrees[position]
-        viewBinderHelper.bind(holder.binding.swipeLayout, chatTree.id.toString())
+        viewBinderHelper.bind(holder.binding.chatTreeSwipeLayout, chatTree.id.toString())
         holder.bind(chatTree)
     }
 
@@ -49,7 +49,6 @@ class ChatTreeAdapter(
                 // val chatTreeCardView = view as CardView
                 val background = binding.chatTreeCardBackground
 
-                Log.d("TAG", "touchmotionEvent: ${motionEvent.action}")
                 when (motionEvent.action) {
                     MotionEvent.ACTION_DOWN, MotionEvent.ACTION_HOVER_ENTER -> {
                        // val typedValue = TypedValue()
