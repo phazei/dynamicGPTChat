@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
-import kotlinx.coroutines.Dispatchers
+import com.phazei.dynamicgptchat.data.*
 import kotlinx.coroutines.launch
 
 class SharedViewModel(appDatabase: AppDatabase, chatTreeDao: ChatTreeDao, chatNodeDao: ChatNodeDao) : ViewModel() {

@@ -6,10 +6,9 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.phazei.dynamicgptchat.data.ChatTree
 import com.phazei.dynamicgptchat.databinding.ChatTreeItemBinding
 import com.phazei.dynamicgptchat.swipereveal.ViewBinderHelper
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.*
 
 class ChatTreeAdapter(
@@ -94,7 +93,7 @@ class ChatTreeAdapter(
         fun bind(chatTree: ChatTree) {
             Log.d("TAG", "INITIALIZATION OF BIND VIEW ITEM")
             binding.apply {
-                chatTreeTitleText.text = chatTree.title + " " + chatTree.updatedAt.toString()
+                chatTreeTitleText.text = chatTree.title
                 chatTreeSettingsText.text = chatTree.gptSettings.toString()
             }
         }

@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.data
 
 data class GPTSettings(
     val systemMessage: String = "",

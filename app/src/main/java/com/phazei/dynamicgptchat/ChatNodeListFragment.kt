@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
+import com.phazei.dynamicgptchat.data.ChatTree
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
 
 

@@ -6,15 +6,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.util.Log
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.google.android.material.snackbar.Snackbar
 import androidx.navigation.fragment.findNavController
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeListBinding
 import androidx.recyclerview.widget.LinearLayoutManager
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import com.phazei.dynamicgptchat.data.ChatNode
+import com.phazei.dynamicgptchat.data.ChatTree
+import com.phazei.dynamicgptchat.data.GPTSettings
 
 
 /**

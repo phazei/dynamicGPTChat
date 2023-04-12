@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.data
 
 import androidx.room.ColumnInfo
 import java.util.*

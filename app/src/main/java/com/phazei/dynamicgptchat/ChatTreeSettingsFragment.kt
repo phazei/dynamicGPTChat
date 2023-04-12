@@ -5,12 +5,9 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.util.TypedValue
 import android.view.*
 import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.Spinner
 import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.core.view.MenuHost
@@ -20,6 +17,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
+import com.phazei.dynamicgptchat.data.ChatTree
+import com.phazei.dynamicgptchat.data.GPTSettings
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
 import com.phazei.utils.setChangeListener
 import com.tomergoldst.tooltips.ToolTip
@@ -59,9 +58,9 @@ class ChatTreeSettingsFragment : Fragment() {
 
 
         // saves items
-        binding.saveChatSettingsButton.setOnClickListener {view ->
-            if (previousView != null) mToolTipsManager.findAndDismiss(previousView);
-            view.requestFocus()
+        binding.saveChatSettingsButton.setOnClickListener {
+            if (previousView != null) mToolTipsManager.findAndDismiss(previousView)
+            it.requestFocus()
             chatTree.gptSettings = getGPTSettingsModel()
             chatTree.title = binding.titleEditText.text.toString()
             sharedViewModel.saveChatTree(chatTree)
@@ -70,7 +69,7 @@ class ChatTreeSettingsFragment : Fragment() {
 
         // if anything is modified, this will be sure to mark it as not saved
         // and change the background color as an indicator
-        binding.chatSettings.setChangeListener { view ->
+        binding.chatSettings.setChangeListener {
             checkModifiedSettings()
         }
 
@@ -256,13 +255,13 @@ class ChatTreeSettingsFragment : Fragment() {
             }
             if (previousView != null && previousView != v) {
                 //it wasn't the one just opened
-                mToolTipsManager.findAndDismiss(previousView);
+                mToolTipsManager.findAndDismiss(previousView)
             }
             previousView = v
         }
         //if this is set in the XML it's just ignored and doesn't work
-        view.isFocusable = true;
-        view.isFocusableInTouchMode = true;
+        view.isFocusable = true
+        view.isFocusableInTouchMode = true
         when (view) {
             is Slider -> {
                 view.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
