@@ -1,16 +1,21 @@
 package com.phazei.dynamicgptchat
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import java.util.*
+import androidx.room.*
 
 @Entity(tableName = "chat_trees")
 data class ChatTree(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @PrimaryKey(autoGenerate = true) var id: Long = 0,
     var title: String,
-    var systemMessage: String,
-    var gptSettings: GPTSettings,
-    var activeChildNodeId: Long? = null
-) {
-    var uuid: String = UUID.randomUUID().toString()
+    @Embedded(prefix = "gpt_") var gptSettings: GPTSettings,
+    @ColumnInfo(name = "root_chat_node_id") var rootChatNodeId: Long? = null,
+) : BaseEntity() {
+    @Ignore
+    lateinit var rootNode: ChatNode
+    fun rootNodeInitialized() = ::rootNode.isInitialized
+
+    constructor(title: String, gptSettings: GPTSettings) : this(
+        title = title,
+        gptSettings = gptSettings,
+        rootChatNodeId = null
+    )
 }
