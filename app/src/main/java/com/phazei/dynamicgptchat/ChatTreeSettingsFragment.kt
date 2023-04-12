@@ -59,9 +59,12 @@ class ChatTreeSettingsFragment : Fragment() {
 
 
         // saves items
-        binding.saveChatSettingsButton.setOnClickListener {
+        binding.saveChatSettingsButton.setOnClickListener {view ->
+            if (previousView != null) mToolTipsManager.findAndDismiss(previousView);
+            view.requestFocus()
             chatTree.gptSettings = getGPTSettingsModel()
             chatTree.title = binding.titleEditText.text.toString()
+            sharedViewModel.saveChatTree(chatTree)
             checkModifiedSettings()
         }
 
@@ -223,7 +226,6 @@ class ChatTreeSettingsFragment : Fragment() {
         setupTooltip(binding.injectStartText, getString(R.string.inject_start_text_tooltip))
         setupTooltip(binding.injectRestartText, getString(R.string.inject_restart_text_tooltip))
         setupTooltip(binding.systemMessageText, getString(R.string.system_message_tooltip))
-        setupTooltip(binding.saveChatSettingsButton, "")
     }
 
     private var previousView: View? = null
@@ -244,35 +246,41 @@ class ChatTreeSettingsFragment : Fragment() {
 
         var tipView: View? = null
 
+        fun longTouch(v : View) {
+            if (tipView == null || !mToolTipsManager.isVisible(tipView)) {
+                //it hasn't been created, and it's not currently being shown
+                if (message != "") {
+                    //need to include empty messages so Focus listener will still close previous popup
+                    tipView = mToolTipsManager.show(builder.build())
+                }
+            }
+            if (previousView != null && previousView != v) {
+                //it wasn't the one just opened
+                mToolTipsManager.findAndDismiss(previousView);
+            }
+            previousView = v
+        }
         //if this is set in the XML it's just ignored and doesn't work
         view.isFocusable = true;
         view.isFocusableInTouchMode = true;
         when (view) {
             is Slider -> {
-                view.setOnTouchListener() { _, motionEvent ->
-                    if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                        view.requestFocus()
+                view.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                    override fun onStartTrackingTouch(slider: Slider) {
+                        longTouch(slider)
                     }
-                    false//not consumed
+                    override fun onStopTrackingTouch(slider: Slider) {
+                        mToolTipsManager.findAndDismiss(previousView)
+                    }
+                })
+            }
+            else -> {
+                view.setOnLongClickListener { v ->
+                    longTouch(v)
+                    true
                 }
             }
         }
-        view.setOnFocusChangeListener { v, hasFocus ->
-                if (hasFocus) {
-                    if (tipView == null || !mToolTipsManager.isVisible(tipView)) {
-                        //it hasn't been created, and it's not currently being shown
-                        if (message != "") {
-                            //need to include empty messages so Focus listener will still close previous popup
-                            tipView = mToolTipsManager.show(builder.build())
-                        }
-                    }
-                    if (previousView != null && previousView != v) {
-                        //it wasn't the one just opened
-                        mToolTipsManager.findAndDismiss(previousView);
-                    }
-                }
-                previousView = v
-            }
     }
 
     private fun onBackPressed(): Boolean {

@@ -7,6 +7,7 @@ import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
@@ -18,10 +19,17 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private val sharedViewModel: SharedViewModel by viewModels()
+    private val sharedViewModelFactory by lazy {
+        SharedViewModel.Companion.Factory(AppDatabase.getDatabase(this))
+    }
+    private val sharedViewModel: SharedViewModel by viewModels { sharedViewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        //sharedViewModel must be in onCreate or it will not be created in time for the fragment
+        //leaving sharedViewModelFactory in case it's every needed in activityViewModels() in a fragment
+        sharedViewModel
 
         binding = ActivityMainBinding.inflate(layoutInflater)
 
