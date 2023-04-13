@@ -13,6 +13,7 @@ class SharedViewModel(appDatabase: AppDatabase, chatTreeDao: ChatTreeDao, chatNo
     val chatTrees = MutableLiveData<MutableList<ChatTree>>()
     val modifiedChatTree = MutableLiveData<Pair<Int, ChatTree>>()
     var activeChatTree: ChatTree? = null
+    val onFabClick: MutableLiveData<(() -> Unit)?> = MutableLiveData(null)
 
     init {
         fetchChatTrees()
@@ -33,7 +34,7 @@ class SharedViewModel(appDatabase: AppDatabase, chatTreeDao: ChatTreeDao, chatNo
     fun addChatTree(chatTree: ChatTree) {
         viewModelScope.launch {
             chatRepository.saveChatTree(chatTree)
-            chatTrees.value?.add(chatTree)
+            chatTrees.value?.add(0, chatTree)
             // chatTrees.value = chatTrees.value //trigger live listener if wanted
         }
     }

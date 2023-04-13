@@ -43,8 +43,6 @@ class ChatTreeAdapter(
          * Setting listeners in init of holder prevents redundantly setting them on each individual item
          */
         init {
-            Log.d("TAG", "INITIALIZATION OF VIEW HOLDER")
-
             binding.chatTreeCardView.setOnTouchListener { view, motionEvent ->
                 // val chatTreeCardView = view as CardView
                 val background = binding.chatTreeCardBackground
@@ -90,7 +88,6 @@ class ChatTreeAdapter(
 
         @SuppressLint("ClickableViewAccessibility")
         fun bind(chatTree: ChatTree) {
-            Log.d("TAG", "INITIALIZATION OF BIND VIEW ITEM")
             binding.apply {
                 chatTreeTitleText.text = chatTree.title
                 chatTreeSettingsText.text = chatTree.gptSettings.toString()
@@ -107,8 +104,8 @@ class ChatTreeAdapter(
     }
 
     fun addItem(chatTree: ChatTree) {
-        chatTrees.add(chatTree)
-        notifyItemInserted(chatTrees.lastIndex)
+        chatTrees.add(0, chatTree)
+        notifyItemInserted(0)
     }
 
     fun updateItem(position: Int, chatTree: ChatTree) {

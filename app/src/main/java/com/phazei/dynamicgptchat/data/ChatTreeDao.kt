@@ -4,7 +4,7 @@ import androidx.room.*
 
 @Dao
 interface ChatTreeDao : BaseDao<ChatTree> {
-    @Query("SELECT * FROM chat_trees")
+    @Query("SELECT * FROM chat_trees ORDER BY updated_at DESC")
     suspend fun getAll(): MutableList<ChatTree>
 
     @Query("SELECT * FROM chat_trees WHERE id = :id")

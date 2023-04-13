@@ -49,16 +49,8 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
         setupRecyclerView()
         sharedViewModel.fetchChatTrees()
 
-        //create a new ChatTree
-        binding.newChatTree.setOnClickListener {
-            // create a new ChatTree instance
-            //TODO: get GPTSettings from app settings so global defaults are used
-            val chatTree = ChatTree("New Tree #${sharedViewModel.chatTrees.value?.size}", GPTSettings())
-            chatTree.rootNode = ChatNode()
+        sharedViewModel.onFabClick.value = { onAddFABClick() }
 
-            sharedViewModel.addChatTree(chatTree)
-            chatTreeAdapter.addItem(chatTree)
-        }
     }
 
     private fun setupRecyclerView() {
@@ -72,6 +64,20 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
                 return 500 //slow down removing
             }
         }
+    }
+
+    fun onAddFABClick() {
+        // create a new ChatTree instance
+        //TODO: get GPTSettings from app settings so global defaults are used
+        val chatTree = ChatTree("New Tree #${sharedViewModel.chatTrees.value?.size}", GPTSettings())
+        chatTree.rootNode = ChatNode()
+
+        binding.chatTreeRecyclerView.layoutManager?.scrollToPosition(0)
+        sharedViewModel.addChatTree(chatTree)
+        chatTreeAdapter.addItem(chatTree)
+
+        sharedViewModel.activeChatTree = chatTree
+        findNavController().navigate(R.id.action_ChatTreeListFragment_to_ChatNodeListFragment)
     }
 
     //@chatTreeAdapter
