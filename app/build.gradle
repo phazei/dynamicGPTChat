@@ -53,6 +53,7 @@ dependencies {
     implementation 'androidx.room:room-runtime:2.5.1'
     implementation "androidx.room:room-ktx:2.5.1"
     ksp 'androidx.room:room-compiler:2.5.1'
+    implementation 'io.noties.markwon:core:4.6.2'
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.aallam.openai:openai-client:3.2.0'
     implementation 'com.google.android.gms:play-services-drive:17.0.0'

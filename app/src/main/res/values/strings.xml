@@ -63,5 +63,6 @@
     <string name="enter_prompt">Enter prompt</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
+    <string name="error_message">Error message</string>
 
 </resources>
