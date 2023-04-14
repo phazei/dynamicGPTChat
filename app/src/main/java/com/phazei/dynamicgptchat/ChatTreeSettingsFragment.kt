@@ -120,18 +120,12 @@ class ChatTreeSettingsFragment : Fragment() {
     private fun setupMenu() {
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
             override fun onPrepareMenu(menu: Menu) {
-                // Handle for example visibility of menu items
+                menu.findItem(R.id.action_settings).isVisible = false
             }
-
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.removeItem(R.id.action_settings)
-                // menu.clear()
-                // menuInflater.inflate(R.menu.menu_chat_node_page, menu)
-            }
-
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {}
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 if (menuItem.itemId == android.R.id.home) {
-                    // let this work exactly the same as the back button
+                    // work as back button to trigger saved check callback
                     requireActivity().onBackPressedDispatcher.onBackPressed()
                     return true
                 }

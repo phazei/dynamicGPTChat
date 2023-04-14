@@ -20,7 +20,7 @@
             app:popExitAnim="@anim/slide_out_right" />
         <action
             android:id="@+id/action_ChatTreeListFragment_to_chatTreeSettingsFragment"
-            app:destination="@id/chatTreeSettingsFragment"
+            app:destination="@id/ChatTreeSettingsFragment"
             app:enterAnim="@anim/slide_in_up"
             app:exitAnim="@anim/stationary"
             app:popEnterAnim="@anim/stationary"
@@ -36,8 +36,8 @@
             android:id="@+id/action_ChatNodeListFragment_to_ChatTreeListFragment"
             app:destination="@id/ChatTreeListFragment" />
         <action
-            android:id="@+id/action_ChatNodeListFragment_to_chatTreeSettingsFragment"
-            app:destination="@id/chatTreeSettingsFragment"
+            android:id="@+id/action_ChatNodeListFragment_to_ChatTreeSettingsFragment"
+            app:destination="@id/ChatTreeSettingsFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -45,7 +45,7 @@
     </fragment>
 
     <fragment
-        android:id="@+id/chatTreeSettingsFragment"
+        android:id="@+id/ChatTreeSettingsFragment"
         android:name="com.phazei.dynamicgptchat.ChatTreeSettingsFragment"
         android:label="@string/chat_tree_settings_label"
         tools:layout="@layout/fragment_chat_tree_settings">

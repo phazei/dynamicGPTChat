@@ -46,17 +46,14 @@ class ChatNodeListFragment : Fragment() {
         (activity as AppCompatActivity).supportActionBar?.title = chatTree.title
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
             override fun onPrepareMenu(menu: Menu) {
-                // Handle for example visibility of menu items
+                menu.findItem(R.id.action_settings).isVisible = false
             }
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.removeItem(R.id.action_settings)
-                // menu.clear()
                 menuInflater.inflate(R.menu.menu_chat_node_page, menu)
             }
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                // Validate and handle the selected menu item
                 if (menuItem.itemId == R.id.action_chat_settings) {
-                    findNavController().navigate(R.id.action_ChatNodeListFragment_to_chatTreeSettingsFragment)
+                    findNavController().navigate(R.id.action_ChatNodeListFragment_to_ChatTreeSettingsFragment)
                     return true
                 }
                 return false
