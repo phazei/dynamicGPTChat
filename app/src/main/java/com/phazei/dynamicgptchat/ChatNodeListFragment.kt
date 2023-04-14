@@ -7,6 +7,7 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
 import com.phazei.dynamicgptchat.data.ChatTree
@@ -22,6 +23,7 @@ class ChatNodeListFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var chatTree: ChatTree
     private val sharedViewModel: SharedViewModel by activityViewModels()
+    private val chatNodeViewModel: ChatNodeViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

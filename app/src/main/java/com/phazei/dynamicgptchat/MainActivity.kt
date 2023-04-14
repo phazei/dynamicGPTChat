@@ -2,11 +2,13 @@ package com.phazei.dynamicgptchat
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -25,6 +27,8 @@ class MainActivity : AppCompatActivity() {
         SharedViewModel.Companion.Factory(AppDatabase.getDatabase(this))
     }
     private val sharedViewModel: SharedViewModel by viewModels { sharedViewModelFactory }
+    //this needs to be bound to activity so it will stay active when switching fragments
+    private val chatNodeViewModel: ChatNodeViewModel by viewModels { ChatNodeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

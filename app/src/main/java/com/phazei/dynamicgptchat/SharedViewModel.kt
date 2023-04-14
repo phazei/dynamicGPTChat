@@ -9,43 +9,9 @@ import com.phazei.dynamicgptchat.data.*
 import kotlinx.coroutines.launch
 
 class SharedViewModel(appDatabase: AppDatabase, chatTreeDao: ChatTreeDao, chatNodeDao: ChatNodeDao) : ViewModel() {
-    private val chatRepository = ChatRepository(appDatabase, chatTreeDao, chatNodeDao)
-    val chatTrees = MutableLiveData<MutableList<ChatTree>>()
-    val modifiedChatTree = MutableLiveData<Pair<Int, ChatTree>>()
+    val chatRepository = ChatRepository(appDatabase, chatTreeDao, chatNodeDao)
     var activeChatTree: ChatTree? = null
     val onFabClick: MutableLiveData<(() -> Unit)?> = MutableLiveData(null)
-
-    init {
-        fetchChatTrees()
-    }
-
-    fun fetchChatTrees() {
-        viewModelScope.launch {
-            chatTrees.value = chatRepository.getAllChatTrees()
-        }
-    }
-
-    fun saveChatTree(chatTree: ChatTree) {
-        viewModelScope.launch {
-            chatRepository.saveChatTree(chatTree)
-        }
-    }
-
-    fun addChatTree(chatTree: ChatTree) {
-        viewModelScope.launch {
-            chatRepository.saveChatTree(chatTree)
-            chatTrees.value?.add(0, chatTree)
-            // chatTrees.value = chatTrees.value //trigger live listener if wanted
-        }
-    }
-
-    fun deleteChatTree(chatTree: ChatTree, position: Int) {
-        viewModelScope.launch {
-            chatRepository.deleteChatTree(chatTree)
-            chatTrees.value?.removeAt(position)
-            // chatTrees.value = chatTrees.value
-        }
-    }
 
     //factory for passing parameters to SharedViewModel upon creation
     companion object {

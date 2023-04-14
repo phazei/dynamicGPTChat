@@ -14,6 +14,7 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
@@ -32,10 +33,11 @@ class ChatTreeSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var chatTree: ChatTree
     private val sharedViewModel: SharedViewModel by activityViewModels()
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels { ChatTreeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
     private var backPressedOnce = false
     private var saved = true
     private lateinit var mToolTipsManager: ToolTipsManager
-    val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
+    private val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,7 +66,7 @@ class ChatTreeSettingsFragment : Fragment() {
             it.requestFocus()
             chatTree.gptSettings = getGPTSettingsModel()
             chatTree.title = binding.titleEditText.text.toString()
-            sharedViewModel.saveChatTree(chatTree)
+            chatTreeViewModel.saveChatTree(chatTree)
             checkModifiedSettings()
         }
 

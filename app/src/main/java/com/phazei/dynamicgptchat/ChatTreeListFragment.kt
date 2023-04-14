@@ -6,12 +6,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.viewModels
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.google.android.material.snackbar.Snackbar
 import androidx.navigation.fragment.findNavController
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeListBinding
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.phazei.dynamicgptchat.data.AppDatabase
 import com.phazei.dynamicgptchat.data.ChatNode
 import com.phazei.dynamicgptchat.data.ChatTree
 import com.phazei.dynamicgptchat.data.GPTSettings
@@ -30,6 +33,8 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
 
     private lateinit var chatTreeAdapter: ChatTreeAdapter
     private val sharedViewModel: SharedViewModel by activityViewModels()
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels { ChatTreeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,11 +48,11 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        sharedViewModel.chatTrees.observe(viewLifecycleOwner) { chatTrees ->
+        chatTreeViewModel.chatTrees.observe(viewLifecycleOwner) { chatTrees ->
             chatTreeAdapter.updateChatTrees(chatTrees.toMutableList())
         }
         setupRecyclerView()
-        sharedViewModel.fetchChatTrees()
+        chatTreeViewModel.fetchChatTrees()
 
         sharedViewModel.onFabClick.value = { onAddFABClick() }
 
@@ -69,11 +74,11 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
     fun onAddFABClick() {
         // create a new ChatTree instance
         //TODO: get GPTSettings from app settings so global defaults are used
-        val chatTree = ChatTree("New Tree #${sharedViewModel.chatTrees.value?.size}", GPTSettings())
+        val chatTree = ChatTree("New Tree #${chatTreeViewModel.chatTrees.value?.size}", GPTSettings())
         chatTree.rootNode = ChatNode()
 
         binding.chatTreeRecyclerView.layoutManager?.scrollToPosition(0)
-        sharedViewModel.addChatTree(chatTree)
+        chatTreeViewModel.addChatTree(chatTree)
         chatTreeAdapter.addItem(chatTree)
 
         sharedViewModel.activeChatTree = chatTree
@@ -103,7 +108,7 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
                     override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
                         super.onDismissed(transientBottomBar, event)
                         if (event != DISMISS_EVENT_ACTION) {
-                            sharedViewModel.deleteChatTree(chatTree, position)
+                            chatTreeViewModel.deleteChatTree(chatTree, position)
                         }
                     }
                 }).show()
