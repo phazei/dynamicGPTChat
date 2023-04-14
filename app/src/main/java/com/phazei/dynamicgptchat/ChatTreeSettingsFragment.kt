@@ -35,6 +35,7 @@ class ChatTreeSettingsFragment : Fragment() {
     private var backPressedOnce = false
     private var saved = true
     private lateinit var mToolTipsManager: ToolTipsManager
+    val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -73,11 +74,12 @@ class ChatTreeSettingsFragment : Fragment() {
             checkModifiedSettings()
         }
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+        //prevent accidental back when not saved
+        dispatcher.addCallback(viewLifecycleOwner) {
             if (onBackPressed()) {
                 // if it's a true onBackPressed, then disable this callback, and hit back again
                 this.isEnabled = false
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+                dispatcher.onBackPressed()
             }
         }
     }
