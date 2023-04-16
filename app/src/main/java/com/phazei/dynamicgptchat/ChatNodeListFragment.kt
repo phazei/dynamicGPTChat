@@ -1,8 +1,12 @@
 package com.phazei.dynamicgptchat
 
+import android.graphics.drawable.AnimatedVectorDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -10,6 +14,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.vectordrawable.graphics.drawable.Animatable2Compat
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.phazei.dynamicgptchat.data.ChatTree
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
 
@@ -39,7 +45,39 @@ class ChatNodeListFragment : Fragment() {
         chatTree = sharedViewModel.activeChatTree!!
 
         setupMenu()
+        setupChatSubmitButton()
 
+    private fun setupChatSubmitButton() {
+        val drawableSendToStop = ContextCompat.getDrawable(requireContext(), R.drawable.avd_send_to_stop) as AnimatedVectorDrawable
+        val drawableStopToSend = ContextCompat.getDrawable(requireContext(), R.drawable.avd_stop_to_send) as AnimatedVectorDrawable
+        val drawableLoadingStop = ContextCompat.getDrawable(requireContext(), R.drawable.stop_and_load) as AnimatedVectorDrawable
+
+        val animationCallback = object : Animatable2Compat.AnimationCallback() {
+            //after button is animated to a stop, switch it to the loading stop button
+            override fun onAnimationEnd(drawable: Drawable) {
+                super.onAnimationEnd(drawable)
+                binding.chatSubmitButton.icon = drawableLoadingStop
+                drawableLoadingStop.start()
+            }
+        }
+        AnimatedVectorDrawableCompat.registerAnimationCallback(drawableSendToStop, animationCallback)
+        var sending = false
+
+        binding.chatSubmitButton.setOnClickListener {
+            // if (!chatNodeViewModel.isRequestActive(chatTree.id)) {
+            //     chatNodeViewModel.makeChatCompletionRequest()
+            // }
+
+            if (!sending) {
+                binding.chatSubmitButton.icon = drawableSendToStop
+                drawableSendToStop.start()
+                sending = true
+            } else {
+                binding.chatSubmitButton.icon = drawableStopToSend
+                drawableStopToSend.start()
+                sending = false
+            }
+        }
     }
 
     private fun setupMenu() {

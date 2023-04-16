@@ -48,15 +48,13 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/submit_button"
-        android:drawableEnd="@drawable/round_send_24"
-        android:drawableTint="?attr/colorOnPrimary"
+        android:id="@+id/chat_submit_button"
+        android:iconTint="?attr/colorOnPrimary"
+        app:icon="@drawable/avd_send_to_stop"
+        app:iconSize="36dp"
+        android:paddingStart="7dp"
         android:gravity="center"
         android:contentDescription="@string/submit"
-        android:text=""
-        android:paddingEnd="10dp"
-        android:minWidth="0dp"
-        android:layout_marginStart="-0dp"
         android:layout_width="50dp"
         android:layout_height="60dp"
         android:layout_marginEnd="8dp"

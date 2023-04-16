@@ -65,4 +65,6 @@
     <string name="edit">Edit</string>
     <string name="error_message">Error message</string>
 
+    <string name="stop_and_load_dot">M 5 2.5 A 2.5 2.5 0 0 1 2.5 5 A 2.5 2.5 0 0 1 0 2.5 A 2.5 2.5 0 0 1 2.5 0 A 2.5 2.5 0 0 1 5 2.5 Z</string>
+
 </resources>
