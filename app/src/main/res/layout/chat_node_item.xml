@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/prompt_text_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/message_bubble_right"
+        android:textColor="?attr/colorOnPrimary"
+        android:gravity="start"
+        android:paddingTop="6dp"
+        android:paddingBottom="12dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:text="@string/prompt"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="@id/guideline10"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <FrameLayout
+        android:visibility="gone"
+        android:id="@+id/edit_prompt_frame"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toBottomOf="@id/prompt_text_view"
+        app:layout_constraintStart_toStartOf="@id/guideline10"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:visibility="visible"
+            android:id="@+id/edit_prompt_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="85dp"
+            android:background="@drawable/message_bubble_right"
+            android:inputType="textMultiLine"
+            android:textColor="?attr/colorOnPrimary"
+            android:textSize="@dimen/abc_text_size_body_1_material"
+            android:gravity="start"
+            android:paddingTop="6dp"
+            android:paddingBottom="12dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="40dp"
+            android:minLines="2"
+            android:maxLines="10"
+            android:text="@string/prompt"
+            android:contentDescription="@string/enter_prompt" />
+
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_gravity="right|center_vertical"
+            android:paddingBottom="6dp"
+            tools:ignore="RtlHardcoded">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/edit_prompt_cancel_button"
+                app:icon="@drawable/round_close_24"
+                app:iconTint="?attr/colorOnPrimaryContainer"
+                app:iconSize="24dp"
+                android:paddingStart="3.5dp"
+                android:gravity="top"
+                android:contentDescription="@string/never_mind"
+                android:layout_width="30dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="6dp"
+                app:cornerRadius="10dp"
+                tools:ignore="RtlHardcoded,RtlSymmetry" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/edit_prompt_submit_button"
+                app:icon="@drawable/avd_send_to_stop"
+                app:iconTint="?attr/colorOnPrimaryContainer"
+                app:iconSize="24dp"
+                android:backgroundTint="?attr/colorPrimaryContainer"
+                android:paddingStart="3.5dp"
+                android:layout_gravity="bottom"
+                android:contentDescription="@string/submit"
+                android:layout_width="30dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="6dp"
+                app:cornerRadius="10dp"
+                tools:ignore="RtlHardcoded,RtlSymmetry" />
+
+        </FrameLayout>
+    </FrameLayout>
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/chat_node_barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="prompt_text_view,edit_prompt_frame" />
+
+    <TextView
+        android:id="@+id/response_text_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/message_bubble_left"
+        android:textColor="?attr/colorOnSecondary"
+        android:gravity="start"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="12dp"
+        android:text="@string/response"
+        app:layout_constraintEnd_toEndOf="@id/guideline90"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chat_node_barrier" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/chat_error_card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:backgroundTint="?attr/colorErrorContainer"
+        app:layout_constraintEnd_toEndOf="@id/guideline90"
+        app:layout_constraintStart_toStartOf="@id/guideline10"
+        app:layout_constraintTop_toBottomOf="@id/response_text_view"
+        app:cardCornerRadius="5dp"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/error_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textColor="?attr/colorOnErrorContainer"
+            android:text="@string/error_message"/>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.1" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline90"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.9" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

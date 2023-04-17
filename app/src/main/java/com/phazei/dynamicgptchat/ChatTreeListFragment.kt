@@ -6,17 +6,18 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.util.Log
-import android.view.MotionEvent
 import androidx.activity.viewModels
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.navigation.Navigation.findNavController
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.google.android.material.snackbar.Snackbar
 import androidx.navigation.fragment.findNavController
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeListBinding
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.phazei.dynamicgptchat.data.AppDatabase
+import com.phazei.dynamicgptchat.data.ChatNode
+import com.phazei.dynamicgptchat.data.ChatTree
+import com.phazei.dynamicgptchat.data.GPTSettings
 
 
 /**
@@ -31,8 +32,9 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
     private val binding get() = _binding!!
 
     private lateinit var chatTreeAdapter: ChatTreeAdapter
-    private lateinit var chatTreeDataSource: MutableList<ChatTree>
     private val sharedViewModel: SharedViewModel by activityViewModels()
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels { ChatTreeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,71 +48,75 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupRecyclerView()
-
-        var counter = 0
-        binding.newChatTree.setOnClickListener {
-            Log.d("TAG", "clicky dicky do")
-            // create a new ChatTree instance
-            counter++
-            val chatTree = ChatTree(0, "hellz yeah $counter", "", GPTSettings(), null)
-            // add it to the data source of the RecyclerView
-            chatTreeDataSource.add(chatTree)
-            // notify the adapter to reflect the changes in the data
-            chatTreeAdapter.notifyItemInserted(chatTreeDataSource.lastIndex)
-
+        chatTreeViewModel.chatTrees.observe(viewLifecycleOwner) { chatTrees ->
+            chatTreeAdapter.updateChatTrees(chatTrees.toMutableList())
         }
+        setupRecyclerView()
+        chatTreeViewModel.fetchChatTrees()
+
+        sharedViewModel.onFabClick.value = { onAddFABClick() }
+
     }
 
     private fun setupRecyclerView() {
-        chatTreeDataSource = sharedViewModel.chatTrees.value ?: mutableListOf()
-        chatTreeDataSource.add(ChatTree(0, "Title 1", "System Message 1", GPTSettings()))
-        chatTreeDataSource.add(ChatTree(1, "Title 2", "System Message 2", GPTSettings()))
+        chatTreeAdapter = ChatTreeAdapter(mutableListOf(), this)
 
-        chatTreeAdapter = ChatTreeAdapter(chatTreeDataSource, this)
-
-        binding.chatTreeRecyclerView.layoutManager = LinearLayoutManager(context)
-        binding.chatTreeRecyclerView.adapter = chatTreeAdapter
-        binding.chatTreeRecyclerView.itemAnimator = object : DefaultItemAnimator() {
-            override fun getRemoveDuration(): Long {
-                return 500
+        //LinearLayoutManager necessary for swipereveal
+        binding.chatTreeRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = chatTreeAdapter
+            itemAnimator = object : DefaultItemAnimator() {
+                override fun getRemoveDuration(): Long {
+                    return 500 //slow down removing
+                }
             }
         }
     }
 
-    override fun onItemClick(chatTree: ChatTree, position: Int) {
+    fun onAddFABClick() {
+        // create a new ChatTree instance
+        val chatTree = ChatTree("New Tree #${chatTreeViewModel.chatTrees.value?.size}")
+
+        binding.chatTreeRecyclerView.layoutManager?.scrollToPosition(0)
+        chatTreeViewModel.addChatTree(chatTree)
+        chatTreeAdapter.addItem(chatTree)
+
         sharedViewModel.activeChatTree = chatTree
         findNavController().navigate(R.id.action_ChatTreeListFragment_to_ChatNodeListFragment)
     }
 
+    //@chatTreeAdapter
+    override fun onItemClick(chatTree: ChatTree, position: Int) {
+        sharedViewModel.activeChatTree = chatTree
+        findNavController().navigate(R.id.action_ChatTreeListFragment_to_ChatNodeListFragment)
+    }
+    //@chatTreeAdapter
     override fun onEditClick(chatTree: ChatTree, position: Int) {
-
-        Snackbar.make(binding.root, "Edit Screen", Snackbar.LENGTH_LONG)
-            .setAction(""){}.show()
-//        TODO("Not yet implemented")
         sharedViewModel.activeChatTree = chatTree
         findNavController().navigate(R.id.action_ChatTreeListFragment_to_chatTreeSettingsFragment)
     }
-
+    //@chatTreeAdapter Deletes chatTree item but provides a few second to undo action using Snackbar
     override fun onDeleteClick(chatTree: ChatTree, position: Int) {
-        Log.d("TAG", "delete button: $position")
         if (position != -1) {
-            chatTreeDataSource.removeAt(position)
-            chatTreeAdapter.notifyItemRemoved(position)
+            chatTreeAdapter.deleteItem(position)
 
             Snackbar.make(binding.root, "Item deleted", Snackbar.LENGTH_LONG)
                 .setAction("Undo") {
-                // Restore the deleted item
-                chatTreeAdapter.restoreItem(chatTree, position)
-            }.show()
-
+                    // Restore the deleted item
+                    chatTreeAdapter.restoreItem(chatTree, position)
+                }.addCallback(object : Snackbar.Callback() {
+                    override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                        super.onDismissed(transientBottomBar, event)
+                        if (event != DISMISS_EVENT_ACTION) {
+                            chatTreeViewModel.deleteChatTree(chatTree, position)
+                        }
+                    }
+                }).show()
         }
-
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
 }

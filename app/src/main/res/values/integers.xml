@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="stop_and_go_duration">800</integer>
+    <integer name="stop_and_go_offset_1">0</integer>
+    <integer name="stop_and_go_offset_2">200</integer>
+    <integer name="stop_and_go_offset_3">400</integer>
+    <integer name="stop_and_go_offset_4">600</integer>
+    <integer name="stop_and_go_offset_5">800</integer>
+    <integer name="stop_and_go_offset_6">1000</integer>
+    <integer name="stop_and_go_offset_7">1200</integer>
+    <integer name="stop_and_go_offset_8">1400</integer>
+</resources>

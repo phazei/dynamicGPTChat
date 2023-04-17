@@ -17,4 +17,8 @@
 
         <attr name="minDistRequestDisallowParent" format="dimension" />
     </declare-styleable>
+
+    <item name="stop_and_go_scale_up" type="dimen">0.9</item>
+    <item name="stop_and_go_scale_down" type="dimen">0.2</item>
+
 </resources>

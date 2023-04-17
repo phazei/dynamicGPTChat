@@ -1,3 +1,8 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
+
+    <dimen name="speech_bubble_corners">5dp</dimen>
+    <dimen name="speech_bubble_corners_plus_tail">10dp</dimen>
+    <dimen name="speech_bubble_tail_space">5dp</dimen>
+    <dimen name="speech_bubble_tail">15dp</dimen>
 </resources>

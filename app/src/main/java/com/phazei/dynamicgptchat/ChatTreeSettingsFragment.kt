@@ -5,21 +5,21 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.util.TypedValue
 import android.view.*
 import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.Spinner
 import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
+import com.phazei.dynamicgptchat.data.ChatTree
+import com.phazei.dynamicgptchat.data.GPTSettings
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
 import com.phazei.utils.setChangeListener
 import com.tomergoldst.tooltips.ToolTip
@@ -33,9 +33,11 @@ class ChatTreeSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var chatTree: ChatTree
     private val sharedViewModel: SharedViewModel by activityViewModels()
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels { ChatTreeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
     private var backPressedOnce = false
     private var saved = true
     private lateinit var mToolTipsManager: ToolTipsManager
+    private val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,22 +62,27 @@ class ChatTreeSettingsFragment : Fragment() {
 
         // saves items
         binding.saveChatSettingsButton.setOnClickListener {
-            chatTree.gptSettings = getGPTSettingsModel()
+            if (previousView != null) mToolTipsManager.findAndDismiss(previousView)
+            it.requestFocus()
+            chatTree.gptSettings = getGPTSettingsModel(chatTree.gptSettings)
             chatTree.title = binding.titleEditText.text.toString()
+            chatTreeViewModel.saveChatTree(chatTree)
+            chatTreeViewModel.saveGptSettings(chatTree.gptSettings)
             checkModifiedSettings()
         }
 
         // if anything is modified, this will be sure to mark it as not saved
         // and change the background color as an indicator
-        binding.chatSettings.setChangeListener { view ->
+        binding.chatSettings.setChangeListener {
             checkModifiedSettings()
         }
 
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+        //prevent accidental back when not saved
+        dispatcher.addCallback(viewLifecycleOwner) {
             if (onBackPressed()) {
                 // if it's a true onBackPressed, then disable this callback, and hit back again
                 this.isEnabled = false
-                requireActivity().onBackPressedDispatcher.onBackPressed()
+                dispatcher.onBackPressed()
             }
         }
     }
@@ -86,7 +93,8 @@ class ChatTreeSettingsFragment : Fragment() {
      */
     private fun checkModifiedSettings() {
         val settings = getGPTSettingsModel()
-        if (chatTree.gptSettings == settings && chatTree.title == binding.titleEditText.text.toString()) {
+        val savedSettings = chatTree.gptSettings.copy(id = 0) //ID must be zero to match default
+        if (savedSettings == settings && chatTree.title == binding.titleEditText.text.toString()) {
             saved = true
             binding.chatSettings.setBackgroundColor(Color.TRANSPARENT)
         } else {
@@ -95,8 +103,9 @@ class ChatTreeSettingsFragment : Fragment() {
         }
     }
 
-    private fun getGPTSettingsModel(): GPTSettings {
-        return GPTSettings(
+    private fun getGPTSettingsModel(gptSettings: GPTSettings? = null): GPTSettings {
+        val settings = gptSettings ?: GPTSettings()
+        return settings.copy(
             systemMessage = binding.systemMessageText.text.toString(),
             mode = binding.modeSpinner.selectedItem.toString(),
             model = binding.modelSpinner.selectedItem.toString(),
@@ -105,6 +114,8 @@ class ChatTreeSettingsFragment : Fragment() {
             topP = binding.topPSlider.value,
             frequencyPenalty = binding.frequencyPenaltySlider.value,
             presencePenalty = binding.presencePenaltySlider.value,
+            stop = binding.stopText.text.toString(),
+            n = binding.numberOfSlider.value.toInt(),
             bestOf = binding.bestOfSlider.value.toInt(),
             injectStartText = binding.injectStartText.text.toString(),
             injectRestartText = binding.injectRestartText.text.toString()
@@ -114,18 +125,12 @@ class ChatTreeSettingsFragment : Fragment() {
     private fun setupMenu() {
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
             override fun onPrepareMenu(menu: Menu) {
-                // Handle for example visibility of menu items
+                menu.findItem(R.id.action_settings).isVisible = false
             }
-
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.removeItem(R.id.action_settings)
-                // menu.clear()
-                // menuInflater.inflate(R.menu.menu_chat_node_page, menu)
-            }
-
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {}
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 if (menuItem.itemId == android.R.id.home) {
-                    // let this work exactly the same as the back button
+                    // work as back button to trigger saved check callback
                     requireActivity().onBackPressedDispatcher.onBackPressed()
                     return true
                 }
@@ -143,6 +148,8 @@ class ChatTreeSettingsFragment : Fragment() {
 
         // Populate the title input
         binding.titleEditText.setText(chatTree.title)
+
+        binding.systemMessageText.setText(settings.systemMessage)
 
         // Populate the mode spinner
         val modeOptions = resources.getStringArray(R.array.mode_options)
@@ -179,6 +186,12 @@ class ChatTreeSettingsFragment : Fragment() {
         // Populate the presence penalty slider
         binding.presencePenaltySlider.value = settings.presencePenalty
 
+        // Populate the number of results slider
+        binding.stopText.setText(settings.stop)
+
+        // Populate the number of results slider
+        binding.numberOfSlider.value = settings.n.toFloat()
+
         // Populate the best of slider
         binding.bestOfSlider.value = settings.bestOf.toFloat()
 
@@ -192,9 +205,9 @@ class ChatTreeSettingsFragment : Fragment() {
 
     //Update all slider labels to include the value next to the label text
     private fun setupSliderText() {
-        val sliderIds = listOf(R.id.temperature_slider, R.id.max_tokens_slider, R.id.top_p_slider, R.id.frequency_penalty_slider, R.id.presence_penalty_slider, R.id.best_of_slider)
-        val textViewIds = listOf(R.id.temperature_text, R.id.max_tokens_text, R.id.top_p_text, R.id.frequency_penalty_text, R.id.presence_penalty_text, R.id.best_of_text)
-        val stringResourceIds = listOf(R.string.temperature_label, R.string.max_tokens_label, R.string.top_p_label, R.string.frequency_penalty_label, R.string.presence_penalty_label, R.string.best_of_label)
+        val sliderIds = listOf(R.id.temperature_slider, R.id.max_tokens_slider, R.id.top_p_slider, R.id.frequency_penalty_slider, R.id.presence_penalty_slider, R.id.number_of_slider, R.id.best_of_slider)
+        val textViewIds = listOf(R.id.temperature_text, R.id.max_tokens_text, R.id.top_p_text, R.id.frequency_penalty_text, R.id.presence_penalty_text, R.id.number_of_text, R.id.best_of_text)
+        val stringResourceIds = listOf(R.string.temperature_label, R.string.max_tokens_label, R.string.top_p_label, R.string.frequency_penalty_label, R.string.presence_penalty_label, R.string.number_of_label, R.string.best_of_label)
 
         for (i in sliderIds.indices) {
             val slider = binding.root.findViewById<Slider>(sliderIds[i])
@@ -212,6 +225,7 @@ class ChatTreeSettingsFragment : Fragment() {
     private fun setupToolTips() {
         //items with empty strings will only close the previous tooltip when triggered
         setupTooltip(binding.titleEditText, "")
+        setupTooltip(binding.systemMessageText, getString(R.string.system_message_tooltip))
         setupTooltip(binding.modeSpinner, "")
         setupTooltip(binding.modelSpinner, getString(R.string.model_tooltip))
         setupTooltip(binding.temperatureSlider, getString(R.string.temperature_tooltip))
@@ -219,11 +233,11 @@ class ChatTreeSettingsFragment : Fragment() {
         setupTooltip(binding.topPSlider, getString(R.string.top_p_tooltip))
         setupTooltip(binding.frequencyPenaltySlider, getString(R.string.frequency_penalty_tooltip))
         setupTooltip(binding.presencePenaltySlider, getString(R.string.presence_penalty_tooltip))
+        setupTooltip(binding.stopText, getString(R.string.stop_text_tooltip))
+        setupTooltip(binding.numberOfSlider, getString(R.string.number_of_tooltip))
         setupTooltip(binding.bestOfSlider, getString(R.string.best_of_tooltip))
         setupTooltip(binding.injectStartText, getString(R.string.inject_start_text_tooltip))
         setupTooltip(binding.injectRestartText, getString(R.string.inject_restart_text_tooltip))
-        setupTooltip(binding.systemMessageText, getString(R.string.system_message_tooltip))
-        setupTooltip(binding.saveChatSettingsButton, "")
     }
 
     private var previousView: View? = null
@@ -244,37 +258,44 @@ class ChatTreeSettingsFragment : Fragment() {
 
         var tipView: View? = null
 
+        fun longTouch(v : View) {
+            if (tipView == null || !mToolTipsManager.isVisible(tipView)) {
+                //it hasn't been created, and it's not currently being shown
+                if (message != "") {
+                    //need to include empty messages so Focus listener will still close previous popup
+                    tipView = mToolTipsManager.show(builder.build())
+                }
+            }
+            if (previousView != null && previousView != v) {
+                //it wasn't the one just opened
+                mToolTipsManager.findAndDismiss(previousView)
+            }
+            previousView = v
+        }
         //if this is set in the XML it's just ignored and doesn't work
-        view.isFocusable = true;
-        view.isFocusableInTouchMode = true;
+        view.isFocusable = true
+        view.isFocusableInTouchMode = true
         when (view) {
             is Slider -> {
-                view.setOnTouchListener() { _, motionEvent ->
-                    if (motionEvent.action == MotionEvent.ACTION_DOWN) {
-                        view.requestFocus()
+                view.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                    override fun onStartTrackingTouch(slider: Slider) {
+                        longTouch(slider)
                     }
-                    false//not consumed
+                    override fun onStopTrackingTouch(slider: Slider) {
+                        mToolTipsManager.findAndDismiss(previousView)
+                    }
+                })
+            }
+            else -> {
+                view.setOnLongClickListener { v ->
+                    longTouch(v)
+                    true
                 }
             }
         }
-        view.setOnFocusChangeListener { v, hasFocus ->
-                if (hasFocus) {
-                    if (tipView == null || !mToolTipsManager.isVisible(tipView)) {
-                        //it hasn't been created, and it's not currently being shown
-                        if (message != "") {
-                            //need to include empty messages so Focus listener will still close previous popup
-                            tipView = mToolTipsManager.show(builder.build())
-                        }
-                    }
-                    if (previousView != null && previousView != v) {
-                        //it wasn't the one just opened
-                        mToolTipsManager.findAndDismiss(previousView);
-                    }
-                }
-                previousView = v
-            }
     }
 
+    @Suppress("LiftReturnOrAssignment")
     private fun onBackPressed(): Boolean {
         if (!saved && !backPressedOnce) {
             Snackbar.make(binding.root, "Not saved, hit back again to leave", Snackbar.LENGTH_LONG)
