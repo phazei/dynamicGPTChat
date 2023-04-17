@@ -12,6 +12,7 @@ import com.phazei.dynamicgptchat.data.ChatTree
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
 import java.security.InvalidParameterException
 
+@Suppress("unused")
 class ChatNodeAdapter(
     private val chatNodes: MutableList<ChatNode>,
     private val onChatNodeClick: (ChatNode) -> Unit,
@@ -33,6 +34,7 @@ class ChatNodeAdapter(
         return chatNodes.size
     }
 
+    @Suppress("RedundantEmptyInitializerBlock")
     inner class ChatNodeViewHolder(private val binding: ChatNodeItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

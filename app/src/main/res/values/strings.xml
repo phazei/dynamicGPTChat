@@ -31,6 +31,8 @@
     <string name="top_p_label">TopP (%.2f)</string>
     <string name="frequency_penalty_label">Frequency Penalty (%.2f)</string>
     <string name="presence_penalty_label">Presence Penalty (%.2f)</string>
+    <string name="stop_text_label">Stop String</string>
+    <string name="number_of_label">Number of (%.0f)</string>
     <string name="best_of_label">Best of (%.0f)</string>
     <string name="inject_start_text_label">Inject Start Text</string>
     <string name="inject_start_text_hint">Enter text to inject at the start</string>
@@ -48,17 +50,19 @@
         <item>text-ada-002</item>
     </string-array>
     <string name="title_tooltip"></string>
-    <string name="mode_tooltip">The "completion" mode generates text to complete a prompt or sentence, while the "chat" mode generates text in a conversational context.</string>
-    <string name="model_tooltip">The GPT model to use. Different models have different capabilities and may perform better or worse depending on the task.</string>
-    <string name="temperature_tooltip">The "temperature" parameter controls the "creativity" of the generated text. Lower values will result in more conservative, predictable text, while higher values will result in more unexpected and creative text.</string>
-    <string name="max_tokens_tooltip">The maximum number of tokens (words or symbols) to generate in the output.</string>
-    <string name="top_p_tooltip">The "TopP" parameter controls the amount of "diversity" in the generated text. Higher values will result in more diverse output, while lower values will result in more repetitive output.</string>
-    <string name="frequency_penalty_tooltip">The frequency penalty adjusts how much the model will try to avoid repeating the same words or phrases in the output.</string>
-    <string name="presence_penalty_tooltip">The presence penalty adjusts how much the model will try to avoid including words or phrases that were in the prompt in the output.</string>
-    <string name="best_of_tooltip">The "Best of" parameter controls how many output sequences the model generates, and returns the highest-scoring one.</string>
-    <string name="inject_start_text_tooltip">Text to inject at the start of the generated output, before the generated text.</string>
-    <string name="inject_restart_text_tooltip">Text to inject when the model generates multiple output sequences, between each sequence.</string>
-    <string name="system_message_tooltip">A "system message" is a message that is used to instruct the ChatGPT model on how it should behave and any context it should reference when generating a response</string>
+    <string name="mode_tooltip">"Mode" for generating text: \'completion\' for completing a prompt or sentence, and \'chat\' for generating text in a conversational context.</string>
+    <string name="model_tooltip">"GPT model" to use for text generation: Each model has different capabilities and performance on different tasks.</string>
+    <string name="temperature_tooltip">"Temperature" controls text creativity: lower values produce conservative, predictable text, while higher values result in more creative and unexpected text.</string>
+    <string name="max_tokens_tooltip">"The "maximum number of tokens (words or symbols) to generate in the output.</string>
+    <string name="top_p_tooltip">"TopP" controls text diversity: higher values, more diverse output; lower values, more repetition.</string>
+    <string name="frequency_penalty_tooltip">"Frequency penalty": controls how much the model avoids repeating words or phrases in output.</string>
+    <string name="presence_penalty_tooltip">"Presence penalty": controls how much the model avoids including prompt words or phrases in output.</string>
+    <string name="stop_text_tooltip">"Presence penalty": controls how much the model avoids including prompt words or phrases in output.</string>
+    <string name="number_of_tooltip">"n" parameter: controls the number of output sequences the model returns.</string>
+    <string name="best_of_tooltip">"Best of": controls the number of output sequences the model generates, returning the highest-scoring one.</string>
+    <string name="inject_start_text_tooltip">"Inject start text": text to add before the generated output.</string>
+    <string name="inject_restart_text_tooltip">"Inject restart text": text to add between multiple output sequences.</string>
+    <string name="system_message_tooltip">"System message": message used to instruct ChatGPT on how to behave and the context to reference.</string>
     <string name="submit">Submit</string>
     <string name="enter_prompt">Enter prompt</string>
     <string name="delete">Delete</string>

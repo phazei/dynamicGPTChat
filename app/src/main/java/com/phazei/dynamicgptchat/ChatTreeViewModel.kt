@@ -23,6 +23,12 @@ class ChatTreeViewModel(private val chatRepository: ChatRepository) : ViewModel(
         }
     }
 
+    fun saveGptSettings(gptSettings: GPTSettings) {
+        viewModelScope.launch {
+            chatRepository.saveGptSettings(gptSettings)
+        }
+    }
+
     fun addChatTree(chatTree: ChatTree) {
         viewModelScope.launch {
             chatRepository.saveChatTree(chatTree)

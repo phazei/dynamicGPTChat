@@ -75,9 +75,7 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
 
     fun onAddFABClick() {
         // create a new ChatTree instance
-        //TODO: get GPTSettings from app settings so global defaults are used
-        val chatTree = ChatTree("New Tree #${chatTreeViewModel.chatTrees.value?.size}", GPTSettings())
-        chatTree.rootNode = ChatNode()
+        val chatTree = ChatTree("New Tree #${chatTreeViewModel.chatTrees.value?.size}")
 
         binding.chatTreeRecyclerView.layoutManager?.scrollToPosition(0)
         chatTreeViewModel.addChatTree(chatTree)

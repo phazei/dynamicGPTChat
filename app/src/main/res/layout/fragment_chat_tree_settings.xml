@@ -27,6 +27,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:hint="@string/title_hint">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -49,6 +50,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:hint="@string/system_message_hint">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -90,6 +92,7 @@
             android:id="@+id/model_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:entries="@array/model_options" />
 
         <!-- Temperature -->
@@ -187,6 +190,48 @@
             android:valueTo="2"
             app:labelBehavior="floating" />
 
+        <!-- Stop Start Text -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/stop_text_label"
+            android:labelFor="@id/stop_text"
+            />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:hint="@string/inject_start_text_hint">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/stop_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Number of -->
+        <TextView
+            android:id="@+id/number_of_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/number_of_label"
+            android:labelFor="@id/number_of_slider"
+            />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/number_of_slider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stepSize="1"
+            android:value="1"
+            android:valueFrom="1"
+            android:valueTo="5"
+            app:labelBehavior="floating" />
+
         <!-- Best of -->
         <TextView
             android:id="@+id/best_of_text"
@@ -217,6 +262,7 @@
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:hint="@string/inject_start_text_hint">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -233,12 +279,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/inject_restart_text_label"
-            android:labelFor="@id/inject_restart_text"
-            />
+            android:labelFor="@id/inject_restart_text" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:hint="@string/inject_restart_text_hint">
 
             <com.google.android.material.textfield.TextInputEditText

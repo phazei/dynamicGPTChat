@@ -64,9 +64,10 @@ class ChatTreeSettingsFragment : Fragment() {
         binding.saveChatSettingsButton.setOnClickListener {
             if (previousView != null) mToolTipsManager.findAndDismiss(previousView)
             it.requestFocus()
-            chatTree.gptSettings = getGPTSettingsModel()
+            chatTree.gptSettings = getGPTSettingsModel(chatTree.gptSettings)
             chatTree.title = binding.titleEditText.text.toString()
             chatTreeViewModel.saveChatTree(chatTree)
+            chatTreeViewModel.saveGptSettings(chatTree.gptSettings)
             checkModifiedSettings()
         }
 
@@ -92,7 +93,8 @@ class ChatTreeSettingsFragment : Fragment() {
      */
     private fun checkModifiedSettings() {
         val settings = getGPTSettingsModel()
-        if (chatTree.gptSettings == settings && chatTree.title == binding.titleEditText.text.toString()) {
+        val savedSettings = chatTree.gptSettings.copy(id = 0) //ID must be zero to match default
+        if (savedSettings == settings && chatTree.title == binding.titleEditText.text.toString()) {
             saved = true
             binding.chatSettings.setBackgroundColor(Color.TRANSPARENT)
         } else {
@@ -101,8 +103,9 @@ class ChatTreeSettingsFragment : Fragment() {
         }
     }
 
-    private fun getGPTSettingsModel(): GPTSettings {
-        return GPTSettings(
+    private fun getGPTSettingsModel(gptSettings: GPTSettings? = null): GPTSettings {
+        val settings = gptSettings ?: GPTSettings()
+        return settings.copy(
             systemMessage = binding.systemMessageText.text.toString(),
             mode = binding.modeSpinner.selectedItem.toString(),
             model = binding.modelSpinner.selectedItem.toString(),
@@ -111,6 +114,8 @@ class ChatTreeSettingsFragment : Fragment() {
             topP = binding.topPSlider.value,
             frequencyPenalty = binding.frequencyPenaltySlider.value,
             presencePenalty = binding.presencePenaltySlider.value,
+            stop = binding.stopText.text.toString(),
+            n = binding.numberOfSlider.value.toInt(),
             bestOf = binding.bestOfSlider.value.toInt(),
             injectStartText = binding.injectStartText.text.toString(),
             injectRestartText = binding.injectRestartText.text.toString()
@@ -143,6 +148,8 @@ class ChatTreeSettingsFragment : Fragment() {
 
         // Populate the title input
         binding.titleEditText.setText(chatTree.title)
+
+        binding.systemMessageText.setText(settings.systemMessage)
 
         // Populate the mode spinner
         val modeOptions = resources.getStringArray(R.array.mode_options)
@@ -179,6 +186,12 @@ class ChatTreeSettingsFragment : Fragment() {
         // Populate the presence penalty slider
         binding.presencePenaltySlider.value = settings.presencePenalty
 
+        // Populate the number of results slider
+        binding.stopText.setText(settings.stop)
+
+        // Populate the number of results slider
+        binding.numberOfSlider.value = settings.n.toFloat()
+
         // Populate the best of slider
         binding.bestOfSlider.value = settings.bestOf.toFloat()
 
@@ -192,9 +205,9 @@ class ChatTreeSettingsFragment : Fragment() {
 
     //Update all slider labels to include the value next to the label text
     private fun setupSliderText() {
-        val sliderIds = listOf(R.id.temperature_slider, R.id.max_tokens_slider, R.id.top_p_slider, R.id.frequency_penalty_slider, R.id.presence_penalty_slider, R.id.best_of_slider)
-        val textViewIds = listOf(R.id.temperature_text, R.id.max_tokens_text, R.id.top_p_text, R.id.frequency_penalty_text, R.id.presence_penalty_text, R.id.best_of_text)
-        val stringResourceIds = listOf(R.string.temperature_label, R.string.max_tokens_label, R.string.top_p_label, R.string.frequency_penalty_label, R.string.presence_penalty_label, R.string.best_of_label)
+        val sliderIds = listOf(R.id.temperature_slider, R.id.max_tokens_slider, R.id.top_p_slider, R.id.frequency_penalty_slider, R.id.presence_penalty_slider, R.id.number_of_slider, R.id.best_of_slider)
+        val textViewIds = listOf(R.id.temperature_text, R.id.max_tokens_text, R.id.top_p_text, R.id.frequency_penalty_text, R.id.presence_penalty_text, R.id.number_of_text, R.id.best_of_text)
+        val stringResourceIds = listOf(R.string.temperature_label, R.string.max_tokens_label, R.string.top_p_label, R.string.frequency_penalty_label, R.string.presence_penalty_label, R.string.number_of_label, R.string.best_of_label)
 
         for (i in sliderIds.indices) {
             val slider = binding.root.findViewById<Slider>(sliderIds[i])
@@ -212,6 +225,7 @@ class ChatTreeSettingsFragment : Fragment() {
     private fun setupToolTips() {
         //items with empty strings will only close the previous tooltip when triggered
         setupTooltip(binding.titleEditText, "")
+        setupTooltip(binding.systemMessageText, getString(R.string.system_message_tooltip))
         setupTooltip(binding.modeSpinner, "")
         setupTooltip(binding.modelSpinner, getString(R.string.model_tooltip))
         setupTooltip(binding.temperatureSlider, getString(R.string.temperature_tooltip))
@@ -219,10 +233,11 @@ class ChatTreeSettingsFragment : Fragment() {
         setupTooltip(binding.topPSlider, getString(R.string.top_p_tooltip))
         setupTooltip(binding.frequencyPenaltySlider, getString(R.string.frequency_penalty_tooltip))
         setupTooltip(binding.presencePenaltySlider, getString(R.string.presence_penalty_tooltip))
+        setupTooltip(binding.stopText, getString(R.string.stop_text_tooltip))
+        setupTooltip(binding.numberOfSlider, getString(R.string.number_of_tooltip))
         setupTooltip(binding.bestOfSlider, getString(R.string.best_of_tooltip))
         setupTooltip(binding.injectStartText, getString(R.string.inject_start_text_tooltip))
         setupTooltip(binding.injectRestartText, getString(R.string.inject_restart_text_tooltip))
-        setupTooltip(binding.systemMessageText, getString(R.string.system_message_tooltip))
     }
 
     private var previousView: View? = null

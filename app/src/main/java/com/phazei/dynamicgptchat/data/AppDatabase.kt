@@ -6,13 +6,15 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [ChatTree::class, ChatNode::class], version = 1, exportSchema = false)
+@Database(entities = [ChatTree::class, ChatNode::class, GPTSettings::class], version = 1, exportSchema = false)
 @TypeConverters(DateConverter::class, UsageTypeConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun chatTreeDao(): ChatTreeDao
 
     abstract fun chatNodeDao(): ChatNodeDao
+
+    abstract fun gptSettingsDao(): GPTSettingsDao
 
     companion object {
         @Volatile

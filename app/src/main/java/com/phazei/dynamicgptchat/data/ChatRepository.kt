@@ -8,17 +8,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @OptIn(BetaOpenAI::class)
-class ChatRepository(private val database: AppDatabase, private val chatTreeDao: ChatTreeDao, private val chatNodeDao: ChatNodeDao) {
+class ChatRepository(
+    private val database: AppDatabase,
+    private val chatTreeDao: ChatTreeDao,
+    private val chatNodeDao: ChatNodeDao,
+    private val gptSettingsDao: GPTSettingsDao
+) {
 
     suspend fun getAllChatTrees(): MutableList<ChatTree> {
         val chatTrees = chatTreeDao.getAll()
-        chatTrees.forEach { it.rootNode = chatNodeDao.getById(it.rootChatNodeId!!) }
+        chatTrees.forEach {
+            it.rootNode = chatNodeDao.getById(it.rootChatNodeId!!)
+            it.gptSettings = gptSettingsDao.getById(it.gptSettingsId!!)
+        }
         return chatTrees
     }
 
     suspend fun getChatTreeById(id: Long): ChatTree {
         val chatTree = chatTreeDao.getById(id)
         chatTree.rootNode = chatNodeDao.getById(chatTree.rootChatNodeId!!)
+        chatTree.gptSettings = gptSettingsDao.getById(chatTree.gptSettingsId!!)
         return chatTree
     }
 
@@ -34,23 +43,34 @@ class ChatRepository(private val database: AppDatabase, private val chatTreeDao:
                 } else {
                     chatTreeDao.updateWithTimestamp(chatTree)
                 }
-
+                var needsUpdate = false
                 // If rootNode is initialized and rootChatNodeId is null, save or update rootNode and set rootChatNodeId
                 if (chatTree.rootChatNodeId == null) {
-                    if (chatTree.rootNodeInitialized()) {
-                        val rootNode = chatTree.rootNode.apply { chatTreeId = chatTree.id }
+                    val rootNode = chatTree.rootNode.apply { chatTreeId = chatTree.id }
 
-                        if (rootNode.id == 0L) {
-                            rootNode.id = chatNodeDao.insert(rootNode)
-                        } else {
-                            chatNodeDao.updateWithTimestamp(rootNode)
-                        }
-
-                        chatTree.rootChatNodeId = rootNode.id
-                        chatTreeDao.updateWithTimestamp(chatTree)
+                    if (rootNode.id == 0L) {
+                        rootNode.id = chatNodeDao.insert(rootNode)
                     } else {
-                        throw IllegalArgumentException("ChatTree must have a rootChatNodeId or an initialized rootNode")
+                        chatNodeDao.updateWithTimestamp(rootNode)
                     }
+                    chatTree.rootChatNodeId = rootNode.id
+                    needsUpdate = true
+                }
+                // If gptSettingsId is null, save or update gptSettings and set gptSettingsId
+                if (chatTree.gptSettingsId == null) {
+                    val gptSettings = chatTree.gptSettings
+
+                    if (gptSettings.id == 0L) {
+                        gptSettings.id = gptSettingsDao.insert(gptSettings)
+                    } else {
+                        gptSettingsDao.update(gptSettings)
+                    }
+
+                    chatTree.gptSettingsId = gptSettings.id
+                    needsUpdate = true
+                }
+                if (needsUpdate) {
+                    chatTreeDao.updateWithTimestamp(chatTree)
                 }
             }
         }
@@ -86,6 +106,12 @@ class ChatRepository(private val database: AppDatabase, private val chatTreeDao:
         }
     }
 
+    suspend fun saveGptSettings(gptSettings: GPTSettings) {
+        withContext(Dispatchers.IO) {
+            gptSettingsDao.upsert(gptSettings)
+        }
+    }
+
     /**
      * Loads all children for entire branch and assigns parent as well
      */
@@ -105,6 +131,14 @@ class ChatRepository(private val database: AppDatabase, private val chatTreeDao:
 
     suspend fun deleteChatNode(chatNode: ChatNode) = chatNodeDao.delete(chatNode)
 
+    /**
+     * The following non-suspension methods are helper functions to manage the entities after
+     * the relationship models have been attached to them
+     */
+
+    /**
+     * Crawls down active chatNodes till it reaches a leaf and returns it
+     */
     fun getActiveLeaf(chatNode: ChatNode): ChatNode {
         var currentNode = chatNode
         while (currentNode.children.isNotEmpty()) {
@@ -113,6 +147,9 @@ class ChatRepository(private val database: AppDatabase, private val chatTreeDao:
         return currentNode
     }
 
+    /**
+     * Returns a flat list of chatNodes starting from the one provided and going till it's tail
+     */
     fun getActiveBranch(chatNode: ChatNode): MutableList<ChatNode> {
         val activeBranch = mutableListOf<ChatNode>()
         var currentNode = chatNode
@@ -124,6 +161,9 @@ class ChatRepository(private val database: AppDatabase, private val chatTreeDao:
         return activeBranch
     }
 
+    /**
+     * This returns chat list formatted with roles and messages for API calls
+     */
     fun createChatMessageList(targetNode: ChatNode, chatTree: ChatTree): List<ChatMessage> {
         val chatMessages = mutableListOf<ChatMessage>()
 

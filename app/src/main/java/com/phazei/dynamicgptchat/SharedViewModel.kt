@@ -8,8 +8,13 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.phazei.dynamicgptchat.data.*
 import kotlinx.coroutines.launch
 
-class SharedViewModel(appDatabase: AppDatabase, chatTreeDao: ChatTreeDao, chatNodeDao: ChatNodeDao) : ViewModel() {
-    val chatRepository = ChatRepository(appDatabase, chatTreeDao, chatNodeDao)
+class SharedViewModel(
+    appDatabase: AppDatabase,
+    chatTreeDao: ChatTreeDao,
+    chatNodeDao: ChatNodeDao,
+    gptSettingsDao: GPTSettingsDao
+) : ViewModel() {
+    val chatRepository = ChatRepository(appDatabase, chatTreeDao, chatNodeDao, gptSettingsDao)
     var activeChatTree: ChatTree? = null
     val onFabClick: MutableLiveData<(() -> Unit)?> = MutableLiveData(null)
 
@@ -19,9 +24,10 @@ class SharedViewModel(appDatabase: AppDatabase, chatTreeDao: ChatTreeDao, chatNo
         class Factory(private val appDatabase: AppDatabase) : ViewModelProvider.Factory {
             private val chatTreeDao = appDatabase.chatTreeDao()
             private val chatNodeDao = appDatabase.chatNodeDao()
+            private val gptSettingsDao = appDatabase.gptSettingsDao()
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 if (modelClass.isAssignableFrom(SharedViewModel::class.java)) {
-                    return SharedViewModel(appDatabase, chatTreeDao, chatNodeDao) as T
+                    return SharedViewModel(appDatabase, chatTreeDao, chatNodeDao, gptSettingsDao) as T
                 }
                 throw IllegalArgumentException("Unknown ViewModel class")
             }
