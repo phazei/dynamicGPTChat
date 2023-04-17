@@ -7,7 +7,7 @@ interface ChatNodeDao : BaseDao<ChatNode> {
     @Query("SELECT * FROM chat_nodes WHERE id = :id")
     suspend fun getById(id: Long): ChatNode
 
-    @Query("SELECT * FROM chat_nodes WHERE chat_tree_id = :chatTreeId AND parent_node_id = :parentNodeId")
+    @Query("SELECT * FROM chat_nodes WHERE chat_tree_id = :chatTreeId AND parent_node_id = :parentNodeId ORDER BY id ASC")
     suspend fun getChildrenOfChatNode(chatTreeId: Long, parentNodeId: Long): MutableList<ChatNode>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)

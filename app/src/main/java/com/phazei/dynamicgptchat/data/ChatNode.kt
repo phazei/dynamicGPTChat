@@ -1,6 +1,7 @@
 package com.phazei.dynamicgptchat.data
 
 import androidx.room.*
+import com.aallam.openai.api.core.Usage
 
 @Entity(
     tableName = "chat_nodes",
@@ -28,18 +29,23 @@ data class ChatNode(
     @ColumnInfo(name = "chat_tree_id") var chatTreeId: Long = 0,
     @ColumnInfo(name = "parent_node_id") var parentNodeId: Long?,
     var prompt: String,
-    var response: String,
-    @ColumnInfo(name = "active_child_index") var activeChildIndex: Int = 0,
 ) : BaseEntity() {
+    @ColumnInfo(name = "active_child_index") var activeChildIndex: Int = 0
+    var error: String? = null
+    @ColumnInfo(name = "finish_reason") var finishReason: String = ""
+    @Embedded(prefix = "use_") var usage: Usage = Usage()
+    var response: String = ""
+
     @Ignore
-    var children: MutableList<ChatNode>? = null
+    lateinit var parent: ChatNode
+    fun parentInitialized() = ::parent.isInitialized
+    @Ignore
+    var children: MutableList<ChatNode> = mutableListOf()
 
     constructor() : this(
         id = 0,
         chatTreeId = 0,
         parentNodeId = null,
         prompt = "",
-        response = "",
-        activeChildIndex = 0
     )
 }

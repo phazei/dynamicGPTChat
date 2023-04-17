@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(entities = [ChatTree::class, ChatNode::class], version = 1, exportSchema = false)
-@TypeConverters(DateConverter::class)
+@TypeConverters(DateConverter::class, UsageTypeConverter::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun chatTreeDao(): ChatTreeDao

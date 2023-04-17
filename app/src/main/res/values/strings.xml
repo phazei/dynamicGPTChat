@@ -38,7 +38,7 @@
     <string name="inject_restart_text_hint">Enter text to inject when restarting</string>
     <string-array name="mode_options">
         <item>Completion</item>
-        <item>Chat</item>
+        <item>ChatCompletion</item>
     </string-array>
     <string-array name="model_options">
         <item>gpt-3.5-turbo</item>
