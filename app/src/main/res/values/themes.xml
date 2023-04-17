@@ -53,4 +53,8 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="CustomSendButton" parent="Widget.MaterialComponents.Button">
+        <item name="backgroundTint">@color/send_button_style</item>
+    </style>
+
 </resources>

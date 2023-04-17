@@ -49,8 +49,8 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/chat_submit_button"
-        android:iconTint="?attr/colorOnPrimary"
         app:icon="@drawable/avd_send_to_stop"
+        app:iconTint="?attr/colorOnPrimary"
         app:iconSize="36dp"
         android:paddingStart="7dp"
         android:gravity="center"
@@ -62,6 +62,7 @@
         app:layout_constraintTop_toTopOf="@+id/prompt_input_layout"
         app:layout_constraintBottom_toBottomOf="@+id/prompt_input_layout"
         app:layout_constraintEnd_toEndOf="parent"
+        style="@style/CustomSendButton"
         tools:ignore="RtlSymmetry" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
