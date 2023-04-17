@@ -36,6 +36,7 @@ class MainActivity : AppCompatActivity() {
         //sharedViewModel must be in onCreate or it will not be created in time for the fragment
         //leaving sharedViewModelFactory in case it's every needed in activityViewModels() in a fragment
         sharedViewModel
+        chatNodeViewModel
 
         binding = ActivityMainBinding.inflate(layoutInflater)
 

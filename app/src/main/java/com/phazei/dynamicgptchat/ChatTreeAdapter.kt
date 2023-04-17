@@ -16,6 +16,7 @@ class ChatTreeAdapter(
     private val itemClickListener: ChatTreeItemClickListener
 ) :  RecyclerView.Adapter<ChatTreeAdapter.ChatTreeViewHolder>() {
 
+    //used for swipe reveal
     private val viewBinderHelper = ViewBinderHelper()
 
     init {

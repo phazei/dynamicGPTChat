@@ -62,11 +62,13 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
         chatTreeAdapter = ChatTreeAdapter(mutableListOf(), this)
 
         //LinearLayoutManager necessary for swipereveal
-        binding.chatTreeRecyclerView.layoutManager = LinearLayoutManager(context)
-        binding.chatTreeRecyclerView.adapter = chatTreeAdapter
-        binding.chatTreeRecyclerView.itemAnimator = object : DefaultItemAnimator() {
-            override fun getRemoveDuration(): Long {
-                return 500 //slow down removing
+        binding.chatTreeRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = chatTreeAdapter
+            itemAnimator = object : DefaultItemAnimator() {
+                override fun getRemoveDuration(): Long {
+                    return 500 //slow down removing
+                }
             }
         }
     }
