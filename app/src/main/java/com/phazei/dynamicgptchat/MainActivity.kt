@@ -2,19 +2,18 @@ package com.phazei.dynamicgptchat
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
-import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.appbar.AppBarLayout
+import com.phazei.dynamicgptchat.chatnodes.ChatNodeViewModel
 import com.phazei.dynamicgptchat.data.AppDatabase
 import com.phazei.dynamicgptchat.databinding.ActivityMainBinding
 

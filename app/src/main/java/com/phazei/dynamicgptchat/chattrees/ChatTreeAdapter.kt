@@ -1,12 +1,11 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.chattrees
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.phazei.dynamicgptchat.data.ChatTree
+import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.ChatTreeItemBinding
 import com.phazei.dynamicgptchat.swipereveal.ViewBinderHelper
 import java.util.*

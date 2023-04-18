@@ -1,9 +1,16 @@
-package com.phazei.dynamicgptchat.data
+package com.phazei.dynamicgptchat.data.repo
 
 import androidx.room.withTransaction
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
+import com.phazei.dynamicgptchat.data.AppDatabase
+import com.phazei.dynamicgptchat.data.dao.ChatNodeDao
+import com.phazei.dynamicgptchat.data.dao.ChatTreeDao
+import com.phazei.dynamicgptchat.data.dao.GPTSettingsDao
+import com.phazei.dynamicgptchat.data.entity.ChatNode
+import com.phazei.dynamicgptchat.data.entity.ChatTree
+import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

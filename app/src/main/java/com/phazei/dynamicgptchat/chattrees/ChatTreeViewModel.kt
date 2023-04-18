@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.chattrees
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.phazei.dynamicgptchat.data.*
+import com.phazei.dynamicgptchat.data.entity.ChatTree
+import com.phazei.dynamicgptchat.data.entity.GPTSettings
+import com.phazei.dynamicgptchat.data.repo.ChatRepository
 import kotlinx.coroutines.launch
 
 class ChatTreeViewModel(private val chatRepository: ChatRepository) : ViewModel() {

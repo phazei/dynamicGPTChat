@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.chatnodes
 
 import android.annotation.SuppressLint
 import android.util.Log
@@ -6,9 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.textfield.TextInputEditText
-import com.phazei.dynamicgptchat.data.ChatNode
-import com.phazei.dynamicgptchat.data.ChatTree
+import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
 import java.security.InvalidParameterException
 

@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat.requests
+package com.phazei.dynamicgptchat.data.repo
 
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletion
@@ -12,7 +12,7 @@ import com.aallam.openai.api.moderation.ModerationRequest
 import com.aallam.openai.api.moderation.TextModeration
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
-import com.phazei.dynamicgptchat.data.ChatNode
+import com.phazei.dynamicgptchat.data.entity.ChatNode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

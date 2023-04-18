@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat.data
+package com.phazei.dynamicgptchat.data.entity
 
 import androidx.room.*
 

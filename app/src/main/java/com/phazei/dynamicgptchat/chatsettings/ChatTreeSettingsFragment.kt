@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.chatsettings
 
 import android.annotation.SuppressLint
 import android.graphics.Color
@@ -18,8 +18,11 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
-import com.phazei.dynamicgptchat.data.ChatTree
-import com.phazei.dynamicgptchat.data.GPTSettings
+import com.phazei.dynamicgptchat.R
+import com.phazei.dynamicgptchat.SharedViewModel
+import com.phazei.dynamicgptchat.chattrees.ChatTreeViewModel
+import com.phazei.dynamicgptchat.data.entity.ChatTree
+import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
 import com.phazei.utils.setChangeListener
 import com.tomergoldst.tooltips.ToolTip
@@ -205,9 +208,33 @@ class ChatTreeSettingsFragment : Fragment() {
 
     //Update all slider labels to include the value next to the label text
     private fun setupSliderText() {
-        val sliderIds = listOf(R.id.temperature_slider, R.id.max_tokens_slider, R.id.top_p_slider, R.id.frequency_penalty_slider, R.id.presence_penalty_slider, R.id.number_of_slider, R.id.best_of_slider)
-        val textViewIds = listOf(R.id.temperature_text, R.id.max_tokens_text, R.id.top_p_text, R.id.frequency_penalty_text, R.id.presence_penalty_text, R.id.number_of_text, R.id.best_of_text)
-        val stringResourceIds = listOf(R.string.temperature_label, R.string.max_tokens_label, R.string.top_p_label, R.string.frequency_penalty_label, R.string.presence_penalty_label, R.string.number_of_label, R.string.best_of_label)
+        val sliderIds = listOf(
+            R.id.temperature_slider,
+            R.id.max_tokens_slider,
+            R.id.top_p_slider,
+            R.id.frequency_penalty_slider,
+            R.id.presence_penalty_slider,
+            R.id.number_of_slider,
+            R.id.best_of_slider
+        )
+        val textViewIds = listOf(
+            R.id.temperature_text,
+            R.id.max_tokens_text,
+            R.id.top_p_text,
+            R.id.frequency_penalty_text,
+            R.id.presence_penalty_text,
+            R.id.number_of_text,
+            R.id.best_of_text
+        )
+        val stringResourceIds = listOf(
+            R.string.temperature_label,
+            R.string.max_tokens_label,
+            R.string.top_p_label,
+            R.string.frequency_penalty_label,
+            R.string.presence_penalty_label,
+            R.string.number_of_label,
+            R.string.best_of_label
+        )
 
         for (i in sliderIds.indices) {
             val slider = binding.root.findViewById<Slider>(sliderIds[i])

@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.chatnodes
 
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
@@ -19,7 +19,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.Observer
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -27,8 +26,11 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
-import com.phazei.dynamicgptchat.data.ChatNode
-import com.phazei.dynamicgptchat.data.ChatTree
+import com.phazei.dynamicgptchat.chattrees.ChatTreeViewModel
+import com.phazei.dynamicgptchat.R
+import com.phazei.dynamicgptchat.SharedViewModel
+import com.phazei.dynamicgptchat.data.entity.ChatNode
+import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
 import kotlinx.coroutines.launch
 
@@ -43,7 +45,11 @@ class ChatNodeListFragment : Fragment() {
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val chatNodeViewModel: ChatNodeViewModel by activityViewModels()
-    private val chatTreeViewModel: ChatTreeViewModel by viewModels { ChatTreeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels {
+        ChatTreeViewModel.Companion.Factory(
+            sharedViewModel.chatRepository
+        )
+    }
     private lateinit var chatNodeAdapter: ChatNodeAdapter
     private lateinit var chatSubmitButtonHelper: ChatSubmitButtonHelper
     private lateinit var chatTree: ChatTree
@@ -199,9 +205,15 @@ class ChatNodeListFragment : Fragment() {
      * Helper class to help keep button methods organized
      */
     inner class ChatSubmitButtonHelper(private val fragment: ChatNodeListFragment) {
-        private val drawableSendToStop: AnimatedVectorDrawable by lazy { ContextCompat.getDrawable(requireContext(), R.drawable.avd_send_to_stop) as AnimatedVectorDrawable }
-        private val drawableStopToSend: AnimatedVectorDrawable by lazy { ContextCompat.getDrawable(requireContext(), R.drawable.avd_stop_to_send) as AnimatedVectorDrawable }
-        private val drawableLoadingStop: AnimatedVectorDrawable by lazy { ContextCompat.getDrawable(requireContext(), R.drawable.stop_and_load) as AnimatedVectorDrawable }
+        private val drawableSendToStop: AnimatedVectorDrawable by lazy { ContextCompat.getDrawable(requireContext(),
+            R.drawable.avd_send_to_stop
+        ) as AnimatedVectorDrawable }
+        private val drawableStopToSend: AnimatedVectorDrawable by lazy { ContextCompat.getDrawable(requireContext(),
+            R.drawable.avd_stop_to_send
+        ) as AnimatedVectorDrawable }
+        private val drawableLoadingStop: AnimatedVectorDrawable by lazy { ContextCompat.getDrawable(requireContext(),
+            R.drawable.stop_and_load
+        ) as AnimatedVectorDrawable }
 
         fun setupChatSubmitButton() {
             //callback will change SendToStop into LoadingStop after animation is complete

@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/ChatTreeListFragment"
-        android:name="com.phazei.dynamicgptchat.ChatTreeListFragment"
+        android:name="com.phazei.dynamicgptchat.chattrees.ChatTreeListFragment"
         android:label="@string/chat_tree_list_label"
         tools:layout="@layout/fragment_chat_tree_list">
 
@@ -28,7 +28,7 @@
     </fragment>
     <fragment
         android:id="@+id/ChatNodeListFragment"
-        android:name="com.phazei.dynamicgptchat.ChatNodeListFragment"
+        android:name="com.phazei.dynamicgptchat.chatnodes.ChatNodeListFragment"
         android:label="@string/chat_node_list_label"
         tools:layout="@layout/fragment_chat_node_list">
 
@@ -46,7 +46,7 @@
 
     <fragment
         android:id="@+id/ChatTreeSettingsFragment"
-        android:name="com.phazei.dynamicgptchat.ChatTreeSettingsFragment"
+        android:name="com.phazei.dynamicgptchat.chatsettings.ChatTreeSettingsFragment"
         android:label="@string/chat_tree_settings_label"
         tools:layout="@layout/fragment_chat_tree_settings">
     </fragment>

@@ -1,6 +1,7 @@
-package com.phazei.dynamicgptchat.data
+package com.phazei.dynamicgptchat.data.dao
 
 import androidx.room.*
+import com.phazei.dynamicgptchat.data.entity.ChatNode
 
 @Dao
 interface ChatNodeDao : BaseDao<ChatNode> {

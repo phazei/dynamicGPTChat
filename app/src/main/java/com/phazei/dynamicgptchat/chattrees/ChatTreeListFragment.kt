@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.chattrees
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -6,7 +6,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.viewModels
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -14,10 +13,9 @@ import com.google.android.material.snackbar.Snackbar
 import androidx.navigation.fragment.findNavController
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeListBinding
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.phazei.dynamicgptchat.data.AppDatabase
-import com.phazei.dynamicgptchat.data.ChatNode
-import com.phazei.dynamicgptchat.data.ChatTree
-import com.phazei.dynamicgptchat.data.GPTSettings
+import com.phazei.dynamicgptchat.R
+import com.phazei.dynamicgptchat.SharedViewModel
+import com.phazei.dynamicgptchat.data.entity.ChatTree
 
 
 /**
@@ -33,7 +31,11 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
 
     private lateinit var chatTreeAdapter: ChatTreeAdapter
     private val sharedViewModel: SharedViewModel by activityViewModels()
-    private val chatTreeViewModel: ChatTreeViewModel by viewModels { ChatTreeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels {
+        ChatTreeViewModel.Companion.Factory(
+            sharedViewModel.chatRepository
+        )
+    }
 
 
     override fun onCreateView(

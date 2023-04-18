@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat.data
+package com.phazei.dynamicgptchat.data.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Upsert
+import com.phazei.dynamicgptchat.data.entity.GPTSettings
 
 @Dao
 interface GPTSettingsDao {

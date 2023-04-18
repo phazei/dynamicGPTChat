@@ -1,4 +1,4 @@
-package com.phazei.dynamicgptchat
+package com.phazei.dynamicgptchat.chatnodes
 
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.CreationExtras
@@ -7,8 +7,11 @@ import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.core.Usage
 import com.aallam.openai.api.model.ModelId
 import com.phazei.dynamicgptchat.data.*
-import com.phazei.dynamicgptchat.requests.ChatResponseWrapper
-import com.phazei.dynamicgptchat.requests.OpenAIRepository
+import com.phazei.dynamicgptchat.data.entity.ChatNode
+import com.phazei.dynamicgptchat.data.entity.ChatTree
+import com.phazei.dynamicgptchat.data.repo.ChatRepository
+import com.phazei.dynamicgptchat.data.repo.ChatResponseWrapper
+import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -89,6 +92,9 @@ class ChatNodeViewModel(private val chatRepository: ChatRepository) : ViewModel(
                 val error = response.error
                 chatNode.error = error.message ?: "Unknown error"
                 handleChatComplete(chatNode)
+            }
+            else -> {
+                //there is no else, the compiler made me put this here
             }
         }
         viewModelScope.launch {
