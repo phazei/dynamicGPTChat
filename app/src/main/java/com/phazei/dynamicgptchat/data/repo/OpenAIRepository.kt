@@ -13,6 +13,7 @@ import com.aallam.openai.api.moderation.TextModeration
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import com.phazei.dynamicgptchat.data.entity.ChatNode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -75,10 +76,13 @@ class OpenAIRepository(private val openAI: OpenAI) {
                         }
                     }
                     .catch { e: Throwable ->
-                        if (e is Exception) {
-                            onError(ChatResponseWrapper.Error(e))
-                        } else {
-                            throw e
+                        when (e) {
+                            is CancellationException ->
+                                onError(ChatResponseWrapper.Error(Exception("The quest was quashed!")))
+                            is Exception ->
+                                onError(ChatResponseWrapper.Error(e))
+                            else ->
+                                throw e
                         }
                     }
                     .launchIn(this)

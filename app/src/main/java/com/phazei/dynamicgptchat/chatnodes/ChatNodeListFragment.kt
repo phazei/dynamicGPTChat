@@ -3,8 +3,6 @@ package com.phazei.dynamicgptchat.chatnodes
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -32,6 +30,8 @@ import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 
@@ -64,21 +64,25 @@ class ChatNodeListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         chatTree = sharedViewModel.activeChatTree!!
         chatSubmitButtonHelper = ChatSubmitButtonHelper(this)
-        //recycler won't be populated until after this is loaded
-        chatNodeViewModel.loadChatTreeChildrenAndActiveBranch(chatTree)
-
-        setupMenu()
-        setupRecycler()
-        chatSubmitButtonHelper.setupChatSubmitButton()
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                chatNodeViewModel.activeBranchUpdate.collect { (updatedChatNode, activeBranch) ->
-                    if (activeBranch != null) {
-                        chatNodeAdapter.updateData(updatedChatNode, activeBranch)
-                    } else {
+                chatNodeViewModel.activeBranchUpdate.filterNotNull().collect { (updatedChatNode, activeBranch) ->
+                    if (updatedChatNode.chatTreeId != chatTree.id) {
+                        //when an request completes, it could be from a background chatTree and not the
+                        //currently active one, so we don't need to process it and should just leave
+                        return@collect
+                    } else if (!chatNodeAdapter.isInit() && activeBranch == null) {
+                        //if an individual request completes before the view loads, this will trigger right away
+                        //so shouldn't be loaded yet
+                        return@collect
+                    }
+                    if (activeBranch == null) {
                         //single node update
                         chatNodeAdapter.updateItem(updatedChatNode)
+                    } else {
+                        //branch update
+                        chatNodeAdapter.updateData(updatedChatNode, activeBranch)
                     }
                     val position : Int
                     if (updatedChatNode.parentNodeId == null) { //rootNode
@@ -86,12 +90,17 @@ class ChatNodeListFragment : Fragment() {
                     } else {
                         position = chatNodeAdapter.getItemPosition(updatedChatNode)
                     }
-                    val layoutManager = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
-                    layoutManager.scrollToPositionWithOffset(position, 20)
+                    chatNodeAdapter.layoutManager.scrollToPositionWithOffset(position, 20)
                     // layoutManager.smoothScrollToPosition(position)
                 }
             }
         }
+        //recycler won't be populated until after this is loaded
+        chatNodeViewModel.loadChatTreeChildrenAndActiveBranch(chatTree)
+
+        setupMenu()
+        setupRecycler()
+        chatSubmitButtonHelper.setupChatSubmitButton()
 
         chatNodeViewModel.activeRequests.asLiveData().observe(viewLifecycleOwner) { data ->
             //just need to be able to update the button
@@ -115,9 +124,12 @@ class ChatNodeListFragment : Fragment() {
         val newNode = ChatNode(0, chatTree.id, parentLeaf.id, binding.promptInputEditText.text.toString())
         newNode.parent = parentLeaf
 
-        binding.promptInputEditText.setText("")
+        binding.promptInputEditText.setText("") //this will trigger buttonStatus listener
+        chatTree.tempPrompt = ""
+        chatTreeViewModel.saveChatTree(chatTree)
 
         chatNodeAdapter.addItem(parentLeaf, newNode)
+        chatNodeAdapter.layoutManager.scrollToPosition(chatNodeAdapter.getItemPosition(newNode))
         chatNodeViewModel.makeChatCompletionRequest(chatTree, newNode)
     }
 
@@ -153,6 +165,8 @@ class ChatNodeListFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
             adapter = chatNodeAdapter
         }
+        //for ease of access and scrolling
+        chatNodeAdapter.layoutManager = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
     }
 
     private fun setupMenu() {
@@ -196,7 +210,6 @@ class ChatNodeListFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        Log.d("TAG", "GOODBYE!!!!!!!!!!!!!!!!!!!!!")
         super.onDestroyView()
         _binding = null
     }
@@ -204,6 +217,7 @@ class ChatNodeListFragment : Fragment() {
     /**
      * Helper class to help keep button methods organized
      */
+    enum class Method { SEND, STOP, LOAD }
     inner class ChatSubmitButtonHelper(private val fragment: ChatNodeListFragment) {
         private val drawableSendToStop: AnimatedVectorDrawable by lazy { ContextCompat.getDrawable(requireContext(),
             R.drawable.avd_send_to_stop
@@ -214,6 +228,10 @@ class ChatNodeListFragment : Fragment() {
         private val drawableLoadingStop: AnimatedVectorDrawable by lazy { ContextCompat.getDrawable(requireContext(),
             R.drawable.stop_and_load
         ) as AnimatedVectorDrawable }
+        private val drawableSend = ContextCompat.getDrawable(requireContext(), R.drawable.round_send_36)
+        private val drawableStop = ContextCompat.getDrawable(requireContext(), R.drawable.round_stop_36)
+        private var lastSet: Method? = null
+        private var temporalDisabled = false
 
         fun setupChatSubmitButton() {
             //callback will change SendToStop into LoadingStop after animation is complete
@@ -226,6 +244,7 @@ class ChatNodeListFragment : Fragment() {
                         //back to 'send' before the animation
                         //but this call back triggers after it's already be set to send
                         binding.chatSubmitButton.icon = drawableLoadingStop
+                        lastSet = Method.LOAD
                         drawableLoadingStop.start()
                     }
                 }
@@ -238,16 +257,12 @@ class ChatNodeListFragment : Fragment() {
                     if (chatNodeAdapter.isInit()) {
                         //create a new request
                         prepareChatRequest()
-                        // Prevent accidental cancels right after submitting
-                        binding.chatSubmitButton.isEnabled = false
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            binding.chatSubmitButton.isEnabled = true
-                        }, 1500)
                     }
                 } else {
                     //cancel active request
                     cancelChatRequest()
                 }
+                triggerTemporalDisabled()
             }
 
             disableButtonOnNoPrompt()
@@ -269,20 +284,44 @@ class ChatNodeListFragment : Fragment() {
             binding.promptInputEditText.addTextChangedListener(object : TextWatcher {
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                    binding.chatSubmitButton.isEnabled = !s.isNullOrEmpty()
+                    checkSubmitStatusButton()
                 }
                 override fun afterTextChanged(s: Editable?) {}
             })
         }
 
         private fun markSubmitSendable() {
-            binding.chatSubmitButton.icon = drawableStopToSend
-            drawableStopToSend.start()
+            if (lastSet == Method.SEND) {
+                binding.chatSubmitButton.icon = drawableSend
+            } else {
+                binding.chatSubmitButton.icon = drawableStopToSend
+                drawableStopToSend.start()
+            }
+            val isEnabled = !binding.promptInputEditText.text.isNullOrEmpty() && !temporalDisabled
+            binding.chatSubmitButton.isEnabled = isEnabled
+            lastSet = Method.SEND
         }
 
         private fun markSubmitStoppable() {
-            binding.chatSubmitButton.icon = drawableSendToStop
-            drawableSendToStop.start()
+            if (lastSet != Method.STOP && lastSet != Method.LOAD) {
+                binding.chatSubmitButton.icon = drawableSendToStop
+                drawableSendToStop.start()
+            }
+            binding.chatSubmitButton.isEnabled = !temporalDisabled
+            lastSet = Method.STOP
+        }
+
+        /**
+         * This will force the button to be disabled for a set period of time
+         * without messing up status
+         */
+        private fun triggerTemporalDisabled() {
+            binding.chatSubmitButton.isEnabled = false
+            temporalDisabled = true
+            lifecycleScope.launch { delay(500)
+                temporalDisabled = false
+                checkSubmitStatusButton()
+            }
         }
     }
 }

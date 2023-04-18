@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
@@ -16,6 +17,8 @@ class ChatNodeAdapter(
     private val onChatNodeClick: (ChatNode) -> Unit,
     private val onEditPromptClick: (ChatNode, String) -> Unit
 ) : RecyclerView.Adapter<ChatNodeAdapter.ChatNodeViewHolder>() {
+    //helper method for ease of access scrolling
+    lateinit var layoutManager: LinearLayoutManager
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatNodeViewHolder {
         val binding =
@@ -119,7 +122,15 @@ class ChatNodeAdapter(
 
     fun updateItem(chatNode: ChatNode) {
         val index = chatNodes.indexOf(chatNode)
-        notifyItemChanged(index)
+        if (index == -1) {
+            //in case it was lost from the adapter but had then ben saved.
+            addItem(chatNode.parent, chatNode)
+        } else {
+            //there's a chance that the memory reference has been lost of the fragment
+            //was navigated away from.  this will make sure it's updated
+            chatNodes[index] = chatNode
+            notifyItemChanged(index)
+        }
     }
 
     fun cancelLastItem() {

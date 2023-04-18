@@ -14,6 +14,7 @@ import com.phazei.dynamicgptchat.data.repo.ChatResponseWrapper
 import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -22,8 +23,8 @@ import kotlinx.coroutines.launch
 class ChatNodeViewModel(private val chatRepository: ChatRepository) : ViewModel() {
 
     private val openAIRepository = OpenAIRepository("123")
-    private val _activeBranchUpdate = MutableSharedFlow<Pair<ChatNode, List<ChatNode>?>>()
-    val activeBranchUpdate: SharedFlow<Pair<ChatNode, List<ChatNode>?>> = _activeBranchUpdate
+    private val _activeBranchUpdate = MutableStateFlow<Pair<ChatNode, List<ChatNode>?>?>(null)
+    val activeBranchUpdate: SharedFlow<Pair<ChatNode, List<ChatNode>?>?> = _activeBranchUpdate
     val activeRequests: StateFlow<Map<Long, Job>> = openAIRepository.activeRequests
 
     fun isRequestActive(chatTreeId: Long): Boolean {
@@ -33,7 +34,16 @@ class ChatNodeViewModel(private val chatRepository: ChatRepository) : ViewModel(
         if (chatTree.id != chatNode.chatTreeId) {
             throw IllegalArgumentException("chatNode must be child of chatTree")
         }
+
         viewModelScope.launch {
+            if (chatNode.id == 0L) {
+                //brand new chat node, lets save it
+                if (!chatNode.parentInitialized()) {
+                    throw IllegalArgumentException("chatNode must have parent set")
+                }
+                chatRepository.saveChatNode(chatNode)
+            }
+
             val chatCompletionRequest = ChatCompletionRequest(
                 model = ModelId(chatTree.gptSettings.model),
                 messages = chatRepository.createChatMessageList(chatNode, chatTree),
