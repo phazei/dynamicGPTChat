@@ -51,6 +51,6 @@
         tools:layout="@layout/fragment_chat_tree_settings">
     </fragment>
     <fragment
-        android:id="@+id/AppSettingsFragment"
-        />
+        android:id="@+id/AppSettingsFragment" />
+
 </navigation>

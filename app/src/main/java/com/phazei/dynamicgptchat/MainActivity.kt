@@ -7,12 +7,16 @@ import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.navigation.NavigationView
 import com.phazei.dynamicgptchat.chatnodes.ChatNodeViewModel
 import com.phazei.dynamicgptchat.data.AppDatabase
 import com.phazei.dynamicgptchat.databinding.ActivityMainBinding
@@ -22,9 +26,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private val sharedViewModelFactory by lazy {
-        SharedViewModel.Companion.Factory(AppDatabase.getDatabase(this))
-    }
+    private val sharedViewModelFactory by lazy { SharedViewModel.Companion.Factory(AppDatabase.getDatabase(this)) }
     private val sharedViewModel: SharedViewModel by viewModels { sharedViewModelFactory }
     //this needs to be bound to activity so it will stay active when switching fragments
     private val chatNodeViewModel: ChatNodeViewModel by viewModels { ChatNodeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
@@ -40,14 +42,29 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
 
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
+        setSupportActionBar(binding.appBarMain.toolbar)
 
+        val drawerLayout: DrawerLayout = binding.drawerLayout
+        val navView: NavigationView = binding.navView
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
         val navController = navHostFragment.navController
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
 
-        val fab = binding.floatingActionButton
+        // appBarConfiguration = AppBarConfiguration(navController.graph)
+        appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.ChatTreeListFragment
+            ), drawerLayout
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        navView.setupWithNavController(navController)
+
+        setupFABPageChangeFixes(navController)
+
+    }
+
+    private fun setupFABPageChangeFixes(navController: NavController) {
+        val fab = binding.appBarMain.floatingActionButton
+
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
                 R.id.ChatTreeListFragment -> {
@@ -64,11 +81,6 @@ class MainActivity : AppCompatActivity() {
             //this enables the FAB to be clicked and trigger a method that can be assigned in any Fragment
             sharedViewModel.onFabClick.value?.invoke()
         }
-
-        //TODO: Load sharedViewModel data from data store
-        //Need to use chatTrees.value to trigger observer listener
-        // sharedViewModel.chatTrees.value = // Load your chatTrees here
-
     }
 
     @SuppressLint("RestrictedApi")
@@ -96,12 +108,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    /**
+     * Scroll flags break all pages but ChatTrees, so only enable it on that page
+     */
     private fun updateAppBarScrollFlags(isScrollEnabled: Boolean) {
-        val toolbar = binding.toolbar
+        val toolbar = binding.appBarMain.toolbar
         val params = toolbar.layoutParams as AppBarLayout.LayoutParams
         if (isScrollEnabled) {
             params.scrollFlags = (AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL
