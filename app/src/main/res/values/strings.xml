@@ -7,11 +7,10 @@
     <string name="nav_header_subtitle">Connect, Converse, Create</string>
     <string name="nav_header_desc">Navigation header</string>
 
-    <string name="action_settings">Settings</string>
+    <string name="settings">Settings</string>
 
     <string name="menu_home">Chats</string>
     <string name="menu_prompts">Prompts</string>
-    <string name="menu_settings">Settings</string>
 
 
 
@@ -19,17 +18,17 @@
     <string name="chat_tree_list_label">Dynamic GPT Chats</string>
     <string name="chat_node_list_label">Conversation</string>
     <string name="chat_tree_settings_label">Chat Settings</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="app_settings_fragment">App Settings</string>
+    <string name="prompt_settings_fragment">Custom Prompts</string>
     <string name="todo">TODO</string>
     <string name="new_chat">New Chat</string>
     <string name="tree_title">Title</string>
-    <string name="tree_settings">Settings</string>
 
-<!--    Settings Page-->
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <!--    Settings Page-->
     <string name="undo">Undo</string>
     <string name="items_not_saved">Items Not Saved</string>
 

@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/ChatTreeListFragment"
+            android:id="@+id/chat_tree_graph"
             android:icon="@drawable/round_chat_24"
-            android:title="@string/menu_home" />
+            android:title="@string/menu_home"
+            app:popUpTo="@id/chat_tree_graph" />
+
         <item
-            android:id="@+id/nav_prompts"
+            android:id="@+id/prompts_graph"
             android:icon="@drawable/round_list_alt_24"
             android:title="@string/menu_prompts" />
         <item
-            android:id="@+id/nav_settings"
+            android:id="@+id/app_settings_fragment"
             android:icon="@mipmap/ic_settings"
-            android:title="@string/menu_settings" />
+            android:title="@string/settings" />
     </group>
 </menu>

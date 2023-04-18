@@ -127,9 +127,7 @@ class ChatTreeSettingsFragment : Fragment() {
 
     private fun setupMenu() {
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
-            override fun onPrepareMenu(menu: Menu) {
-                menu.findItem(R.id.action_settings).isVisible = false
-            }
+            override fun onPrepareMenu(menu: Menu) {}
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {}
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 if (menuItem.itemId == android.R.id.home) {

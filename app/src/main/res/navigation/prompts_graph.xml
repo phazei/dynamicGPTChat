@@ -1,0 +1,13 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/prompts_graph"
+    app:startDestination="@id/prompts_fragment">
+
+    <fragment
+        android:id="@+id/prompts_fragment"
+        android:name="com.phazei.dynamicgptchat.prompts.PromptsFragment"
+        android:label="@string/prompt_settings_fragment"
+        tools:layout="@layout/fragment_prompts" />
+
+</navigation>

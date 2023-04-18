@@ -52,7 +52,9 @@ class MainActivity : AppCompatActivity() {
         // appBarConfiguration = AppBarConfiguration(navController.graph)
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.ChatTreeListFragment
+                R.id.ChatTreeListFragment,
+                R.id.prompts_graph,
+                R.id.app_settings_fragment
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -86,13 +88,10 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-
         if (menu is MenuBuilder) {
             //by default it will hide any icons in the menu dropdown
             menu.setOptionalIconsVisible(true)
         }
-
         return true
     }
 
@@ -101,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.app_settings_fragment -> true
             else -> super.onOptionsItemSelected(item)
         }
     }
