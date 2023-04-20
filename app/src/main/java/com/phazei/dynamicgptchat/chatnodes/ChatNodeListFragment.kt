@@ -165,6 +165,21 @@ class ChatNodeListFragment : Fragment() {
         }
         //for ease of access and scrolling
         chatNodeAdapter.layoutManager = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
+
+        //fix item shows when keyboard opens/closes
+        binding.chatNodeRecyclerView.addOnLayoutChangeListener(View.OnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            var deltaY = oldBottom - bottom
+            val keyboardOpened = deltaY > 0
+
+            val layoutManager = chatNodeAdapter.layoutManager
+            val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+            val totalItemCount = layoutManager.itemCount
+
+            if (!keyboardOpened && totalItemCount < lastVisibleItemPosition + 2) {
+                deltaY = 0 //if its close to the bottom after the keyboard has been closed, don't scroll up
+            }
+            binding.chatNodeRecyclerView.scrollBy(0, deltaY)
+        })
     }
 
     private fun setupMenu() {
@@ -293,7 +308,10 @@ class ChatNodeListFragment : Fragment() {
                 binding.chatSubmitButton.icon = drawableStopToSend
                 drawableStopToSend.start()
             }
-            val isEnabled = !binding.promptInputEditText.text.isNullOrEmpty() && !temporalDisabled
+
+            //allow sending spaces, but not empty returns
+            val empty = binding.promptInputEditText.text?.trim { it == '\r' || it == '\n' }.isNullOrEmpty()
+            val isEnabled = !empty && !temporalDisabled
             binding.chatSubmitButton.isEnabled = isEnabled
             lastSet = Method.SEND
         }
