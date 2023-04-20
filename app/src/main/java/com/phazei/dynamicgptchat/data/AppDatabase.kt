@@ -11,9 +11,11 @@ import com.phazei.dynamicgptchat.data.dao.GPTSettingsDao
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.entity.GPTSettings
+import javax.inject.Singleton
 
 @Database(entities = [ChatTree::class, ChatNode::class, GPTSettings::class], version = 1, exportSchema = false)
 @TypeConverters(DateConverter::class, UsageTypeConverter::class)
+@Singleton
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun chatTreeDao(): ChatTreeDao
@@ -22,20 +24,4 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun gptSettingsDao(): GPTSettingsDao
 
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "app_database"
-                ).build()
-                INSTANCE = instance
-                instance
-            }
-        }
-    }
 }

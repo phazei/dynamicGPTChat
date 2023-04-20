@@ -9,9 +9,12 @@ import com.phazei.dynamicgptchat.data.*
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import com.phazei.dynamicgptchat.data.repo.ChatRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ChatTreeViewModel(private val chatRepository: ChatRepository) : ViewModel() {
+@HiltViewModel
+class ChatTreeViewModel @Inject constructor(private val chatRepository: ChatRepository) : ViewModel() {
     val chatTrees = MutableLiveData<MutableList<ChatTree>>()
 
     fun fetchChatTrees() {
@@ -45,19 +48,6 @@ class ChatTreeViewModel(private val chatRepository: ChatRepository) : ViewModel(
             chatRepository.deleteChatTree(chatTree)
             chatTrees.value?.removeAt(position)
             // chatTrees.value = chatTrees.value
-        }
-    }
-
-    //factory for passing parameters to SharedViewModel upon creation
-    companion object {
-        @Suppress("UNCHECKED_CAST")
-        class Factory(private val chatRepository: ChatRepository) : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                if (modelClass.isAssignableFrom(ChatTreeViewModel::class.java)) {
-                    return ChatTreeViewModel(chatRepository) as T
-                }
-                throw IllegalArgumentException("Unknown ViewModel class")
-            }
         }
     }
 }

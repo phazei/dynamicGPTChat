@@ -30,6 +30,7 @@ import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -39,17 +40,14 @@ import kotlinx.coroutines.launch
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
 @Suppress("LiftReturnOrAssignment")
+@AndroidEntryPoint
 class ChatNodeListFragment : Fragment() {
 
     private var _binding: FragmentChatNodeListBinding? = null
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val chatNodeViewModel: ChatNodeViewModel by activityViewModels()
-    private val chatTreeViewModel: ChatTreeViewModel by viewModels {
-        ChatTreeViewModel.Companion.Factory(
-            sharedViewModel.chatRepository
-        )
-    }
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels()
     private lateinit var chatNodeAdapter: ChatNodeAdapter
     private lateinit var chatSubmitButtonHelper: ChatSubmitButtonHelper
     private lateinit var chatTree: ChatTree

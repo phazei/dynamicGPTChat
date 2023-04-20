@@ -20,16 +20,16 @@ import com.google.android.material.navigation.NavigationView
 import com.phazei.dynamicgptchat.chatnodes.ChatNodeViewModel
 import com.phazei.dynamicgptchat.data.AppDatabase
 import com.phazei.dynamicgptchat.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-    private val sharedViewModelFactory by lazy { SharedViewModel.Companion.Factory(AppDatabase.getDatabase(this)) }
-    private val sharedViewModel: SharedViewModel by viewModels { sharedViewModelFactory }
+    private val sharedViewModel: SharedViewModel by viewModels()
     //this needs to be bound to activity so it will stay active when switching fragments
-    private val chatNodeViewModel: ChatNodeViewModel by viewModels { ChatNodeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
+    private val chatNodeViewModel: ChatNodeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -126,3 +126,4 @@ class MainActivity : AppCompatActivity() {
         toolbar.layoutParams = params
     }
 }
+

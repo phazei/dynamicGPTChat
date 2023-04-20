@@ -12,14 +12,17 @@ import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.repo.ChatRepository
 import com.phazei.dynamicgptchat.data.repo.ChatResponseWrapper
 import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @OptIn(BetaOpenAI::class)
-class ChatNodeViewModel(private val chatRepository: ChatRepository) : ViewModel() {
+@HiltViewModel
+class ChatNodeViewModel @Inject constructor(private val chatRepository: ChatRepository) : ViewModel() {
 
     private val openAIRepository = OpenAIRepository("123")
     private val _activeBranchUpdate = MutableStateFlow<Pair<ChatNode, List<ChatNode>?>?>(null)
@@ -102,9 +105,6 @@ class ChatNodeViewModel(private val chatRepository: ChatRepository) : ViewModel(
                 chatNode.error = error.message ?: "Unknown error"
                 handleChatComplete(chatNode)
             }
-            else -> {
-                //there is no else, the compiler made me put this here
-            }
         }
         viewModelScope.launch {
             //need to trigger Adapter to update node
@@ -139,19 +139,6 @@ class ChatNodeViewModel(private val chatRepository: ChatRepository) : ViewModel(
         viewModelScope.launch {
             val activeBranch = chatRepository.getActiveBranch(newChatNode)
             _activeBranchUpdate.emit(Pair(newChatNode, activeBranch))
-        }
-    }
-
-    //factory for passing parameters to SharedViewModel upon creation
-    companion object {
-        @Suppress("UNCHECKED_CAST")
-        class Factory(private val chatRepository: ChatRepository) : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-                if (modelClass.isAssignableFrom(ChatNodeViewModel::class.java)) {
-                    return ChatNodeViewModel(chatRepository) as T
-                }
-                throw IllegalArgumentException("Unknown ViewModel class")
-            }
         }
     }
 }
