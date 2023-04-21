@@ -2,6 +2,7 @@ package com.phazei.dynamicgptchat
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
@@ -18,7 +19,6 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.navigation.NavigationView
 import com.phazei.dynamicgptchat.chatnodes.ChatNodeViewModel
-import com.phazei.dynamicgptchat.data.AppDatabase
 import com.phazei.dynamicgptchat.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -62,7 +62,26 @@ class MainActivity : AppCompatActivity() {
 
         setupFABPageChangeFixes(navController)
 
+        // navController.addOnDestinationChangedListener { _, destination, _ ->
+        //     printNavBackStack(navController)
+        // }
+
     }
+
+    /**
+     * Just for testing backStack
+     */
+    // private fun printNavBackStack(navController: NavController) {
+    //     val backStack = navController.backQueue
+    //     val backStackEntries = backStack.map { entry ->
+    //         val destination = entry.destination
+    //         "Destination id: ${destination.id}, Destination label: ${destination.label}"
+    //     }.joinToString("\n")
+    //     val backStackEntryCount = supportFragmentManager.backStackEntryCount
+    //     val fragmentCount = supportFragmentManager.fragments.size
+    //     Log.d("TAG", "DestinationListener: Back stack entry count: $backStackEntryCount, Fragment count: $fragmentCount")
+    //     Log.d("TAG", "Navigation Back Stack:\n$backStackEntries")
+    // }
 
     private fun setupFABPageChangeFixes(navController: NavController) {
         val fab = binding.appBarMain.floatingActionButton

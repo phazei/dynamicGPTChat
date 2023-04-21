@@ -86,5 +86,7 @@
     <string name="response">Waiting On Response</string>
     <string name="never_mind">Never Mind</string>
     <string name="prompt">Prompt</string>
+    <string name="openai_api_key">OpenAI API Key</string>
+    <string name="api_key_hint">Stored and encrypted locally</string>
 
 </resources>
