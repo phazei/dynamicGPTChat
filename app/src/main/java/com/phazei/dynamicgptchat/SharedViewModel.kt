@@ -10,13 +10,15 @@ import com.phazei.dynamicgptchat.data.dao.ChatTreeDao
 import com.phazei.dynamicgptchat.data.dao.GPTSettingsDao
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.AppDatabase
+import com.phazei.dynamicgptchat.data.repo.AppSettingsRepository
 import com.phazei.dynamicgptchat.data.repo.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class SharedViewModel @Inject constructor(
-    val chatRepository: ChatRepository
+    val chatRepository: ChatRepository,
+    val appSettingsRepository: AppSettingsRepository
 ) : ViewModel() {
     var activeChatTree: ChatTree? = null
     val onFabClick: MutableLiveData<(() -> Unit)?> = MutableLiveData(null)

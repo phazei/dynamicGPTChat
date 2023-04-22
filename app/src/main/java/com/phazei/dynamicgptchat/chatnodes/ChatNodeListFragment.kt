@@ -32,6 +32,8 @@ import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
@@ -64,13 +66,15 @@ class ChatNodeListFragment : Fragment() {
         chatSubmitButtonHelper = ChatSubmitButtonHelper(this)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                chatNodeViewModel.activeBranchUpdate.filterNotNull().collect { (updatedChatNode, activeBranch) ->
-                    if (updatedChatNode.chatTreeId != chatTree.id) {
-                        //when an request completes, it could be from a background chatTree and not the
-                        //currently active one, so we don't need to process it and should just leave
-                        return@collect
-                    } else if (!chatNodeAdapter.isInit() && activeBranch == null) {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            chatNodeViewModel.activeBranchUpdate
+                .filterNotNull()
+                //when an request completes, it could be from a background chatTree and not the
+                //currently active one, so we don't need to process it and should just leave
+                .filter { (updatedChatNode, _) -> updatedChatNode.chatTreeId == chatTree.id }
+                // .conflate() //conflate could skip items if other trees are triggering here
+                .collect { (updatedChatNode, activeBranch) ->
+                    if (!chatNodeAdapter.isInit() && activeBranch == null) {
                         //if an individual request completes before the view loads, this will trigger right away
                         //so shouldn't be loaded yet
                         return@collect
@@ -88,8 +92,9 @@ class ChatNodeListFragment : Fragment() {
                     } else {
                         position = chatNodeAdapter.getItemPosition(updatedChatNode)
                     }
-                    chatNodeAdapter.layoutManager.scrollToPositionWithOffset(position, 20)
-                    // layoutManager.smoothScrollToPosition(position)
+                    // TODO: fix scrolling glitchyness when streaming
+                    // chatNodeAdapter.layoutManager.scrollToPositionWithOffset(position, 20)
+                    // binding.chatNodeRecyclerView.smoothScrollToPosition(position)
                 }
             }
         }

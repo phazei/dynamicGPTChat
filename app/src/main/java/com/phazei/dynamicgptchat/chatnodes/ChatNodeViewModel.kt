@@ -1,5 +1,6 @@
 package com.phazei.dynamicgptchat.chatnodes
 
+import android.util.Log
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.aallam.openai.api.BetaOpenAI
@@ -9,23 +10,39 @@ import com.aallam.openai.api.model.ModelId
 import com.phazei.dynamicgptchat.data.*
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
+import com.phazei.dynamicgptchat.data.repo.AppSettingsRepository
 import com.phazei.dynamicgptchat.data.repo.ChatRepository
 import com.phazei.dynamicgptchat.data.repo.ChatResponseWrapper
 import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(BetaOpenAI::class)
 @HiltViewModel
-class ChatNodeViewModel @Inject constructor(private val chatRepository: ChatRepository) : ViewModel() {
+class ChatNodeViewModel @Inject constructor(
+    private val chatRepository: ChatRepository,
+    private val appSettingsRepository: AppSettingsRepository
+) : ViewModel() {
 
-    private val openAIRepository = OpenAIRepository("123")
-    private val _activeBranchUpdate = MutableStateFlow<Pair<ChatNode, List<ChatNode>?>?>(null)
+    private val openAIRepository = OpenAIRepository("")
+    init {
+        viewModelScope.launch {
+            appSettingsRepository.appSettingsFlow.collect { settings ->
+                val apiKey = settings.openAIkey ?: ""
+                if (apiKey != "")
+                    openAIRepository.updateOpenAIkey(apiKey)
+            }
+        }
+    }
+    private val _activeBranchUpdate = MutableSharedFlow<Pair<ChatNode, List<ChatNode>?>?>(extraBufferCapacity = 16)
     val activeBranchUpdate: SharedFlow<Pair<ChatNode, List<ChatNode>?>?> = _activeBranchUpdate
     val activeRequests: StateFlow<Map<Long, Job>> = openAIRepository.activeRequests
 
@@ -54,8 +71,16 @@ class ChatNodeViewModel @Inject constructor(private val chatRepository: ChatRepo
                 topP = chatTree.gptSettings.topP.toDouble(),
                 frequencyPenalty = chatTree.gptSettings.frequencyPenalty.toDouble(),
                 presencePenalty = chatTree.gptSettings.presencePenalty.toDouble(),
-                stop = listOf(chatTree.gptSettings.stop),
-                n = chatTree.gptSettings.n,
+                // TODO: stop is an empty string, which causes no response to come back, need to make tag type input for it
+                // stop = listOf(chatTree.gptSettings.stop),
+                // no good way to display "n" right now so ignore it for now
+                // n = chatTree.gptSettings.n,
+                // logitBias doesn't seem to work as expected
+                //"language" " language" "model" " model" " apologize" " inappropriate" "offensive" " offensive"
+                // "16129"      "3303"   "19849"   "2746"    "16521"        "15679"      "45055"       "5859"
+                // logitBias = mapOf("16129" to -100, "3303" to -100, "19849" to -100, "2746" to -100, "16521" to -100, "15679" to -100, "45055" to -100, "5859" to -100)
+                // "che" "ese" " cheese"
+                // logitBias = mapOf("2395" to 20, "2771" to 20, "9891" to 20)
             )
 
             val job = openAIRepository.sendChatCompletionRequest(
@@ -85,13 +110,15 @@ class ChatNodeViewModel @Inject constructor(private val chatRepository: ChatRepo
         when (response) {
             is ChatResponseWrapper.Complete -> {
                 val chatComplete = response.chatComplete
+                // Log.d("LOG", chatComplete.toString())
                 chatNode.response = chatComplete.choices[0].message?.content.toString()
                 chatNode.finishReason = chatComplete.choices[0].finishReason ?: ""
                 chatNode.usage = chatComplete.usage ?: Usage()
             }
             is ChatResponseWrapper.Chunk -> {
                 val chatChunk = response.chatChunk
-                chatNode.response += chatChunk.choices[0].delta?.content!!
+                // Log.d("LOG", chatChunk.toString())
+                chatNode.response += chatChunk.choices[0].delta?.content ?: ""
                 chatNode.finishReason = chatChunk.choices[0].finishReason ?: ""
                 if (chatChunk.usage == null) {
                     //TODO: count the chunks and set that as the completion tokens
@@ -102,20 +129,46 @@ class ChatNodeViewModel @Inject constructor(private val chatRepository: ChatRepo
             }
             is ChatResponseWrapper.Error -> {
                 val error = response.error
-                chatNode.error = error.message ?: "Unknown error"
+                chatNode.error = error.message ?: "Unknown Error Type: ${error.javaClass.simpleName} : Cause: ${error.cause.toString()}"
+
                 handleChatComplete(chatNode)
             }
         }
-        viewModelScope.launch {
-            //need to trigger Adapter to update node
-            _activeBranchUpdate.emit(Pair(chatNode, null))
-        }
+        //need to trigger Adapter to update node
+        updateActiveBranchNode(chatNode)
+    }
 
+    /**
+     * When streaming the responses come in way too fast for emitter and UI to keep up
+     * debouncing should greatly help
+     */
+    private val lastEmissionTimes = mutableMapOf<Long, Long>()
+    private val debounceJobs = mutableMapOf<Long, Job>()
+    private fun updateActiveBranchNode(updatedChatNode: ChatNode) {
+        viewModelScope.launch {
+            val key = updatedChatNode.chatTreeId
+            debounceJobs[key]?.cancel()
+            debounceJobs[key] = launch {
+                val lastEmission = lastEmissionTimes.getOrDefault(key, 0)
+                val currentTime = System.currentTimeMillis()
+                val timeSinceLastEmission = currentTime - lastEmission
+
+                //we want to send at least once every 300ms even if debounce is pushing it out
+                if (timeSinceLastEmission < 300) { // Debounce duration
+                    delay(300 - timeSinceLastEmission)
+                }
+                _activeBranchUpdate.emit(Pair(updatedChatNode, null))
+                lastEmissionTimes[key] = System.currentTimeMillis()
+            }
+        }
     }
 
     private fun handleChatComplete(chatNode: ChatNode) {
         viewModelScope.launch {
             chatRepository.saveChatNode(chatNode)
+            delay(300)
+            //one final update just in case it glitched previously
+            updateActiveBranchNode(chatNode)
         }
     }
 

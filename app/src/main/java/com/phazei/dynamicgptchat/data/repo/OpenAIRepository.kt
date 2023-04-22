@@ -27,11 +27,18 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @OptIn(BetaOpenAI::class)
-class OpenAIRepository(private val openAI: OpenAI) {
+class OpenAIRepository(private var openAI: OpenAI) {
 
     constructor(apiKey: String) : this(OpenAI(apiKey))
 
     constructor(config: OpenAIConfig) : this(OpenAI(config))
+
+    fun updateOpenAIkey(apiKey: String) {
+        openAI = OpenAI(apiKey)
+    }
+    fun updateOpenAIkey(config: OpenAIConfig) {
+        openAI = OpenAI(config)
+    }
 
     private val _activeRequests = MutableStateFlow<Map<Long, Job>>(emptyMap())
     val activeRequests: StateFlow<Map<Long, Job>> = _activeRequests
