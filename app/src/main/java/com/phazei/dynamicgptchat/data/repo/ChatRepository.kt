@@ -13,9 +13,10 @@ import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @OptIn(BetaOpenAI::class)
-class ChatRepository(
+class ChatRepository @Inject constructor(
     private val database: AppDatabase,
     private val chatTreeDao: ChatTreeDao,
     private val chatNodeDao: ChatNodeDao,

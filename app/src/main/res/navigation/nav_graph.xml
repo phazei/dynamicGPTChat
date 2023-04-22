@@ -3,54 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/ChatTreeListFragment">
+    app:startDestination="@id/chat_tree_graph">
+
+    <include app:graph="@navigation/chat_tree_graph" />
+    <include app:graph="@navigation/prompts_graph" />
 
     <fragment
-        android:id="@+id/ChatTreeListFragment"
-        android:name="com.phazei.dynamicgptchat.chattrees.ChatTreeListFragment"
-        android:label="@string/chat_tree_list_label"
-        tools:layout="@layout/fragment_chat_tree_list">
+        android:id="@+id/app_settings_fragment"
+        android:name="com.phazei.dynamicgptchat.settings.AppSettingsFragment"
+        android:label="@string/app_settings_fragment"
+        tools:layout="@layout/fragment_app_settings" />
 
-        <action
-            android:id="@+id/action_ChatTreeListFragment_to_ChatNodeListFragment"
-            app:destination="@id/ChatNodeListFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-        <action
-            android:id="@+id/action_ChatTreeListFragment_to_chatTreeSettingsFragment"
-            app:destination="@id/ChatTreeSettingsFragment"
-            app:enterAnim="@anim/slide_in_up"
-            app:exitAnim="@anim/stationary"
-            app:popEnterAnim="@anim/stationary"
-            app:popExitAnim="@anim/slide_out_down"/>
-    </fragment>
-    <fragment
-        android:id="@+id/ChatNodeListFragment"
-        android:name="com.phazei.dynamicgptchat.chatnodes.ChatNodeListFragment"
-        android:label="@string/chat_node_list_label"
-        tools:layout="@layout/fragment_chat_node_list">
-
-        <action
-            android:id="@+id/action_ChatNodeListFragment_to_ChatTreeListFragment"
-            app:destination="@id/ChatTreeListFragment" />
-        <action
-            android:id="@+id/action_ChatNodeListFragment_to_ChatTreeSettingsFragment"
-            app:destination="@id/ChatTreeSettingsFragment"
-            app:enterAnim="@anim/slide_in_right"
-            app:exitAnim="@anim/slide_out_left"
-            app:popEnterAnim="@anim/slide_in_left"
-            app:popExitAnim="@anim/slide_out_right" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/ChatTreeSettingsFragment"
-        android:name="com.phazei.dynamicgptchat.chatsettings.ChatTreeSettingsFragment"
-        android:label="@string/chat_tree_settings_label"
-        tools:layout="@layout/fragment_chat_tree_settings">
-    </fragment>
-    <fragment
-        android:id="@+id/AppSettingsFragment"
-        />
 </navigation>

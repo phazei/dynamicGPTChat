@@ -3,6 +3,7 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+<!--  Must wrap in FrameLayout due to tooltip compatibility requirement  -->
 <FrameLayout
     android:id="@+id/chat_settings_body"
     android:layout_width="match_parent"

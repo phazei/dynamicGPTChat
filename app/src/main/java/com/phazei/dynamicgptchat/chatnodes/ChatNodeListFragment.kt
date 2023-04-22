@@ -30,7 +30,10 @@ import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
@@ -39,17 +42,14 @@ import kotlinx.coroutines.launch
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
 @Suppress("LiftReturnOrAssignment")
+@AndroidEntryPoint
 class ChatNodeListFragment : Fragment() {
 
     private var _binding: FragmentChatNodeListBinding? = null
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val chatNodeViewModel: ChatNodeViewModel by activityViewModels()
-    private val chatTreeViewModel: ChatTreeViewModel by viewModels {
-        ChatTreeViewModel.Companion.Factory(
-            sharedViewModel.chatRepository
-        )
-    }
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels()
     private lateinit var chatNodeAdapter: ChatNodeAdapter
     private lateinit var chatSubmitButtonHelper: ChatSubmitButtonHelper
     private lateinit var chatTree: ChatTree
@@ -66,13 +66,15 @@ class ChatNodeListFragment : Fragment() {
         chatSubmitButtonHelper = ChatSubmitButtonHelper(this)
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                chatNodeViewModel.activeBranchUpdate.filterNotNull().collect { (updatedChatNode, activeBranch) ->
-                    if (updatedChatNode.chatTreeId != chatTree.id) {
-                        //when an request completes, it could be from a background chatTree and not the
-                        //currently active one, so we don't need to process it and should just leave
-                        return@collect
-                    } else if (!chatNodeAdapter.isInit() && activeBranch == null) {
+        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            chatNodeViewModel.activeBranchUpdate
+                .filterNotNull()
+                //when an request completes, it could be from a background chatTree and not the
+                //currently active one, so we don't need to process it and should just leave
+                .filter { (updatedChatNode, _) -> updatedChatNode.chatTreeId == chatTree.id }
+                // .conflate() //conflate could skip items if other trees are triggering here
+                .collect { (updatedChatNode, activeBranch) ->
+                    if (!chatNodeAdapter.isInit() && activeBranch == null) {
                         //if an individual request completes before the view loads, this will trigger right away
                         //so shouldn't be loaded yet
                         return@collect
@@ -90,8 +92,9 @@ class ChatNodeListFragment : Fragment() {
                     } else {
                         position = chatNodeAdapter.getItemPosition(updatedChatNode)
                     }
-                    chatNodeAdapter.layoutManager.scrollToPositionWithOffset(position, 20)
-                    // layoutManager.smoothScrollToPosition(position)
+                    // TODO: fix scrolling glitchyness when streaming
+                    // chatNodeAdapter.layoutManager.scrollToPositionWithOffset(position, 20)
+                    // binding.chatNodeRecyclerView.smoothScrollToPosition(position)
                 }
             }
         }
@@ -167,20 +170,33 @@ class ChatNodeListFragment : Fragment() {
         }
         //for ease of access and scrolling
         chatNodeAdapter.layoutManager = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
+
+        //fix item shows when keyboard opens/closes
+        binding.chatNodeRecyclerView.addOnLayoutChangeListener(View.OnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            var deltaY = oldBottom - bottom
+            val keyboardOpened = deltaY > 0
+
+            val layoutManager = chatNodeAdapter.layoutManager
+            val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+            val totalItemCount = layoutManager.itemCount
+
+            if (!keyboardOpened && totalItemCount < lastVisibleItemPosition + 2) {
+                deltaY = 0 //if its close to the bottom after the keyboard has been closed, don't scroll up
+            }
+            binding.chatNodeRecyclerView.scrollBy(0, deltaY)
+        })
     }
 
     private fun setupMenu() {
         (activity as AppCompatActivity).supportActionBar?.title = chatTree.title
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
-            override fun onPrepareMenu(menu: Menu) {
-                menu.findItem(R.id.action_settings).isVisible = false
-            }
+            override fun onPrepareMenu(menu: Menu) {}
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_chat_node_page, menu)
             }
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 when (menuItem.itemId) {
-                    R.id.action_chat_settings -> {
+                    R.id.chat_settings -> {
                         findNavController().navigate(R.id.action_ChatNodeListFragment_to_ChatTreeSettingsFragment)
                         return true
                     }
@@ -297,7 +313,10 @@ class ChatNodeListFragment : Fragment() {
                 binding.chatSubmitButton.icon = drawableStopToSend
                 drawableStopToSend.start()
             }
-            val isEnabled = !binding.promptInputEditText.text.isNullOrEmpty() && !temporalDisabled
+
+            //allow sending spaces, but not empty returns
+            val empty = binding.promptInputEditText.text?.trim { it == '\r' || it == '\n' }.isNullOrEmpty()
+            val isEnabled = !empty && !temporalDisabled
             binding.chatSubmitButton.isEnabled = isEnabled
             lastSet = Method.SEND
         }

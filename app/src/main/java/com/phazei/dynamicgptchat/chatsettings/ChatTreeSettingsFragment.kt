@@ -3,8 +3,6 @@ package com.phazei.dynamicgptchat.chatsettings
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.TypedValue
 import android.view.*
 import android.widget.ArrayAdapter
@@ -16,6 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.R
@@ -27,20 +26,23 @@ import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
 import com.phazei.utils.setChangeListener
 import com.tomergoldst.tooltips.ToolTip
 import com.tomergoldst.tooltips.ToolTipsManager
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-
+@AndroidEntryPoint
 class ChatTreeSettingsFragment : Fragment() {
     // by utilizing `_binding` which is nullable,it eliminates the need for null checks
     //    when using `binding` and allows it to be cleared in onDestroy
     private var _binding: FragmentChatTreeSettingsBinding? = null
     private val binding get() = _binding!!
-    private lateinit var chatTree: ChatTree
     private val sharedViewModel: SharedViewModel by activityViewModels()
-    private val chatTreeViewModel: ChatTreeViewModel by viewModels { ChatTreeViewModel.Companion.Factory(sharedViewModel.chatRepository) }
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels()
     private var backPressedOnce = false
     private var saved = true
-    private lateinit var mToolTipsManager: ToolTipsManager
     private val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
+    private lateinit var mToolTipsManager: ToolTipsManager
+    private lateinit var chatTree: ChatTree
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -127,9 +129,7 @@ class ChatTreeSettingsFragment : Fragment() {
 
     private fun setupMenu() {
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
-            override fun onPrepareMenu(menu: Menu) {
-                menu.findItem(R.id.action_settings).isVisible = false
-            }
+            override fun onPrepareMenu(menu: Menu) {}
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {}
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 if (menuItem.itemId == android.R.id.home) {
@@ -328,7 +328,9 @@ class ChatTreeSettingsFragment : Fragment() {
             Snackbar.make(binding.root, "Not saved, hit back again to leave", Snackbar.LENGTH_LONG)
                 .setAction("") {}.show()
             backPressedOnce = true
-            Handler(Looper.getMainLooper()).postDelayed({ backPressedOnce = false }, 2000)
+            lifecycleScope.launch { delay(2000)
+                backPressedOnce = false
+            }
             return false
         } else {
             // true press

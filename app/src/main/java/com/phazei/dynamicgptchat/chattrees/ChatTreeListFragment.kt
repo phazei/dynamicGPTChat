@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.ChatTree
+import dagger.hilt.android.AndroidEntryPoint
 
 
 /**
@@ -23,6 +24,7 @@ import com.phazei.dynamicgptchat.data.entity.ChatTree
  * This inherits from the ChatTreeItemClickListener so "this" can be passed to the Adapter listener
  */
 @Suppress("RedundantNullableReturnType")
+@AndroidEntryPoint
 class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListener {
 
     private var _binding: FragmentChatTreeListBinding? = null
@@ -31,11 +33,7 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
 
     private lateinit var chatTreeAdapter: ChatTreeAdapter
     private val sharedViewModel: SharedViewModel by activityViewModels()
-    private val chatTreeViewModel: ChatTreeViewModel by viewModels {
-        ChatTreeViewModel.Companion.Factory(
-            sharedViewModel.chatRepository
-        )
-    }
+    private val chatTreeViewModel: ChatTreeViewModel by viewModels()
 
 
     override fun onCreateView(
