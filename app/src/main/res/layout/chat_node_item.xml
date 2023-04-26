@@ -32,7 +32,7 @@
             android:paddingTop="6dp"
             android:paddingBottom="12dp"
             android:paddingStart="12dp"
-            android:paddingEnd="40dp"
+            android:paddingEnd="12dp"
             android:minLines="2"
             android:maxLines="10"
             android:text="@string/prompt"

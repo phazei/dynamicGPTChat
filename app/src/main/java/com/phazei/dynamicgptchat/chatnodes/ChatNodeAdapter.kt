@@ -5,9 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doAfterTextChanged
+import androidx.core.widget.doBeforeTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.data.entity.ChatNode
+import com.phazei.dynamicgptchat.databinding.ChatNodeHeaderItemBinding
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
 import java.security.InvalidParameterException
 
@@ -44,10 +47,20 @@ class ChatNodeAdapter(
         }
 
         fun bind(chatNode: ChatNode) {
-            // binding.promptTextView.text = chatNode.prompt
+
+            //hide the root node
+            if (chatNode.parentNodeId == null) {
+                binding.root.layoutParams.height = 0
+                binding.root.visibility = View.GONE
+            } else {
+                binding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                binding.root.visibility = View.VISIBLE
+            }
+
             binding.promptTextView.setText(chatNode.prompt)
             binding.responseTextView.text = chatNode.response
 
+            //show error
             if (chatNode.error?.isEmpty() == false) {
                 binding.errorTextView.visibility = View.VISIBLE
                 binding.errorTextView.text = chatNode.error
@@ -56,6 +69,7 @@ class ChatNodeAdapter(
                 binding.errorTextView.text = ""
             }
 
+            //show moderation
             if (chatNode.moderation?.isEmpty() == false) {
                 binding.moderationTextView.visibility = View.VISIBLE
                 binding.moderationTextView.text = chatNode.error
@@ -72,6 +86,8 @@ class ChatNodeAdapter(
                 // onEditPromptClick(chatNode, binding.promptTextView.text.toString())
             }
 
+            binding.promptTextView.setOnFocusChangeListener { _, hasFocus ->
+            }
 
         }
     }
@@ -121,21 +137,25 @@ class ChatNodeAdapter(
         }
         // Insert the new node after the parent node
         chatNodes.add(parentIndex + 1, newNode)
+        // Calculate the number of items that will be removed
         // Remove any items after the new node
-        if (parentIndex + 2 < chatNodes.size) {
+        val itemsToRemove = chatNodes.size - (parentIndex + 2)
+        if (itemsToRemove > 0) {
             chatNodes.subList(parentIndex + 2, chatNodes.size).clear()
+            notifyItemRangeRemoved(parentIndex + 2, itemsToRemove)
         }
         // Notify the recycler view that items have changed
-        notifyItemRangeChanged(parentIndex + 1, chatNodes.size - parentIndex - 1)
+        notifyItemInserted(parentIndex + 1)
+        // notifyItemRangeInserted(parentIndex + 1, 1)
     }
 
     fun updateItem(chatNode: ChatNode) {
         val index = chatNodes.indexOf(chatNode)
         if (index == -1) {
-            //in case it was lost from the adapter but had then ben saved.
+            //in case it was lost from the adapter but had then been saved.
             addItem(chatNode.parent, chatNode)
         } else {
-            //there's a chance that the memory reference has been lost of the fragment
+            //there's a chance that the memory reference has been lost if the fragment
             //was navigated away from.  this will make sure it's updated
             chatNodes[index] = chatNode
             notifyItemChanged(index)
@@ -154,4 +174,63 @@ class ChatNodeAdapter(
         return !chatNodes.isEmpty()
     }
 
+}
+
+class ChatNodeHeaderAdapter(
+    private var currentSystemMessage: String,
+    private val onSave: (newSystemMessage: String) -> Unit,
+    private val onChange: (sysMsgheight: Int) -> Unit
+) : RecyclerView.Adapter<ChatNodeHeaderAdapter.HeaderViewHolder>() {
+
+    private var updatedSystemMessage: String = currentSystemMessage
+
+    inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = ChatNodeHeaderItemBinding.inflate(inflater, parent, false)
+        return HeaderViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: HeaderViewHolder, position: Int) {
+
+
+        fun checkSystemMessageChanged() {
+            holder.binding.apply {
+                val hasChanges = updatedSystemMessage != currentSystemMessage
+                editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+                editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+            }
+        }
+
+        holder.binding.apply {
+
+            systemMessageEditText.doBeforeTextChanged { text, start, count, after ->
+                onChange(holder.binding.root.height)
+            }
+
+            systemMessageEditText.doAfterTextChanged { _ ->
+                updatedSystemMessage = systemMessageEditText.text.toString()
+                checkSystemMessageChanged()
+            }
+
+            systemMessageEditText.setText(updatedSystemMessage)
+
+            editSystemMessageCancelButton.setOnClickListener {
+                //reset updated to current
+                updatedSystemMessage = currentSystemMessage
+                systemMessageEditText.setText(currentSystemMessage)
+            }
+
+            editSystemMessageSubmitButton.setOnClickListener {
+                updatedSystemMessage = systemMessageEditText.text.toString()
+                onSave(updatedSystemMessage)
+                //update current to updated
+                currentSystemMessage = updatedSystemMessage
+                checkSystemMessageChanged()
+            }
+        }
+    }
+
+    override fun getItemCount(): Int = 1
 }

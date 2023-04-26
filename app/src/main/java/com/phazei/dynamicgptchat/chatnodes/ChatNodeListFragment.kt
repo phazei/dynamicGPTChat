@@ -21,6 +21,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
@@ -32,7 +33,6 @@ import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
@@ -88,18 +88,22 @@ class ChatNodeListFragment : Fragment() {
                     }
                     val position : Int
                     if (updatedChatNode.parentNodeId == null) { //rootNode
-                        position = chatNodeAdapter.itemCount - 1
+                        position = chatNodeAdapter.itemCount - 1 //get leaf item
+                        binding.chatNodeRecyclerView.scrollToPosition(position + 1) //+1 for header
                     } else {
-                        position = chatNodeAdapter.getItemPosition(updatedChatNode)
+                        position = chatNodeAdapter.getItemPosition(updatedChatNode) //stay by edited item
                     }
                     // TODO: fix scrolling glitchyness when streaming
-                    // chatNodeAdapter.layoutManager.scrollToPositionWithOffset(position, 20)
-                    // binding.chatNodeRecyclerView.smoothScrollToPosition(position)
                 }
             }
         }
         //recycler won't be populated until after this is loaded
-        chatNodeViewModel.loadChatTreeChildrenAndActiveBranch(chatTree)
+        viewLifecycleOwner.lifecycleScope.launch {
+            //no matter what I've tried, 1 out of 20 times this triggers before the listener is attached and doesn't load
+            //so forcing a delay on it
+            delay(100)
+            chatNodeViewModel.loadChatTreeChildrenAndActiveBranch(chatTree)
+        }
 
         setupMenu()
         setupRecycler()
@@ -132,7 +136,7 @@ class ChatNodeListFragment : Fragment() {
         chatTreeViewModel.saveChatTree(chatTree)
 
         chatNodeAdapter.addItem(parentLeaf, newNode)
-        chatNodeAdapter.layoutManager.scrollToPosition(chatNodeAdapter.getItemPosition(newNode))
+        binding.chatNodeRecyclerView.scrollToPosition(chatNodeAdapter.getItemPosition(newNode) + 1) //+1 for header
         chatNodeViewModel.makeChatCompletionRequest(chatTree, newNode)
     }
 
@@ -153,6 +157,7 @@ class ChatNodeListFragment : Fragment() {
         chatNodeAdapter.cancelLastItem()
     }
 
+    @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private fun setupRecycler() {
         chatNodeAdapter = ChatNodeAdapter(
             chatNodes = mutableListOf(),
@@ -164,27 +169,68 @@ class ChatNodeListFragment : Fragment() {
                 // do something with the clicked chatNode and prompt
             }
         )
+        val chatNodeHeaderAdapter = ChatNodeHeaderAdapter(
+            currentSystemMessage = chatTree.gptSettings.systemMessage,
+            onSave = { newSystemMessage ->
+                chatTreeViewModel.saveGptSettings(chatTree.gptSettings.apply { systemMessage = newSystemMessage })
+            },
+            onChange = { sysMsgHeight ->
+                setupRecyclerHeaderScroll(sysMsgHeight)
+            }
+        )
+        val concatAdapter = ConcatAdapter(chatNodeHeaderAdapter, chatNodeAdapter)
+
         binding.chatNodeRecyclerView.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = chatNodeAdapter
+            layoutManager = LinearLayoutManager(context).apply {
+                stackFromEnd = true
+                reverseLayout = false
+            }
+            adapter = concatAdapter
         }
         //for ease of access and scrolling
         chatNodeAdapter.layoutManager = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
 
         //fix item shows when keyboard opens/closes
         binding.chatNodeRecyclerView.addOnLayoutChangeListener(View.OnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-            var deltaY = oldBottom - bottom
-            val keyboardOpened = deltaY > 0
 
-            val layoutManager = chatNodeAdapter.layoutManager
-            val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-            val totalItemCount = layoutManager.itemCount
+            if (binding.promptInputEditText.hasFocus()) {
+                var deltaY = oldBottom - bottom
+                val keyboardOpened = deltaY > 0
 
-            if (!keyboardOpened && totalItemCount < lastVisibleItemPosition + 2) {
-                deltaY = 0 //if its close to the bottom after the keyboard has been closed, don't scroll up
+                val layoutManager = chatNodeAdapter.layoutManager
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+                val totalItemCount = layoutManager.itemCount
+
+                if (!keyboardOpened && totalItemCount < lastVisibleItemPosition + 2) {
+                    //if its close to the bottom after the keyboard has been closed, don't scroll up
+                    deltaY = 0
+                }
+                binding.chatNodeRecyclerView.scrollBy(0, deltaY)
+            } else {
+                //editing chatNode, probably doesn't need scrolling
             }
-            binding.chatNodeRecyclerView.scrollBy(0, deltaY)
         })
+    }
+
+    /**
+     * This makes for nicer scrolling when entering a long system message
+     */
+    private fun setupRecyclerHeaderScroll(sysMsgHeight : Int) {
+        val totalChildrenHeight = (chatNodeAdapter.layoutManager.findFirstVisibleItemPosition()..chatNodeAdapter.layoutManager.findLastVisibleItemPosition())
+            .mapNotNull { chatNodeAdapter.layoutManager.findViewByPosition(it) }
+            .sumOf { it.height }
+        val rcHeight = binding.chatNodeRecyclerView.height
+
+        if (sysMsgHeight < rcHeight && totalChildrenHeight > rcHeight) {
+            if (!binding.chatNodeRecyclerView.isComputingLayout) {
+                chatNodeAdapter.layoutManager.stackFromEnd = false
+                lifecycleScope.launch {
+                    delay(200) //so if it goes to the next line it doesn't jump as much
+                    chatNodeAdapter.layoutManager.stackFromEnd = true
+                    binding.chatNodeRecyclerView.scrollToPosition(0)
+                }
+            }
+        }
     }
 
     private fun setupMenu() {
@@ -281,7 +327,7 @@ class ChatNodeListFragment : Fragment() {
                 triggerTemporalDisabled()
             }
 
-            disableButtonOnNoPrompt()
+            setupDisableButtonOnNoPrompt()
         }
 
         fun checkSubmitStatusButton() {
@@ -292,7 +338,7 @@ class ChatNodeListFragment : Fragment() {
             }
         }
 
-        private fun disableButtonOnNoPrompt() {
+        private fun setupDisableButtonOnNoPrompt() {
 
             binding.promptInputEditText.setText(chatTree.tempPrompt)
             binding.chatSubmitButton.isEnabled = binding.promptInputEditText.text.toString() != ""
