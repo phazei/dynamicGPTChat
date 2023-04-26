@@ -6,38 +6,25 @@
     android:layout_height="wrap_content"
     android:padding="4dp">
 
-    <TextView
-        android:id="@+id/prompt_text_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/message_bubble_right"
-        android:textColor="?attr/colorOnPrimary"
-        android:gravity="start"
-        android:paddingTop="6dp"
-        android:paddingBottom="12dp"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:text="@string/prompt"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="@id/guideline10"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <FrameLayout
-        android:visibility="gone"
+    <LinearLayout
+        android:visibility="visible"
         android:id="@+id/edit_prompt_frame"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        app:layout_constraintTop_toBottomOf="@id/prompt_text_view"
+        android:background="@drawable/message_bubble_right"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="@id/guideline10"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:orientation="horizontal">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/prompt_text_view"
             android:visibility="visible"
-            android:id="@+id/edit_prompt_input"
-            android:layout_width="match_parent"
+            android:enabled="false"
+            android:theme="@style/textHandleOnColor"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:minHeight="85dp"
-            android:background="@drawable/message_bubble_right"
+            android:layout_weight="1"
             android:inputType="textMultiLine"
             android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/abc_text_size_body_1_material"
@@ -51,9 +38,11 @@
             android:text="@string/prompt"
             android:contentDescription="@string/enter_prompt" />
 
-        <FrameLayout
+        <LinearLayout
+            android:id="@+id/edit_prompt_buttons"
+            android:visibility="gone"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_gravity="right|center_vertical"
             android:paddingBottom="6dp"
@@ -88,51 +77,88 @@
                 app:cornerRadius="10dp"
                 tools:ignore="RtlHardcoded,RtlSymmetry" />
 
-        </FrameLayout>
-    </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/chat_node_barrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="prompt_text_view,edit_prompt_frame" />
+        app:constraint_referenced_ids="edit_prompt_frame" />
 
-    <TextView
-        android:id="@+id/response_text_view"
+    <FrameLayout
+        android:id="@+id/response_holder"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@drawable/message_bubble_left"
-        android:textColor="?attr/colorOnSecondary"
-        android:gravity="start"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="12dp"
-        android:text="@string/response"
+
         app:layout_constraintEnd_toEndOf="@id/guideline90"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/chat_node_barrier" />
+        app:layout_constraintTop_toBottomOf="@id/chat_node_barrier">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/chat_error_card"
+        <TextView
+            android:id="@+id/response_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/message_bubble_left"
+            android:textColor="?attr/colorOnSecondary"
+            android:gravity="start"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="12dp" />
+
+        <ImageView
+            android:visibility="gone"
+            android:id="@+id/response_waiting"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:paddingHorizontal="30dp"
+            android:paddingBottom="6dp"
+            android:contentDescription="@string/response"
+            android:src="@drawable/knightrider" />
+    </FrameLayout>
+
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:backgroundTint="?attr/colorErrorContainer"
         app:layout_constraintEnd_toEndOf="@id/guideline90"
         app:layout_constraintStart_toStartOf="@id/guideline10"
-        app:layout_constraintTop_toBottomOf="@id/response_text_view"
-        app:cardCornerRadius="5dp"
-        android:visibility="gone">
+        app:layout_constraintTop_toBottomOf="@id/response_holder"
+        android:orientation="vertical">
         <TextView
+            android:visibility="gone"
             android:id="@+id/error_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/message_bubble_center"
+            android:backgroundTint="?attr/colorErrorContainer"
             android:gravity="center"
-            android:padding="8dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="12dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:textColor="?attr/colorOnErrorContainer"
             android:text="@string/error_message"/>
-    </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/moderation_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/message_bubble_center"
+            android:backgroundTint="?attr/colorTertiary"
+            android:gravity="center"
+            android:paddingTop="6dp"
+            android:paddingBottom="12dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="?attr/colorOnTertiary"
+            android:text="@string/moderation_message"/>
+    </LinearLayout>
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline10"

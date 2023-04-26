@@ -36,6 +36,7 @@
         <item name="android:statusBarColor">@color/md_theme_light_onPrimaryContainer</item>
         <!-- Customize your theme here. -->
 
+        <!-- <item name="colorControlActivated">?attr/colorOnSurfaceVariant</item>-->
     </style>
 
     <style name="Theme.DynamicGPTChat.NoActionBar">
@@ -57,4 +58,8 @@
         <item name="backgroundTint">@color/send_button_style</item>
     </style>
 
+    <style name="textHandleOnColor" parent="ThemeOverlay.Material3.TextInputEditText">
+        <item name="colorControlActivated">@color/md_theme_light_onPrimaryContainer</item>
+        <item name="android:textColorHighlight">@color/md_theme_light_onPrimaryContainer</item>
+    </style>
 </resources>

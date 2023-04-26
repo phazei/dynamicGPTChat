@@ -44,15 +44,24 @@ class ChatNodeAdapter(
         }
 
         fun bind(chatNode: ChatNode) {
-            binding.promptTextView.text = chatNode.prompt
+            // binding.promptTextView.text = chatNode.prompt
+            binding.promptTextView.setText(chatNode.prompt)
             binding.responseTextView.text = chatNode.response
 
             if (chatNode.error?.isEmpty() == false) {
-                binding.chatErrorCard.visibility = View.VISIBLE
+                binding.errorTextView.visibility = View.VISIBLE
                 binding.errorTextView.text = chatNode.error
             } else {
-                binding.chatErrorCard.visibility = View.GONE
+                binding.errorTextView.visibility = View.GONE
                 binding.errorTextView.text = ""
+            }
+
+            if (chatNode.moderation?.isEmpty() == false) {
+                binding.moderationTextView.visibility = View.VISIBLE
+                binding.moderationTextView.text = chatNode.error
+            } else {
+                binding.moderationTextView.visibility = View.GONE
+                binding.moderationTextView.text = ""
             }
 
             binding.root.setOnClickListener {
@@ -60,7 +69,7 @@ class ChatNodeAdapter(
             }
 
             binding.editPromptSubmitButton.setOnClickListener {
-                onEditPromptClick(chatNode, binding.editPromptInput.text.toString())
+                // onEditPromptClick(chatNode, binding.promptTextView.text.toString())
             }
 
 

@@ -32,6 +32,8 @@ data class ChatNode(
 ) : BaseEntity() {
     @ColumnInfo(name = "active_child_index") var activeChildIndex: Int = 0
     var error: String? = null
+    @Ignore
+    var moderation: String? = null
     @ColumnInfo(name = "finish_reason") var finishReason: String = ""
     @Embedded(prefix = "use_") var usage: Usage = Usage()
     var response: String = ""
