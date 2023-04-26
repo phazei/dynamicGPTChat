@@ -172,10 +172,6 @@
                         android:valueFrom="@dimen/stop_and_go_scale_down"
                         android:valueTo="@dimen/stop_and_go_scale_up"
                         android:valueType="floatType" />
-                    <propertyValuesHolder android:propertyName="scaleY"
-                        android:valueFrom="@dimen/stop_and_go_scale_down"
-                        android:valueTo="@dimen/stop_and_go_scale_up"
-                        android:valueType="floatType" />
                 </objectAnimator>
             </set>
         </aapt:attr>

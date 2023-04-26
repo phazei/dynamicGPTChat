@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="104dp"
+    android:height="6dp"
+    android:viewportWidth="104"
+    android:viewportHeight="6">
+
+    <group
+        android:name="loading_ring"
+        android:translateX="0"
+        android:pivotX="6"
+        android:pivotY="3">
+        <group
+            android:translateX="0"
+            android:pivotX="6"
+            android:pivotY="3">
+            <path
+                android:name="block1"
+                android:fillAlpha="1"
+                android:fillColor="@android:color/white"
+                android:pathData="@string/knightrider_rect" />
+        </group>
+        <group
+            android:translateX="13"
+            android:pivotX="6"
+            android:pivotY="3">
+            <path
+                android:name="block2"
+                android:fillAlpha="0.5"
+                android:fillColor="@android:color/white"
+                android:pathData="@string/knightrider_rect" />
+        </group>
+        <group
+            android:translateX="26"
+            android:pivotX="6"
+            android:pivotY="3">
+            <path
+                android:name="block3"
+                android:fillAlpha="0.3"
+                android:fillColor="@android:color/white"
+                android:pathData="@string/knightrider_rect" />
+        </group>
+        <group
+            android:translateX="39"
+            android:pivotX="6"
+            android:pivotY="3">
+            <path
+                android:name="block4"
+                android:fillAlpha="0.05"
+                android:fillColor="@android:color/white"
+                android:pathData="@string/knightrider_rect" />
+        </group>
+        <group
+            android:translateX="52"
+            android:pivotX="6"
+            android:pivotY="3">
+            <path
+                android:name="block5"
+                android:fillAlpha="0.05"
+                android:fillColor="@android:color/white"
+                android:pathData="@string/knightrider_rect" />
+        </group>
+        <group
+            android:translateX="65"
+            android:pivotX="6"
+            android:pivotY="3">
+            <path
+                android:name="block6"
+                android:fillAlpha="0.05"
+                android:fillColor="@android:color/white"
+                android:pathData="@string/knightrider_rect" />
+        </group>
+        <group
+            android:translateX="78"
+            android:pivotX="6"
+            android:pivotY="3">
+            <path
+                android:name="block7"
+                android:fillAlpha="0.05"
+                android:fillColor="@android:color/white"
+                android:pathData="@string/knightrider_rect" />
+        </group>
+        <group
+            android:translateX="91"
+            android:pivotX="6"
+            android:pivotY="3">
+            <path
+                android:name="block8"
+                android:fillAlpha="0.05"
+                android:fillColor="@android:color/white"
+                android:pathData="@string/knightrider_rect" />
+        </group>
+    </group>
+</vector>

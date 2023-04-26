@@ -9,4 +9,6 @@
     <integer name="stop_and_go_offset_6">1000</integer>
     <integer name="stop_and_go_offset_7">1200</integer>
     <integer name="stop_and_go_offset_8">1400</integer>
+
+    <integer name="knightrider_duration">2000</integer>
 </resources>
