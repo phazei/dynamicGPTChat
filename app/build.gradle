@@ -62,7 +62,8 @@ dependencies {
     implementation 'io.noties.markwon:core:4.6.2'
     implementation 'com.aallam.openai:openai-client:3.2.0'
     implementation 'com.tomergoldst.android:tooltips:1.1.1'
-    implementation "com.aallam.openai:openai-client:3.2.0"
+    implementation 'com.splitwise:tokenautocomplete:4.0.0-beta05'
+    implementation 'com.aallam.openai:openai-client:3.2.0'
     implementation 'io.ktor:ktor-client-okhttp:2.2.4'
 
     ksp 'androidx.room:room-compiler:2.5.1'

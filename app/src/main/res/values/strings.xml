@@ -44,7 +44,8 @@
     <string name="top_p_label">TopP (%.2f)</string>
     <string name="frequency_penalty_label">Frequency Penalty (%.2f)</string>
     <string name="presence_penalty_label">Presence Penalty (%.2f)</string>
-    <string name="stop_text_label">Stop String</string>
+    <string name="stop_list_label">Stop String (4 max, comma to enter)</string>
+    <string name="stop_list_hint">Strings to halt messages</string>
     <string name="number_of_label">Number of (%.0f)</string>
     <string name="best_of_label">Best of (%.0f)</string>
     <string name="inject_start_text_label">Inject Start Text</string>
@@ -70,7 +71,7 @@
     <string name="top_p_tooltip">"TopP" controls text diversity: higher values, more diverse output; lower values, more repetition.</string>
     <string name="frequency_penalty_tooltip">"Frequency penalty": controls how much the model avoids repeating words or phrases in output.</string>
     <string name="presence_penalty_tooltip">"Presence penalty": controls how much the model avoids including prompt words or phrases in output.</string>
-    <string name="stop_text_tooltip">"Presence penalty": controls how much the model avoids including prompt words or phrases in output.</string>
+    <string name="stop_list_tooltip">"Stop": Up to 4 sequences; API stops generating tokens beyond them. Omitted in response. (press comma to enter, "\\n" converts)</string>
     <string name="number_of_tooltip">"n" parameter: controls the number of output sequences the model returns.</string>
     <string name="best_of_tooltip">"Best of": controls the number of output sequences the model generates, returning the highest-scoring one.</string>
     <string name="inject_start_text_tooltip">"Inject start text": text to add before the generated output.</string>

@@ -195,22 +195,30 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/stop_text_label"
-            android:labelFor="@id/stop_text"
+            android:text="@string/stop_list_label"
+            android:labelFor="@id/stop_list"
             />
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/stop_list_parent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:hint="@string/inject_start_text_hint">
+            android:hint="@string/stop_list_hint">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/stop_text"
+            <com.phazei.dynamicgptchat.chatsettings.StopTokenCompleteTextView
+                android:id="@+id/stop_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:maxLines="1" />
+                android:paddingHorizontal="12dp"
+                android:paddingTop="25dp"
+                android:paddingBottom="10dp"
+                app:cornerRadius="10dp"
+                android:textSize="16sp"
+                android:textStyle="normal"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+
+                 />
 
         </com.google.android.material.textfield.TextInputLayout>
 

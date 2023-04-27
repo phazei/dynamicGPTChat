@@ -17,11 +17,23 @@ data class GPTSettings(
     @ColumnInfo(name = "presence_penalty") var presencePenalty: Float = 0f,
     @ColumnInfo(name = "n") var n: Int = 1,
     @ColumnInfo(name = "best_of") var bestOf: Int = 1,
-    @ColumnInfo(name = "stop") var stop: String = "",
+    @ColumnInfo(name = "stop") var stop: MutableList<String> = mutableListOf(),
+    @ColumnInfo(name = "logit_bias") var logitBias: MutableList<Map<Int, Int>> = mutableListOf(),
     @ColumnInfo(name = "inject_start_text") var injectStartText: String = "",
     @ColumnInfo(name = "inject_restart_text") var injectRestartText: String = ""
 ) {
+
+    /**
+     * loops through all stop values and replaces text \\n with real \n
+     */
+    fun getStops(): List<String>? {
+        return stop.map { it.replace("\\n", "\n") }.takeIf { it.isNotEmpty() }
+    }
+
     override fun toString(): String {
         return "model: $model, temperature: $temperature, maxTokens: $maxTokens"
     }
+
+
+
 }

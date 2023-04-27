@@ -5,6 +5,7 @@ import com.aallam.openai.api.core.Usage
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import java.util.*
 
 class DateConverter {
@@ -32,5 +33,37 @@ class UsageTypeConverter {
     @TypeConverter
     fun jsonToUsage(jsonString: String?): Usage? {
         return jsonString?.let { moshi.adapter(Usage::class.java).fromJson(it) }
+    }
+}
+
+class ListTypeConverter {
+    private val moshi = Moshi.Builder().build()
+    private val type = Types.newParameterizedType(MutableList::class.java, String::class.java)
+    private val adapter = moshi.adapter<MutableList<String>>(type)
+
+    @TypeConverter
+    fun fromJson(json: String?): MutableList<String>? {
+        return adapter.fromJson(json ?: "[]")
+    }
+
+    @TypeConverter
+    fun toJson(list: MutableList<String>?): String? {
+        return adapter.toJson(list)
+    }
+}
+
+class ListMapConverter {
+    private val moshi = Moshi.Builder().build()
+    private val type = Types.newParameterizedType(MutableList::class.java, Types.newParameterizedType(Map::class.java, Integer::class.java, Integer::class.java))
+    private val adapter = moshi.adapter<MutableList<Map<Int, Int>>>(type)
+
+    @TypeConverter
+    fun fromStringToListMap(value: String?): MutableList<Map<Int, Int>>? {
+        return adapter.fromJson(value ?: "[]")
+    }
+
+    @TypeConverter
+    fun fromListMapToString(list: MutableList<Map<Int, Int>>?): String? {
+        return adapter.toJson(list)
     }
 }

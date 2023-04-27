@@ -3,6 +3,8 @@ package com.phazei.dynamicgptchat.chatsettings
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
+import android.text.InputType
+import android.util.Log
 import android.util.TypedValue
 import android.view.*
 import android.widget.ArrayAdapter
@@ -24,11 +26,15 @@ import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
 import com.phazei.utils.setChangeListener
+import com.tokenautocomplete.CharacterTokenizer
+import com.tokenautocomplete.TokenCompleteTextView
 import com.tomergoldst.tooltips.ToolTip
 import com.tomergoldst.tooltips.ToolTipsManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.Arrays
+
 
 @AndroidEntryPoint
 class ChatTreeSettingsFragment : Fragment() {
@@ -82,7 +88,7 @@ class ChatTreeSettingsFragment : Fragment() {
             checkModifiedSettings()
         }
 
-        //prevent accidental back when not saved
+        // prevent accidental back when not saved
         dispatcher.addCallback(viewLifecycleOwner) {
             if (onBackPressed()) {
                 // if it's a true onBackPressed, then disable this callback, and hit back again
@@ -98,7 +104,7 @@ class ChatTreeSettingsFragment : Fragment() {
      */
     private fun checkModifiedSettings() {
         val settings = getGPTSettingsModel()
-        val savedSettings = chatTree.gptSettings.copy(id = 0) //ID must be zero to match default
+        val savedSettings = chatTree.gptSettings.copy(id = 0) // ID must be zero to match default
         if (savedSettings == settings && chatTree.title == binding.titleEditText.text.toString()) {
             saved = true
             binding.chatSettings.setBackgroundColor(Color.TRANSPARENT)
@@ -119,7 +125,7 @@ class ChatTreeSettingsFragment : Fragment() {
             topP = binding.topPSlider.value,
             frequencyPenalty = binding.frequencyPenaltySlider.value,
             presencePenalty = binding.presencePenaltySlider.value,
-            stop = binding.stopText.text.toString(),
+            stop = binding.stopList.objects.toMutableList(),
             n = binding.numberOfSlider.value.toInt(),
             bestOf = binding.bestOfSlider.value.toInt(),
             injectStartText = binding.injectStartText.text.toString(),
@@ -143,7 +149,7 @@ class ChatTreeSettingsFragment : Fragment() {
     }
 
     private fun setupInputs() {
-        //first setup change listener for all the sliders
+        // first setup change listener for all the sliders
         setupSliderText()
 
         // Retrieve the default settings from ChatTree
@@ -190,9 +196,6 @@ class ChatTreeSettingsFragment : Fragment() {
         binding.presencePenaltySlider.value = settings.presencePenalty
 
         // Populate the number of results slider
-        binding.stopText.setText(settings.stop)
-
-        // Populate the number of results slider
         binding.numberOfSlider.value = settings.n.toFloat()
 
         // Populate the best of slider
@@ -204,9 +207,32 @@ class ChatTreeSettingsFragment : Fragment() {
         // Populate the inject restart text input
         binding.injectRestartText.setText(settings.injectRestartText)
 
+        setupStopToken()
+
     }
 
-    //Update all slider labels to include the value next to the label text
+    private fun setupStopToken() {
+
+        binding.stopList.apply {
+            //2 clicks to delete style:
+            setTokenClickStyle(TokenCompleteTextView.TokenClickStyle.Delete)
+            setTokenLimit(4)
+            //only want comma to stop item
+            setTokenizer(CharacterTokenizer(listOf(','), ","))
+
+            //populate it
+            chatTree.gptSettings.stop.forEach { addObjectSync(it) }
+
+            // setTokenListener(object : TokenCompleteTextView.TokenListener<String> {
+            //     override fun onTokenAdded(token: String) {}
+            //     override fun onTokenRemoved(token: String) {}
+            //     override fun onTokenIgnored(token: String) {}
+            // })
+        }
+
+    }
+
+    // Update all slider labels to include the value next to the label text
     private fun setupSliderText() {
         val sliderIds = listOf(
             R.id.temperature_slider,
@@ -250,7 +276,7 @@ class ChatTreeSettingsFragment : Fragment() {
     }
 
     private fun setupToolTips() {
-        //items with empty strings will only close the previous tooltip when triggered
+        // items with empty strings will only close the previous tooltip when triggered
         setupTooltip(binding.titleEditText, "")
         setupTooltip(binding.systemMessageText, getString(R.string.system_message_tooltip))
         setupTooltip(binding.modeSpinner, "")
@@ -260,7 +286,7 @@ class ChatTreeSettingsFragment : Fragment() {
         setupTooltip(binding.topPSlider, getString(R.string.top_p_tooltip))
         setupTooltip(binding.frequencyPenaltySlider, getString(R.string.frequency_penalty_tooltip))
         setupTooltip(binding.presencePenaltySlider, getString(R.string.presence_penalty_tooltip))
-        setupTooltip(binding.stopText, getString(R.string.stop_text_tooltip))
+        setupTooltip(binding.stopList, getString(R.string.stop_list_tooltip))
         setupTooltip(binding.numberOfSlider, getString(R.string.number_of_tooltip))
         setupTooltip(binding.bestOfSlider, getString(R.string.best_of_tooltip))
         setupTooltip(binding.injectStartText, getString(R.string.inject_start_text_tooltip))
@@ -287,19 +313,24 @@ class ChatTreeSettingsFragment : Fragment() {
 
         fun longTouch(v : View) {
             if (tipView == null || !mToolTipsManager.isVisible(tipView)) {
-                //it hasn't been created, and it's not currently being shown
+                // it hasn't been created, and it's not currently being shown
                 if (message != "") {
-                    //need to include empty messages so Focus listener will still close previous popup
+                    // need to include empty messages so Focus listener will still close previous popup
+
+                    // if (v is StopTokenCompleteTextView) {
+                        //would like to stop tooltip from showing when single clicking on a tag, but I don't think it's possible
+                    // }
+
                     tipView = mToolTipsManager.show(builder.build())
                 }
             }
             if (previousView != null && previousView != v) {
-                //it wasn't the one just opened
+                // it wasn't the one just opened
                 mToolTipsManager.findAndDismiss(previousView)
             }
             previousView = v
         }
-        //if this is set in the XML it's just ignored and doesn't work
+        // if this is set in the XML it's just ignored and doesn't work
         view.isFocusable = true
         view.isFocusableInTouchMode = true
         when (view) {

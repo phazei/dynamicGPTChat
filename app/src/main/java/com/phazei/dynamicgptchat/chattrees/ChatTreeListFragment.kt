@@ -74,6 +74,12 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
     }
 
     fun onAddFABClick() {
+
+        if (chatTreeViewModel.chatTrees.value == null) {
+            Snackbar.make(binding.root, "Please wait while loading conversations", Snackbar.LENGTH_LONG).show()
+            return
+        }
+
         // create a new ChatTree instance
         val chatTree = ChatTree("New Tree #${chatTreeViewModel.chatTrees.value?.size}")
 
