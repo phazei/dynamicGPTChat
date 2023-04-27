@@ -17,7 +17,7 @@
             android:title="@string/menu_prompts" />
         <item
             android:id="@+id/app_settings_fragment"
-            android:icon="@mipmap/ic_settings"
+            android:icon="@drawable/sharp_settings_applications_24"
             android:title="@string/settings" />
     </group>
 </menu>

@@ -23,9 +23,22 @@ class ChatNodeAdapter(
     //helper method for ease of access scrolling
     lateinit var layoutManager: LinearLayoutManager
 
+    // private lateinit var knightriderWaiting: AnimatedVectorDrawable
+
+    // init {
+    //     setHasStableIds(true)
+    // }
+    // override fun getItemId(position: Int): Long {
+    //     return chatNodes[position].id
+    // }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatNodeViewHolder {
         val binding =
             ChatNodeItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+
+        // knightriderWaiting = ContextCompat.getDrawable(parent.context, R.drawable.knightrider) as AnimatedVectorDrawable
+        // binding.responseWaiting.setImageDrawable(knightriderWaiting)
+        // knightriderWaiting.start()
 
         return ChatNodeViewHolder(binding)
     }
