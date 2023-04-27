@@ -18,7 +18,7 @@ data class GPTSettings(
     @ColumnInfo(name = "n") var n: Int = 1,
     @ColumnInfo(name = "best_of") var bestOf: Int = 1,
     @ColumnInfo(name = "stop") var stop: MutableList<String> = mutableListOf(),
-    @ColumnInfo(name = "logit_bias") var logitBias: MutableList<Map<Int, Int>> = mutableListOf(),
+    @ColumnInfo(name = "logit_bias") var logitBias: MutableMap<Int, Int> = mutableMapOf(),
     @ColumnInfo(name = "inject_start_text") var injectStartText: String = "",
     @ColumnInfo(name = "inject_restart_text") var injectRestartText: String = ""
 ) {
@@ -28,6 +28,10 @@ data class GPTSettings(
      */
     fun getStops(): List<String>? {
         return stop.map { it.replace("\\n", "\n") }.takeIf { it.isNotEmpty() }
+    }
+
+    fun getLogitBiasAsString(): Map<String, Int>? {
+        return logitBias.takeIf { it.isNotEmpty() }?.mapKeys { it.key.toString() }
     }
 
     override fun toString(): String {

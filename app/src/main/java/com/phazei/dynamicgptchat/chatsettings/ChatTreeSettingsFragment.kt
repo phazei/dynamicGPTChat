@@ -126,6 +126,7 @@ class ChatTreeSettingsFragment : Fragment() {
             frequencyPenalty = binding.frequencyPenaltySlider.value,
             presencePenalty = binding.presencePenaltySlider.value,
             stop = binding.stopList.objects.toMutableList(),
+            logitBias = binding.logitBiasList.getMap(),
             n = binding.numberOfSlider.value.toInt(),
             bestOf = binding.bestOfSlider.value.toInt(),
             injectStartText = binding.injectStartText.text.toString(),
@@ -207,11 +208,11 @@ class ChatTreeSettingsFragment : Fragment() {
         // Populate the inject restart text input
         binding.injectRestartText.setText(settings.injectRestartText)
 
-        setupStopToken()
+        setupTokens()
 
     }
 
-    private fun setupStopToken() {
+    private fun setupTokens() {
 
         binding.stopList.apply {
             //2 clicks to delete style:
@@ -227,6 +228,22 @@ class ChatTreeSettingsFragment : Fragment() {
             //     override fun onTokenAdded(token: String) {}
             //     override fun onTokenRemoved(token: String) {}
             //     override fun onTokenIgnored(token: String) {}
+            // })
+        }
+
+        binding.logitBiasList.apply {
+            //2 clicks to delete style:
+            setTokenClickStyle(TokenCompleteTextView.TokenClickStyle.Delete)
+            //only want comma to stop item
+            setTokenizer(CharacterTokenizer(listOf(','), ","))
+
+            //populate it
+            chatTree.gptSettings.logitBias.forEach { (key, value) -> addObjectSync(LogitBiasWrapper(mapOf(key to value))) }
+
+            // setTokenListener(object : TokenCompleteTextView.TokenListener<LogitBiasWrapper> {
+            //     override fun onTokenAdded(token: LogitBiasWrapper) {}
+            //     override fun onTokenRemoved(token: LogitBiasWrapper) {}
+            //     override fun onTokenIgnored(token: LogitBiasWrapper) {}
             // })
         }
 
@@ -287,6 +304,7 @@ class ChatTreeSettingsFragment : Fragment() {
         setupTooltip(binding.frequencyPenaltySlider, getString(R.string.frequency_penalty_tooltip))
         setupTooltip(binding.presencePenaltySlider, getString(R.string.presence_penalty_tooltip))
         setupTooltip(binding.stopList, getString(R.string.stop_list_tooltip))
+        setupTooltip(binding.logitBiasList, getString(R.string.logit_bias_list_tooltip))
         setupTooltip(binding.numberOfSlider, getString(R.string.number_of_tooltip))
         setupTooltip(binding.bestOfSlider, getString(R.string.best_of_tooltip))
         setupTooltip(binding.injectStartText, getString(R.string.inject_start_text_tooltip))

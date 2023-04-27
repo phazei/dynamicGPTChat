@@ -52,18 +52,18 @@ class ListTypeConverter {
     }
 }
 
-class ListMapConverter {
+class MapConverter {
     private val moshi = Moshi.Builder().build()
-    private val type = Types.newParameterizedType(MutableList::class.java, Types.newParameterizedType(Map::class.java, Integer::class.java, Integer::class.java))
-    private val adapter = moshi.adapter<MutableList<Map<Int, Int>>>(type)
+    private val type = Types.newParameterizedType(Map::class.java, Integer::class.java, Integer::class.java)
+    private val adapter = moshi.adapter<MutableMap<Int, Int>>(type)
 
     @TypeConverter
-    fun fromStringToListMap(value: String?): MutableList<Map<Int, Int>>? {
-        return adapter.fromJson(value ?: "[]")
+    fun fromStringToMap(value: String?): MutableMap<Int, Int>? {
+        return adapter.fromJson(value ?: "{}")
     }
 
     @TypeConverter
-    fun fromListMapToString(list: MutableList<Map<Int, Int>>?): String? {
-        return adapter.toJson(list)
+    fun fromMapToString(map: MutableMap<Int, Int>?): String? {
+        return adapter.toJson(map)
     }
 }

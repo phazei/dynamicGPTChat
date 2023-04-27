@@ -14,7 +14,7 @@ import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import javax.inject.Singleton
 
 @Database(entities = [ChatTree::class, ChatNode::class, GPTSettings::class], version = 1, exportSchema = false)
-@TypeConverters(DateConverter::class, UsageTypeConverter::class, ListTypeConverter::class, ListMapConverter::class)
+@TypeConverters(DateConverter::class, UsageTypeConverter::class, ListTypeConverter::class, MapConverter::class)
 @Singleton
 abstract class AppDatabase : RoomDatabase() {
 

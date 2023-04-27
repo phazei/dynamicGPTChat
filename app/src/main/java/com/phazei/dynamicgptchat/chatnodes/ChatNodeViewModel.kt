@@ -72,6 +72,7 @@ class ChatNodeViewModel @Inject constructor(
                 frequencyPenalty = chatTree.gptSettings.frequencyPenalty.toDouble(),
                 presencePenalty = chatTree.gptSettings.presencePenalty.toDouble(),
                 stop = chatTree.gptSettings.getStops(),
+                logitBias = chatTree.gptSettings.getLogitBiasAsString(),
                 // no good way to display "n" right now so ignore it for now
                 // n = chatTree.gptSettings.n,
                 // logitBias doesn't seem to work as expected
