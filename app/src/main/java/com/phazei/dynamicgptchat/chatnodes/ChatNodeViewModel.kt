@@ -128,7 +128,11 @@ class ChatNodeViewModel @Inject constructor(
             }
             is ChatResponseWrapper.Error -> {
                 val error = response.error
-                chatNode.error = error.message ?: "Unknown Error Type: ${error.javaClass.simpleName} : Cause: ${error.cause.toString()}"
+                if (error.message == "Manually Halted") {
+                    chatNode.finishReason = error.message.toString()
+                } else {
+                    chatNode.error = error.message ?: "Unknown Error Type: ${error.javaClass.simpleName} : Cause: ${error.cause.toString()}"
+                }
 
                 handleChatComplete(chatNode)
             }

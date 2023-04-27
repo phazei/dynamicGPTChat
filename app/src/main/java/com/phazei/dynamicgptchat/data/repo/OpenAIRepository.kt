@@ -73,23 +73,32 @@ class OpenAIRepository(private var openAI: OpenAI) {
         val chatTreeId = chatNode.chatTreeId
         val requestJob = CoroutineScope(Dispatchers.IO).launch {
             if (streaming) {
+                var errorHandled = false
                 openAI.chatCompletions(chatCompletionRequest)
                     .onEach { response: ChatCompletionChunk ->
                         onResponse(ChatResponseWrapper.Chunk(response))
                     }
-                    .onCompletion { e: Throwable? ->
-                        if (e == null) {
-                            onComplete() //handle final saving
-                        }
-                    }
                     .catch { e: Throwable ->
                         when (e) {
-                            is CancellationException ->
+                            is CancellationException -> {
+                                errorHandled = true
                                 onError(ChatResponseWrapper.Error(Exception("The quest was quashed!")))
-                            is Exception ->
+                            }
+                            is Exception -> {
+                                errorHandled = true
                                 onError(ChatResponseWrapper.Error(e))
+                            }
                             else ->
                                 throw e
+                        }
+                    }
+                    .onCompletion { e: Throwable? ->
+                        if (errorHandled) return@onCompletion
+                        //errors will only reach here if they skipped the catch
+                        when (e) {
+                            null -> onComplete()
+                            is CancellationException -> onError(ChatResponseWrapper.Error(Exception("Manually Halted")))
+                            else -> throw e
                         }
                     }
                     .launchIn(this)
