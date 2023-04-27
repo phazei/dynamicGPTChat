@@ -2,9 +2,9 @@ package com.phazei.dynamicgptchat.data
 
 import androidx.room.TypeConverter
 import com.aallam.openai.api.core.Usage
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import com.squareup.moshi.FromJson
+import com.squareup.moshi.ToJson
+import com.squareup.moshi.Moshi
 import java.util.*
 
 class DateConverter {
@@ -20,29 +20,17 @@ class DateConverter {
 }
 
 class UsageTypeConverter {
-    private val json = Json { ignoreUnknownKeys = true }
+    private val moshi = Moshi.Builder().build()
 
+    @ToJson
     @TypeConverter
-    fun usageToString(usage: Usage?): String? {
-        return usage?.let { json.encodeToString(it) }
+    fun usageToJson(usage: Usage?): String? {
+        return usage?.let { moshi.adapter(Usage::class.java).toJson(it) }
     }
 
+    @FromJson
     @TypeConverter
-    fun stringToUsage(jsonString: String?): Usage? {
-        return jsonString?.let { json.decodeFromString(it) }
+    fun jsonToUsage(jsonString: String?): Usage? {
+        return jsonString?.let { moshi.adapter(Usage::class.java).fromJson(it) }
     }
 }
-// In case kotlin serialization doesn't work
-// class UsageTypeConverter {
-//     private val gson = Gson()
-//
-//     @TypeConverter
-//     fun usageToString(usage: Usage?): String? {
-//         return gson.toJson(usage)
-//     }
-//
-//     @TypeConverter
-//     fun stringToUsage(json: String?): Usage? {
-//         return gson.fromJson(json, Usage::class.java)
-//     }
-// }
