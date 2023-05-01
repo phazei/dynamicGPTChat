@@ -6,9 +6,34 @@
     android:layout_height="wrap_content"
     android:padding="4dp">
 
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/chat_node_top_guide"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0" />
+
+    <ImageButton
+        android:id="@+id/node_menu_button"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/round_menu_24"
+        app:tint="?attr/colorOnSurface"
+        android:scaleType="fitXY"
+        android:padding="5dp"
+        android:background="@drawable/ripple_round_icon"
+        android:backgroundTint="?attr/colorPrimary"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideline10"
+        app:layout_constraintTop_toTopOf="@id/prompt_holder"
+        app:layout_constraintBottom_toBottomOf="@id/prompt_holder"
+
+        android:contentDescription="Menu" />
+
     <LinearLayout
         android:visibility="visible"
-        android:id="@+id/edit_prompt_frame"
+        android:id="@+id/prompt_holder"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:background="@drawable/message_bubble_right"
@@ -19,9 +44,10 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/prompt_text_view"
-            android:visibility="visible"
             android:enabled="false"
             android:theme="@style/textHandleOnColor"
+            android:backgroundTint="@color/md_theme_light_onSurface"
+
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -29,18 +55,22 @@
             android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/abc_text_size_body_1_material"
             android:gravity="start"
+            android:layout_marginBottom="4dp"
             android:paddingTop="6dp"
             android:paddingBottom="12dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:minLines="2"
-            android:maxLines="10"
+            android:maxLines="1000"
             android:text="@string/prompt"
+            android:textIsSelectable="true"
+            android:nextFocusUp="@id/response_text_view"
+            android:nextFocusDown="@id/response_text_view"
             android:contentDescription="@string/enter_prompt" />
 
         <LinearLayout
             android:id="@+id/edit_prompt_buttons"
-            android:visibility="gone"
+            android:visibility="visible"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -85,28 +115,43 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="edit_prompt_frame" />
+        app:constraint_referenced_ids="prompt_holder" />
 
+    <!-- Response -->
     <FrameLayout
         android:id="@+id/response_holder"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:background="@drawable/message_bubble_left"
 
         app:layout_constraintEnd_toEndOf="@id/guideline90"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/chat_node_barrier">
 
-        <TextView
+        <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/response_text_view"
+            android:enabled="false"
+            android:theme="@style/textHandleOnColor"
+            android:backgroundTint="@color/md_theme_light_onSurface"
+
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/message_bubble_left"
+
+            android:inputType="textMultiLine"
             android:textColor="?attr/colorOnSecondary"
+            android:textSize="@dimen/abc_text_size_body_1_material"
             android:gravity="start"
+            android:layout_marginBottom="4dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="12dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:paddingTop="6dp"
-            android:paddingBottom="12dp" />
+            android:minLines="2"
+            android:maxLines="1000"
+            android:text="@string/response"
+            android:nextFocusUp="@id/prompt_text_view"
+            android:nextFocusDown="@id/prompt_text_view"
+            android:contentDescription="@string/response" />
 
         <ImageView
             android:visibility="gone"
@@ -122,6 +167,7 @@
             android:src="@drawable/knightrider" />
     </FrameLayout>
 
+    <!--  Extra messages  -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"

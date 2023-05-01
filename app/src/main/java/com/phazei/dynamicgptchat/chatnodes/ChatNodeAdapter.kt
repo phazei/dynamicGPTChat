@@ -17,8 +17,7 @@ import java.security.InvalidParameterException
 @Suppress("unused")
 class ChatNodeAdapter(
     private val chatNodes: MutableList<ChatNode>,
-    private val onChatNodeClick: (ChatNode) -> Unit,
-    private val onEditPromptClick: (ChatNode, String) -> Unit
+    private val nodeActionListener: OnNodeActionListener,
 ) : RecyclerView.Adapter<ChatNodeAdapter.ChatNodeViewHolder>() {
     //helper method for ease of access scrolling
     lateinit var layoutManager: LinearLayoutManager
@@ -52,7 +51,7 @@ class ChatNodeAdapter(
     }
 
     @Suppress("RedundantEmptyInitializerBlock")
-    inner class ChatNodeViewHolder(private val binding: ChatNodeItemBinding) :
+    inner class ChatNodeViewHolder(val binding: ChatNodeItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         init {
@@ -71,7 +70,7 @@ class ChatNodeAdapter(
             }
 
             binding.promptTextView.setText(chatNode.prompt)
-            binding.responseTextView.text = chatNode.response
+            binding.responseTextView.setText(chatNode.response)
 
             //show error
             if (chatNode.error?.isEmpty() == false) {
@@ -91,16 +90,21 @@ class ChatNodeAdapter(
                 binding.moderationTextView.text = ""
             }
 
-            binding.root.setOnClickListener {
-                onChatNodeClick(chatNode)
+
+            binding.nodeMenuButton.setOnClickListener {
+                nodeActionListener.onNodeSelected(absoluteAdapterPosition)
             }
 
-            binding.editPromptSubmitButton.setOnClickListener {
-                // onEditPromptClick(chatNode, binding.promptTextView.text.toString())
-            }
-
-            binding.promptTextView.setOnFocusChangeListener { _, hasFocus ->
-            }
+            // binding.root.setOnClickListener {
+            //     // onChatNodeClick(chatNode)
+            // }
+            //
+            // binding.editPromptSubmitButton.setOnClickListener {
+            //     // onEditPromptClick(chatNode, binding.promptTextView.text.toString())
+            // }
+            //
+            // binding.promptTextView.setOnFocusChangeListener { _, hasFocus ->
+            // }
 
         }
     }
@@ -187,12 +191,18 @@ class ChatNodeAdapter(
         return !chatNodes.isEmpty()
     }
 
+    interface OnNodeActionListener {
+        fun onNodeSelected(position: Int)
+        fun onEditNode(position: Int)
+        // Add other actions as needed
+    }
+
 }
 
 class ChatNodeHeaderAdapter(
     private var currentSystemMessage: String,
     private val onSave: (newSystemMessage: String) -> Unit,
-    private val onChange: (sysMsgheight: Int) -> Unit
+    private val onChange: (sysMsgHeight: Int) -> Unit
 ) : RecyclerView.Adapter<ChatNodeHeaderAdapter.HeaderViewHolder>() {
 
     private var updatedSystemMessage: String = currentSystemMessage
@@ -246,4 +256,34 @@ class ChatNodeHeaderAdapter(
     }
 
     override fun getItemCount(): Int = 1
+}
+
+/**
+ * this exists only to create padding at the bottom when the input is hidden
+ */
+class ChatNodeFooterAdapter(var footerHeight: Int = 0) : RecyclerView.Adapter<ChatNodeFooterAdapter.FooterViewHolder>() {
+    inner class FooterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FooterViewHolder {
+        val view = View(parent.context)
+        view.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            footerHeight
+        )
+        return FooterViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: FooterViewHolder, position: Int) {
+        holder.itemView.layoutParams.height = footerHeight
+    }
+
+    override fun getItemCount(): Int = 1
+
+    fun updateFooterHeight(height: Int): Boolean {
+        val changed = footerHeight != height
+        footerHeight = height
+        if (changed)
+            notifyItemChanged(0)
+        return changed
+    }
 }

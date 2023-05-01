@@ -7,7 +7,7 @@
     android:padding="4dp">
 
     <LinearLayout
-        android:id="@+id/edit_prompt_frame"
+        android:id="@+id/prompt_holder"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:background="@drawable/message_bubble_center"
@@ -42,7 +42,7 @@
                 android:gravity="start"
 
                 android:hint="@string/system_message_hint"
-                android:inputType="textMultiLine"
+                android:inputType="textMultiLine|textAutoCorrect"
                 android:maxLines="1000"
                 android:minLines="2"
                 android:paddingStart="6dp"
