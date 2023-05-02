@@ -22,14 +22,16 @@ class ChatNodeAdapter(
     //helper method for ease of access scrolling
     lateinit var layoutManager: LinearLayoutManager
 
+    var activeNodePosition: Int? = null
+
     // private lateinit var knightriderWaiting: AnimatedVectorDrawable
 
-    // init {
-    //     setHasStableIds(true)
-    // }
-    // override fun getItemId(position: Int): Long {
-    //     return chatNodes[position].id
-    // }
+    init {
+        setHasStableIds(true)
+    }
+    override fun getItemId(position: Int): Long {
+        return chatNodes[position].id
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatNodeViewHolder {
         val binding =
@@ -56,6 +58,12 @@ class ChatNodeAdapter(
 
         init {
             //listeners that don't need chatNode, like displaying extra menus
+            binding.nodeMenuButton.setOnClickListener {
+                activeNodePosition = bindingAdapterPosition
+
+
+                nodeActionListener.onNodeSelected(absoluteAdapterPosition)
+            }
         }
 
         fun bind(chatNode: ChatNode) {
@@ -90,10 +98,6 @@ class ChatNodeAdapter(
                 binding.moderationTextView.text = ""
             }
 
-
-            binding.nodeMenuButton.setOnClickListener {
-                nodeActionListener.onNodeSelected(absoluteAdapterPosition)
-            }
 
             // binding.root.setOnClickListener {
             //     // onChatNodeClick(chatNode)
@@ -184,6 +188,8 @@ class ChatNodeAdapter(
         if (lastChatNode.id == 0L) {
             //TODO:
             //it has not been saved, so can remove it
+            //
+            //flow has changed, might not need to do anything, just show it with empty response
         }
     }
 
@@ -204,10 +210,49 @@ class ChatNodeHeaderAdapter(
     private val onSave: (newSystemMessage: String) -> Unit,
     private val onChange: (sysMsgHeight: Int) -> Unit
 ) : RecyclerView.Adapter<ChatNodeHeaderAdapter.HeaderViewHolder>() {
-
     private var updatedSystemMessage: String = currentSystemMessage
 
-    inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root)
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int): Long { return -10 }
+
+    inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.apply {
+                systemMessageEditText.doBeforeTextChanged { text, start, count, after ->
+                    onChange(binding.root.height)
+                }
+
+                systemMessageEditText.doAfterTextChanged { _ ->
+                    updatedSystemMessage = systemMessageEditText.text.toString()
+                    checkSystemMessageChanged()
+                }
+
+                systemMessageEditText.setText(updatedSystemMessage)
+
+                editSystemMessageCancelButton.setOnClickListener {
+                    //reset updated to current
+                    updatedSystemMessage = currentSystemMessage
+                    systemMessageEditText.setText(currentSystemMessage)
+                }
+
+                editSystemMessageSubmitButton.setOnClickListener {
+                    updatedSystemMessage = systemMessageEditText.text.toString()
+                    onSave(updatedSystemMessage)
+                    //update current to updated
+                    currentSystemMessage = updatedSystemMessage
+                    checkSystemMessageChanged()
+                }
+            }
+        }
+
+        private fun checkSystemMessageChanged() {
+            binding.apply {
+                val hasChanges = updatedSystemMessage != currentSystemMessage
+                editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+                editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -215,45 +260,7 @@ class ChatNodeHeaderAdapter(
         return HeaderViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: HeaderViewHolder, position: Int) {
-
-
-        fun checkSystemMessageChanged() {
-            holder.binding.apply {
-                val hasChanges = updatedSystemMessage != currentSystemMessage
-                editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
-                editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
-            }
-        }
-
-        holder.binding.apply {
-
-            systemMessageEditText.doBeforeTextChanged { text, start, count, after ->
-                onChange(holder.binding.root.height)
-            }
-
-            systemMessageEditText.doAfterTextChanged { _ ->
-                updatedSystemMessage = systemMessageEditText.text.toString()
-                checkSystemMessageChanged()
-            }
-
-            systemMessageEditText.setText(updatedSystemMessage)
-
-            editSystemMessageCancelButton.setOnClickListener {
-                //reset updated to current
-                updatedSystemMessage = currentSystemMessage
-                systemMessageEditText.setText(currentSystemMessage)
-            }
-
-            editSystemMessageSubmitButton.setOnClickListener {
-                updatedSystemMessage = systemMessageEditText.text.toString()
-                onSave(updatedSystemMessage)
-                //update current to updated
-                currentSystemMessage = updatedSystemMessage
-                checkSystemMessageChanged()
-            }
-        }
-    }
+    override fun onBindViewHolder(holder: HeaderViewHolder, position: Int) {}
 
     override fun getItemCount(): Int = 1
 }
@@ -262,6 +269,9 @@ class ChatNodeHeaderAdapter(
  * this exists only to create padding at the bottom when the input is hidden
  */
 class ChatNodeFooterAdapter(var footerHeight: Int = 0) : RecyclerView.Adapter<ChatNodeFooterAdapter.FooterViewHolder>() {
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int): Long { return -11 }
+
     inner class FooterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FooterViewHolder {

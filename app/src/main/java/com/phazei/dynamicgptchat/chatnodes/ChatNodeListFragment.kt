@@ -197,7 +197,10 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 setupRecyclerHeaderScroll(sysMsgHeight)
             }
         )
-        val concatAdapter = ConcatAdapter(chatNodeHeaderAdapter, chatNodeAdapter, chatNodeFooterAdapter)
+        val concatAdapter = ConcatAdapter(
+            ConcatAdapter.Config.Builder().setStableIdMode(ConcatAdapter.Config.StableIdMode.SHARED_STABLE_IDS).build(),
+            chatNodeHeaderAdapter, chatNodeAdapter, chatNodeFooterAdapter
+        )
 
         binding.chatNodeRecyclerView.apply {
             layoutManager = LinearLayoutManager(context).apply {
@@ -238,7 +241,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                     popupMenuHelper.scrollForKeyboardInput()
                 } else if (keyboardClosed) {
                     // keep list in place while keyboard closes
-                    binding.chatNodeRecyclerView.scrollBy(0, -deltaY)
+                    popupMenuHelper.scrollForKeyboardClose(deltaY)
                 }
             }
         })
@@ -336,12 +339,13 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             )
             popupWindow.apply {
                 contentView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                isAttachedInDecor = true
                 // Set the popup to be focusable and dismiss when clicked outside
                 // animationStyle = R.style.NodePopupAnimation
                 // isFocusable = true
                 // setBackgroundDrawable(null)
                 // setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-                // update()
+                update()
             }
 
             // Set the popup animation
@@ -477,12 +481,12 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             val anchorView = nodeItemBinding!!.chatNodeTopGuide
 
             anchorView.let {
+                _currentPosition = position
 
                 // Show the popup below the anchor view
                 val xOffset = nodeItemBinding!!.promptHolder.left
                 val yOffset = -(anchorView.height + popupWindow.contentView.measuredHeight + 10)
 
-                _currentPosition = position
                 if (!popupWindow.isShowing) {
                     openAnim.start()
                     popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
@@ -508,6 +512,14 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                     binding.chatNodeRecyclerView.smoothScrollToBottom(popupMenuHelper.currentPosition!!, 100F)
                 }
             }
+        }
+
+        /**
+         * If too close to the top, it shouldn't scroll down
+         */
+        fun scrollForKeyboardClose(delta: Int) {
+            if ((currentPosition?:0) > 4)
+                binding.chatNodeRecyclerView.scrollBy(0, -delta)
         }
 
         private fun Int.dpToPx(): Int {
