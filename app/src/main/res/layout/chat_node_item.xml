@@ -22,7 +22,7 @@
         android:scaleType="fitXY"
         android:padding="5dp"
         android:background="@drawable/ripple_round_icon"
-        android:backgroundTint="?attr/colorPrimary"
+        android:backgroundTint="@color/md_theme_dark_primary"
 
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="@id/guideline10"
@@ -37,6 +37,8 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:background="@drawable/message_bubble_right"
+        android:backgroundTint="@color/md_theme_dark_primary"
+
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="@id/guideline10"
         app:layout_constraintEnd_toEndOf="parent"
@@ -46,7 +48,8 @@
             android:id="@+id/prompt_text_view"
             android:enabled="false"
             android:theme="@style/textHandleOnColor"
-            android:backgroundTint="@color/md_theme_light_onSurface"
+            android:backgroundTint="@color/md_theme_dark_onSurface"
+
 
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -55,7 +58,7 @@
             android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/abc_text_size_body_1_material"
             android:gravity="start"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="5dp"
             android:paddingTop="6dp"
             android:paddingBottom="12dp"
             android:paddingStart="12dp"
@@ -70,7 +73,7 @@
 
         <LinearLayout
             android:id="@+id/edit_prompt_buttons"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -123,6 +126,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@drawable/message_bubble_left"
+        android:backgroundTint="@color/md_theme_light_secondary"
 
         app:layout_constraintEnd_toEndOf="@id/guideline90"
         app:layout_constraintStart_toStartOf="parent"
@@ -132,16 +136,16 @@
             android:id="@+id/response_text_view"
             android:enabled="false"
             android:theme="@style/textHandleOnColor"
-            android:backgroundTint="@color/md_theme_light_onSurface"
+            android:backgroundTint="@color/md_theme_dark_onSurface"
 
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
 
             android:inputType="textMultiLine"
-            android:textColor="?attr/colorOnSecondary"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/abc_text_size_body_1_material"
             android:gravity="start"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="5dp"
             android:paddingTop="6dp"
             android:paddingBottom="12dp"
             android:paddingStart="12dp"
