@@ -9,6 +9,7 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doBeforeTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.databinding.ChatNodeHeaderItemBinding
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
@@ -19,7 +20,7 @@ class ChatNodeAdapter(
     private val chatNodes: MutableList<ChatNode>,
     private val nodeActionListener: OnNodeActionListener,
 ) : RecyclerView.Adapter<ChatNodeAdapter.ChatNodeViewHolder>() {
-    //helper method for ease of access scrolling
+    // helper method for ease of access scrolling
     lateinit var layoutManager: LinearLayoutManager
 
     var activeNodePosition: Int? = null
@@ -57,7 +58,7 @@ class ChatNodeAdapter(
         RecyclerView.ViewHolder(binding.root) {
 
         init {
-            //listeners that don't need chatNode, like displaying extra menus
+            // listeners that don't need chatNode, like displaying extra menus
             binding.nodeMenuButton.setOnClickListener {
                 activeNodePosition = bindingAdapterPosition
 
@@ -68,7 +69,7 @@ class ChatNodeAdapter(
 
         fun bind(chatNode: ChatNode) {
 
-            //hide the root node
+            // hide the root node
             if (chatNode.parentNodeId == null) {
                 binding.root.layoutParams.height = 0
                 binding.root.visibility = View.GONE
@@ -80,7 +81,7 @@ class ChatNodeAdapter(
             binding.promptTextView.setText(chatNode.prompt)
             binding.responseTextView.setText(chatNode.response)
 
-            //show error
+            // show error
             if (chatNode.error?.isEmpty() == false) {
                 binding.errorTextView.visibility = View.VISIBLE
                 binding.errorTextView.text = chatNode.error
@@ -89,7 +90,7 @@ class ChatNodeAdapter(
                 binding.errorTextView.text = ""
             }
 
-            //show moderation
+            // show moderation
             if (chatNode.moderation?.isEmpty() == false) {
                 binding.moderationTextView.visibility = View.VISIBLE
                 binding.moderationTextView.text = chatNode.error
@@ -98,19 +99,40 @@ class ChatNodeAdapter(
                 binding.moderationTextView.text = ""
             }
 
-
-            // binding.root.setOnClickListener {
-            //     // onChatNodeClick(chatNode)
-            // }
-            //
-            // binding.editPromptSubmitButton.setOnClickListener {
-            //     // onEditPromptClick(chatNode, binding.promptTextView.text.toString())
-            // }
-            //
-            // binding.promptTextView.setOnFocusChangeListener { _, hasFocus ->
-            // }
-
         }
+
+        fun enableEdit() {
+            binding.promptTextView.apply {
+                setBackgroundResource(R.drawable.message_editable_bg)
+                isEnabled = true
+            }
+            binding.responseTextView.apply {
+                setBackgroundResource(R.drawable.message_editable_bg)
+                isEnabled = true
+            }
+        }
+
+        fun disableEdit() {
+            binding.promptTextView.apply {
+                background = null
+                isEnabled = false
+            }
+            binding.responseTextView.apply {
+                background = null
+                isEnabled = false
+            }
+            Log.d("TAG", "DISMISS $bindingAdapterPosition")
+            notifyItemChanged(bindingAdapterPosition)
+        }
+
+        fun deactivate() {
+            if (activeNodePosition != null) {
+                val oldActiveNodePosition = activeNodePosition ?: -1
+                activeNodePosition = null
+                notifyItemChanged(oldActiveNodePosition)
+            }
+        }
+
     }
 
     fun getItemPosition(chatNode: ChatNode): Int {
@@ -173,11 +195,11 @@ class ChatNodeAdapter(
     fun updateItem(chatNode: ChatNode) {
         val index = chatNodes.indexOf(chatNode)
         if (index == -1) {
-            //in case it was lost from the adapter but had then been saved.
+            // in case it was lost from the adapter but had then been saved.
             addItem(chatNode.parent, chatNode)
         } else {
-            //there's a chance that the memory reference has been lost if the fragment
-            //was navigated away from.  this will make sure it's updated
+            // there's a chance that the memory reference has been lost if the fragment
+            // was navigated away from.  this will make sure it's updated
             chatNodes[index] = chatNode
             notifyItemChanged(index)
         }
@@ -186,10 +208,10 @@ class ChatNodeAdapter(
     fun cancelLastItem() {
         val lastChatNode = chatNodes[chatNodes.lastIndex]
         if (lastChatNode.id == 0L) {
-            //TODO:
-            //it has not been saved, so can remove it
+            // TODO:
+            // it has not been saved, so can remove it
             //
-            //flow has changed, might not need to do anything, just show it with empty response
+            // flow has changed, might not need to do anything, just show it with empty response
         }
     }
 
@@ -230,7 +252,7 @@ class ChatNodeHeaderAdapter(
                 systemMessageEditText.setText(updatedSystemMessage)
 
                 editSystemMessageCancelButton.setOnClickListener {
-                    //reset updated to current
+                    // reset updated to current
                     updatedSystemMessage = currentSystemMessage
                     systemMessageEditText.setText(currentSystemMessage)
                 }
@@ -238,7 +260,7 @@ class ChatNodeHeaderAdapter(
                 editSystemMessageSubmitButton.setOnClickListener {
                     updatedSystemMessage = systemMessageEditText.text.toString()
                     onSave(updatedSystemMessage)
-                    //update current to updated
+                    // update current to updated
                     currentSystemMessage = updatedSystemMessage
                     checkSystemMessageChanged()
                 }
