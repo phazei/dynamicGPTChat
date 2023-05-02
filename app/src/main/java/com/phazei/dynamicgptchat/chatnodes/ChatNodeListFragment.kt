@@ -197,8 +197,12 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 setupRecyclerHeaderScroll(sysMsgHeight)
             }
         )
-        val concatAdapter = ConcatAdapter(chatNodeHeaderAdapter, chatNodeAdapter, chatNodeFooterAdapter)
+        val concatAdapter = ConcatAdapter(
+            ConcatAdapter.Config.Builder().setStableIdMode(ConcatAdapter.Config.StableIdMode.SHARED_STABLE_IDS).build(),
+            chatNodeHeaderAdapter, chatNodeAdapter, chatNodeFooterAdapter
+        )
 
+        binding.chatNodeRecyclerView.setRecycledViewPool(ActiveNodeRecycledViewPool())
         binding.chatNodeRecyclerView.apply {
             layoutManager = LinearLayoutManager(context).apply {
                 stackFromEnd = true
@@ -217,6 +221,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
         // for ease of access and scrolling
         chatNodeAdapter.layoutManager = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
+        chatNodeAdapter.activeNodePool = binding.chatNodeRecyclerView.recycledViewPool as ActiveNodeRecycledViewPool
 
         // fix item shows when keyboard opens/closes
         binding.chatNodeRecyclerView.addOnLayoutChangeListener(View.OnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->

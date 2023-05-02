@@ -21,17 +21,32 @@ class ChatNodeAdapter(
 ) : RecyclerView.Adapter<ChatNodeAdapter.ChatNodeViewHolder>() {
     //helper method for ease of access scrolling
     lateinit var layoutManager: LinearLayoutManager
+    lateinit var activeNodePool: ActiveNodeRecycledViewPool
+
+    var activeNodePosition: Int? = null
 
     // private lateinit var knightriderWaiting: AnimatedVectorDrawable
 
-    // init {
-    //     setHasStableIds(true)
-    // }
-    // override fun getItemId(position: Int): Long {
-    //     return chatNodes[position].id
-    // }
+    init {
+        setHasStableIds(true)
+    }
+    override fun getItemId(position: Int): Long {
+        Log.d("TAG", "getItemId pos $position")
+        return chatNodes[position].id
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatNodeViewHolder {
+
+        if (viewType >= ActiveNodeRecycledViewPool.typeOffset.toInt()) {
+            val viewHolder = activeNodePool.getRecycledView(viewType)
+            if (viewHolder != null) {
+                Log.d("TAG", "CREATED TYPE $viewType")
+                return viewHolder as ChatNodeViewHolder
+            } else {
+                Log.d("TAG", "FAILED CREATED TYPE $viewType")
+            }
+        }
+
         val binding =
             ChatNodeItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
 
@@ -50,15 +65,28 @@ class ChatNodeAdapter(
         return chatNodes.size
     }
 
+
     @Suppress("RedundantEmptyInitializerBlock")
     inner class ChatNodeViewHolder(val binding: ChatNodeItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         init {
             //listeners that don't need chatNode, like displaying extra menus
+            binding.nodeMenuButton.setOnClickListener {
+                activeNodePosition = bindingAdapterPosition
+                activeNodePool.setActiveNodeViewHolder(this, chatNodes[bindingAdapterPosition].id)
+
+                nodeActionListener.onNodeSelected(absoluteAdapterPosition)
+            }
         }
 
         fun bind(chatNode: ChatNode) {
+
+            binding.testText.text = bindingAdapterPosition.toString() + " " + chatNodes[bindingAdapterPosition].id.toString()
+
+            if (bindingAdapterPosition == activeNodePosition) {
+                return
+            }
 
             //hide the root node
             if (chatNode.parentNodeId == null) {
@@ -91,9 +119,9 @@ class ChatNodeAdapter(
             }
 
 
-            binding.nodeMenuButton.setOnClickListener {
-                nodeActionListener.onNodeSelected(absoluteAdapterPosition)
-            }
+            // binding.nodeMenuButton.setOnClickListener {
+            //     Log.d("TAG", "inside bind $bindingAdapterPosition")
+            // }
 
             // binding.root.setOnClickListener {
             //     // onChatNodeClick(chatNode)
@@ -106,6 +134,16 @@ class ChatNodeAdapter(
             // binding.promptTextView.setOnFocusChangeListener { _, hasFocus ->
             // }
 
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        val id = (chatNodes[position].id + ActiveNodeRecycledViewPool.typeOffset).toInt()
+        Log.d("TAG", "ItemViewTypeForPOS: $position  /  ViewTypeID: $id")
+        return if (position == activeNodePosition) {
+            id
+        } else {
+            super.getItemViewType(position) // This will return the default viewType, which is 0
         }
     }
 
@@ -184,6 +222,8 @@ class ChatNodeAdapter(
         if (lastChatNode.id == 0L) {
             //TODO:
             //it has not been saved, so can remove it
+            //
+            //flow has changed, might not need to do anything, just show it with empty response
         }
     }
 
@@ -204,10 +244,49 @@ class ChatNodeHeaderAdapter(
     private val onSave: (newSystemMessage: String) -> Unit,
     private val onChange: (sysMsgHeight: Int) -> Unit
 ) : RecyclerView.Adapter<ChatNodeHeaderAdapter.HeaderViewHolder>() {
-
     private var updatedSystemMessage: String = currentSystemMessage
 
-    inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root)
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int): Long { return -10 }
+
+    inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.apply {
+                systemMessageEditText.doBeforeTextChanged { text, start, count, after ->
+                    onChange(binding.root.height)
+                }
+
+                systemMessageEditText.doAfterTextChanged { _ ->
+                    updatedSystemMessage = systemMessageEditText.text.toString()
+                    checkSystemMessageChanged()
+                }
+
+                systemMessageEditText.setText(updatedSystemMessage)
+
+                editSystemMessageCancelButton.setOnClickListener {
+                    //reset updated to current
+                    updatedSystemMessage = currentSystemMessage
+                    systemMessageEditText.setText(currentSystemMessage)
+                }
+
+                editSystemMessageSubmitButton.setOnClickListener {
+                    updatedSystemMessage = systemMessageEditText.text.toString()
+                    onSave(updatedSystemMessage)
+                    //update current to updated
+                    currentSystemMessage = updatedSystemMessage
+                    checkSystemMessageChanged()
+                }
+            }
+        }
+
+        private fun checkSystemMessageChanged() {
+            binding.apply {
+                val hasChanges = updatedSystemMessage != currentSystemMessage
+                editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+                editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+            }
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -215,45 +294,7 @@ class ChatNodeHeaderAdapter(
         return HeaderViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: HeaderViewHolder, position: Int) {
-
-
-        fun checkSystemMessageChanged() {
-            holder.binding.apply {
-                val hasChanges = updatedSystemMessage != currentSystemMessage
-                editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
-                editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
-            }
-        }
-
-        holder.binding.apply {
-
-            systemMessageEditText.doBeforeTextChanged { text, start, count, after ->
-                onChange(holder.binding.root.height)
-            }
-
-            systemMessageEditText.doAfterTextChanged { _ ->
-                updatedSystemMessage = systemMessageEditText.text.toString()
-                checkSystemMessageChanged()
-            }
-
-            systemMessageEditText.setText(updatedSystemMessage)
-
-            editSystemMessageCancelButton.setOnClickListener {
-                //reset updated to current
-                updatedSystemMessage = currentSystemMessage
-                systemMessageEditText.setText(currentSystemMessage)
-            }
-
-            editSystemMessageSubmitButton.setOnClickListener {
-                updatedSystemMessage = systemMessageEditText.text.toString()
-                onSave(updatedSystemMessage)
-                //update current to updated
-                currentSystemMessage = updatedSystemMessage
-                checkSystemMessageChanged()
-            }
-        }
-    }
+    override fun onBindViewHolder(holder: HeaderViewHolder, position: Int) {}
 
     override fun getItemCount(): Int = 1
 }
@@ -262,6 +303,9 @@ class ChatNodeHeaderAdapter(
  * this exists only to create padding at the bottom when the input is hidden
  */
 class ChatNodeFooterAdapter(var footerHeight: Int = 0) : RecyclerView.Adapter<ChatNodeFooterAdapter.FooterViewHolder>() {
+    init { setHasStableIds(true) }
+    override fun getItemId(position: Int): Long { return -11 }
+
     inner class FooterViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FooterViewHolder {
@@ -285,5 +329,45 @@ class ChatNodeFooterAdapter(var footerHeight: Int = 0) : RecyclerView.Adapter<Ch
         if (changed)
             notifyItemChanged(0)
         return changed
+    }
+}
+
+
+/**
+ * This will let an active chat node that could be being edited exist in it's own pool of views
+ * so it will not be recycled with the rest of the views and can be reused.
+ *
+ * This uses the itemId to identify the item as a "type" so it's mandatory that setHasStableIds(true)
+ */
+class ActiveNodeRecycledViewPool : RecyclerView.RecycledViewPool() {
+    private var activeNodeViewHolder: MutableMap<Long, RecyclerView.ViewHolder> = mutableMapOf()
+    private var activeItemList: MutableList<Long> = mutableListOf()
+    companion object {
+        //need offset so it doesn't conflict with default items 0, 1 ,2  from ConcatAdapter
+        const val typeOffset = 10L
+    }
+
+    override fun getRecycledView(viewType: Int): RecyclerView.ViewHolder? {
+        return if (activeNodeViewHolder.containsKey(viewType.toLong())) {
+            Log.d("TAG", "FOUND  ${viewType.toLong()}")
+            activeNodeViewHolder[viewType.toLong()]
+        } else {
+            super.getRecycledView(viewType)
+        }
+    }
+
+    override fun putRecycledView(viewHolder: RecyclerView.ViewHolder) {
+        if (activeNodeViewHolder.contains(viewHolder.itemId+typeOffset)) {
+            Log.d("TAG", "PUT ${viewHolder.itemId+typeOffset}")
+            activeNodeViewHolder[viewHolder.itemId+typeOffset] = viewHolder
+        } else {
+            super.putRecycledView(viewHolder)
+        }
+    }
+
+    fun setActiveNodeViewHolder(view: RecyclerView.ViewHolder, itemId: Long) {
+        Log.d("TAG", "SET ${itemId+typeOffset}")
+        activeItemList.add(itemId+typeOffset)
+        activeNodeViewHolder[itemId+typeOffset] = view
     }
 }
