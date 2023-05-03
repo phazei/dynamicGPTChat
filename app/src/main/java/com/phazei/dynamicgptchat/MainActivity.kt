@@ -7,8 +7,13 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
@@ -19,8 +24,16 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.navigation.NavigationView
 import com.phazei.dynamicgptchat.chatnodes.ChatNodeViewModel
+import com.phazei.dynamicgptchat.data.datastore.Theme
+import com.phazei.dynamicgptchat.data.repo.AppSettingsRepository
+import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
 import com.phazei.dynamicgptchat.databinding.ActivityMainBinding
+import com.phazei.dynamicgptchat.settings.AppSettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -30,6 +43,7 @@ class MainActivity : AppCompatActivity() {
     private val sharedViewModel: SharedViewModel by viewModels()
     //this needs to be bound to activity so it will stay active when switching fragments
     private val chatNodeViewModel: ChatNodeViewModel by viewModels()
+    @Inject lateinit var appSettingsRepository: AppSettingsRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +80,18 @@ class MainActivity : AppCompatActivity() {
         //     printNavBackStack(navController)
         // }
 
+
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appSettingsRepository.themeFlow.collect { theme ->
+                    when (theme) {
+                        Theme.LIGHT -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                        Theme.DARK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                        Theme.AUTO -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                    }
+                }
+            }
+        }
     }
 
     /**

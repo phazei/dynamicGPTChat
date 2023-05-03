@@ -21,7 +21,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -35,11 +37,15 @@ class ChatNodeViewModel @Inject constructor(
     private val openAIRepository = OpenAIRepository("")
     init {
         viewModelScope.launch {
-            appSettingsRepository.appSettingsFlow.collect { settings ->
-                val apiKey = settings.openAIkey ?: ""
-                if (apiKey != "")
-                    openAIRepository.updateOpenAIkey(apiKey)
-            }
+            appSettingsRepository.appSettingsFlow
+                .map { it.openAIkey ?: "" }
+                .distinctUntilChanged()
+                .collect { apiKey ->
+                    Log.d("TAG", "API KEY CHANGE")
+                    if (apiKey.isNotEmpty()) {
+                        openAIRepository.updateOpenAIkey(apiKey)
+                    }
+                }
         }
     }
     private val _activeBranchUpdate = MutableSharedFlow<Pair<ChatNode, List<ChatNode>?>?>(extraBufferCapacity = 16)
