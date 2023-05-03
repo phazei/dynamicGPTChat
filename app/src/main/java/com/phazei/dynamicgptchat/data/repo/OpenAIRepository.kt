@@ -25,13 +25,26 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @OptIn(BetaOpenAI::class)
-class OpenAIRepository(private var openAI: OpenAI) {
+class OpenAIRepository @Inject constructor(private val appSettingsRepository: AppSettingsRepository) {
 
-    constructor(apiKey: String) : this(OpenAI(apiKey))
+    private lateinit var openAI: OpenAI
 
-    constructor(config: OpenAIConfig) : this(OpenAI(config))
+    private var apiKey: String? = null
+
+    init {
+        // Set up a collector to get the API key from the AppSettingsRepository
+        appSettingsRepository.openAIkeyFlow
+            .onEach { openAIkey ->
+                apiKey = openAIkey
+                if (apiKey!!.isNotEmpty()) {
+                    updateOpenAIkey(apiKey!!)
+                }
+            }
+            .launchIn(CoroutineScope(Dispatchers.IO)) // Use the IO dispatcher for network requests
+    }
 
     fun updateOpenAIkey(apiKey: String) {
         openAI = OpenAI(apiKey)

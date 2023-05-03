@@ -24,6 +24,7 @@ import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.chattrees.ChatTreeViewModel
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.entity.GPTSettings
+import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
 import com.phazei.utils.setChangeListener
 import com.tokenautocomplete.CharacterTokenizer
@@ -34,6 +35,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Arrays
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -44,6 +46,7 @@ class ChatTreeSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val chatTreeViewModel: ChatTreeViewModel by viewModels()
+    @Inject lateinit var openAIRepository: OpenAIRepository
     private var backPressedOnce = false
     private var saved = true
     private val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
@@ -209,6 +212,10 @@ class ChatTreeSettingsFragment : Fragment() {
         binding.injectRestartText.setText(settings.injectRestartText)
 
         setupTokens()
+
+    }
+
+    fun setupModelsInput() {
 
     }
 

@@ -31,23 +31,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatNodeViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
-    private val appSettingsRepository: AppSettingsRepository
+    private val openAIRepository: OpenAIRepository
 ) : ViewModel() {
 
-    private val openAIRepository = OpenAIRepository("")
-    init {
-        viewModelScope.launch {
-            appSettingsRepository.appSettingsFlow
-                .map { it.openAIkey ?: "" }
-                .distinctUntilChanged()
-                .collect { apiKey ->
-                    Log.d("TAG", "API KEY CHANGE")
-                    if (apiKey.isNotEmpty()) {
-                        openAIRepository.updateOpenAIkey(apiKey)
-                    }
-                }
-        }
-    }
     private val _activeBranchUpdate = MutableSharedFlow<Pair<ChatNode, List<ChatNode>?>?>(extraBufferCapacity = 16)
     val activeBranchUpdate: SharedFlow<Pair<ChatNode, List<ChatNode>?>?> = _activeBranchUpdate
     val activeRequests: StateFlow<Map<Long, Job>> = openAIRepository.activeRequests
