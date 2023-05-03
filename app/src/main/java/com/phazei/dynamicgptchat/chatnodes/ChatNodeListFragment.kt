@@ -1,16 +1,26 @@
 package com.phazei.dynamicgptchat.chatnodes
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Path
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
+import android.view.animation.LinearInterpolator
+import android.view.animation.PathInterpolator
+import android.widget.PopupWindow
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -23,13 +33,17 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.SmoothScroller
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
-import com.phazei.dynamicgptchat.chattrees.ChatTreeViewModel
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.SharedViewModel
+import com.phazei.dynamicgptchat.chattrees.ChatTreeViewModel
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
+import com.phazei.dynamicgptchat.databinding.ChatNodeFloatingMenuBinding
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -43,15 +57,18 @@ import kotlinx.coroutines.launch
  */
 @Suppress("LiftReturnOrAssignment")
 @AndroidEntryPoint
-class ChatNodeListFragment : Fragment() {
+class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
     private var _binding: FragmentChatNodeListBinding? = null
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val chatNodeViewModel: ChatNodeViewModel by activityViewModels()
     private val chatTreeViewModel: ChatTreeViewModel by viewModels()
+
     private lateinit var chatNodeAdapter: ChatNodeAdapter
+    private lateinit var chatNodeFooterAdapter: ChatNodeFooterAdapter
     private lateinit var chatSubmitButtonHelper: ChatSubmitButtonHelper
+    private lateinit var popupMenuHelper: PopupMenuHelper
     private lateinit var chatTree: ChatTree
     private val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
 
@@ -64,43 +81,44 @@ class ChatNodeListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         chatTree = sharedViewModel.activeChatTree!!
         chatSubmitButtonHelper = ChatSubmitButtonHelper(this)
+        popupMenuHelper = PopupMenuHelper(this, requireContext())
 
         viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             chatNodeViewModel.activeBranchUpdate
                 .filterNotNull()
-                //when an request completes, it could be from a background chatTree and not the
-                //currently active one, so we don't need to process it and should just leave
+                // when an request completes, it could be from a background chatTree and not the
+                // currently active one, so we don't need to process it and should just leave
                 .filter { (updatedChatNode, _) -> updatedChatNode.chatTreeId == chatTree.id }
                 // .conflate() //conflate could skip items if other trees are triggering here
                 .collect { (updatedChatNode, activeBranch) ->
                     if (!chatNodeAdapter.isInit() && activeBranch == null) {
-                        //if an individual request completes before the view loads, this will trigger right away
-                        //so shouldn't be loaded yet
+                        // if an individual request completes before the view loads, this will trigger right away
+                        // so shouldn't be loaded yet
                         return@collect
                     }
                     if (activeBranch == null) {
-                        //single node update
+                        // single node update
                         chatNodeAdapter.updateItem(updatedChatNode)
                     } else {
-                        //branch update
+                        // branch update
                         chatNodeAdapter.updateData(updatedChatNode, activeBranch)
                     }
                     val position : Int
-                    if (updatedChatNode.parentNodeId == null) { //rootNode
-                        position = chatNodeAdapter.itemCount - 1 //get leaf item
+                    if (updatedChatNode.parentNodeId == null) { // rootNode
+                        position = chatNodeAdapter.itemCount - 1 // get leaf item
                         binding.chatNodeRecyclerView.scrollToPosition(position + 1) //+1 for header
                     } else {
-                        position = chatNodeAdapter.getItemPosition(updatedChatNode) //stay by edited item
+                        // position = chatNodeAdapter.getItemPosition(updatedChatNode) // stay by edited item
                     }
                     // TODO: fix scrolling glitchyness when streaming
                 }
             }
         }
-        //recycler won't be populated until after this is loaded
+        // recycler won't be populated until after this is loaded
         viewLifecycleOwner.lifecycleScope.launch {
-            //no matter what I've tried, 1 out of 20 times this triggers before the listener is attached and doesn't load
-            //so forcing a delay on it
+            // no matter what I've tried, 1 out of 20 times this triggers before the listener is attached and doesn't load
+            // so forcing a delay on it
             delay(100)
             chatNodeViewModel.loadChatTreeChildrenAndActiveBranch(chatTree)
         }
@@ -110,12 +128,12 @@ class ChatNodeListFragment : Fragment() {
         chatSubmitButtonHelper.setupChatSubmitButton()
 
         chatNodeViewModel.activeRequests.asLiveData().observe(viewLifecycleOwner) { data ->
-            //just need to be able to update the button
+            // just need to be able to update the button
             chatSubmitButtonHelper.checkSubmitStatusButton()
         }
 
         dispatcher.addCallback(viewLifecycleOwner) {
-            //ensure that the temporary text typed into the prompt box is saved before leaving the page
+            // ensure that the temporary text typed into the prompt box is saved before leaving the page
             saveTempPrompt()
             this.isEnabled = false
             dispatcher.onBackPressed()
@@ -126,12 +144,12 @@ class ChatNodeListFragment : Fragment() {
      * Default new chat appends child to latest active leaf
      */
     private fun prepareChatRequest() {
-        //todo: maybe just grab leaf from RecyclerView data
+        // todo: maybe just grab leaf from RecyclerView data
         val parentLeaf = sharedViewModel.chatRepository.getActiveLeaf(chatTree.rootNode)
         val newNode = ChatNode(0, chatTree.id, parentLeaf.id, binding.promptInputEditText.text.toString())
         newNode.parent = parentLeaf
 
-        binding.promptInputEditText.setText("") //this will trigger buttonStatus listener
+        binding.promptInputEditText.setText("") // this will trigger buttonStatus listener
         chatTree.tempPrompt = ""
         chatTreeViewModel.saveChatTree(chatTree)
 
@@ -157,28 +175,34 @@ class ChatNodeListFragment : Fragment() {
         chatNodeAdapter.cancelLastItem()
     }
 
+    // @ChatNodeAdapter
+    override fun onNodeSelected(position: Int) {
+        popupMenuHelper.stateManagement(position)
+    }
+    // @ChatNodeAdapter
+    override fun onEditNode(position: Int) {
+
+    }
+
     @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private fun setupRecycler() {
-        chatNodeAdapter = ChatNodeAdapter(
-            chatNodes = mutableListOf(),
-            onChatNodeClick = { chatNode ->
-                // do something with the clicked chatNode
-            },
-            onEditPromptClick = { chatNode, prompt ->
-                editChatRequest(chatNode, prompt)
-                // do something with the clicked chatNode and prompt
-            }
-        )
+        chatNodeAdapter = ChatNodeAdapter(chatNodes = mutableListOf(), this)
+        chatNodeFooterAdapter = ChatNodeFooterAdapter()
+
         val chatNodeHeaderAdapter = ChatNodeHeaderAdapter(
             currentSystemMessage = chatTree.gptSettings.systemMessage,
             onSave = { newSystemMessage ->
                 chatTreeViewModel.saveGptSettings(chatTree.gptSettings.apply { systemMessage = newSystemMessage })
             },
             onChange = { sysMsgHeight ->
+                Log.d("TAG", "HEADER CHANGE")
                 setupRecyclerHeaderScroll(sysMsgHeight)
             }
         )
-        val concatAdapter = ConcatAdapter(chatNodeHeaderAdapter, chatNodeAdapter)
+        val concatAdapter = ConcatAdapter(
+            ConcatAdapter.Config.Builder().setStableIdMode(ConcatAdapter.Config.StableIdMode.SHARED_STABLE_IDS).build(),
+            chatNodeHeaderAdapter, chatNodeAdapter, chatNodeFooterAdapter
+        )
 
         binding.chatNodeRecyclerView.apply {
             layoutManager = LinearLayoutManager(context).apply {
@@ -186,28 +210,42 @@ class ChatNodeListFragment : Fragment() {
                 reverseLayout = false
             }
             adapter = concatAdapter
+            recycledViewPool.setMaxRecycledViews(ChatNodeAdapter.ITEM_TYPE_ACTIVE, 0)
         }
-        //for ease of access and scrolling
+        // need to not animate movement sometimes
+        // binding.chatNodeRecyclerView.itemAnimator = object : DefaultItemAnimator() {
+        //     override fun animateMove(holder: RecyclerView.ViewHolder?, fromX: Int, fromY: Int, toX: Int, toY: Int): Boolean {
+        //         return true
+        //         // return super.animateMove(holder, fromX, fromY, toX, toY)
+        //     }
+        // }
+        binding.chatNodeRecyclerView.itemAnimator = null
+
+        // for ease of access and scrolling
         chatNodeAdapter.layoutManager = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
 
-        //fix item shows when keyboard opens/closes
+        // fix item shows when keyboard opens/closes
         binding.chatNodeRecyclerView.addOnLayoutChangeListener(View.OnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            val deltaY = oldBottom - bottom
+            val keyboardOpened = deltaY > 220 // could be input box
+            val keyboardClosed = deltaY < -220
+
+            if (deltaY == 0) {
+                // keyboard didn't open, something else changed
+                return@OnLayoutChangeListener
+            }
 
             if (binding.promptInputEditText.hasFocus()) {
-                var deltaY = oldBottom - bottom
-                val keyboardOpened = deltaY > 0
-
-                val layoutManager = chatNodeAdapter.layoutManager
-                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-                val totalItemCount = layoutManager.itemCount
-
-                if (!keyboardOpened && totalItemCount < lastVisibleItemPosition + 2) {
-                    //if its close to the bottom after the keyboard has been closed, don't scroll up
-                    deltaY = 0
-                }
-                binding.chatNodeRecyclerView.scrollBy(0, deltaY)
+                // since I made this a bottom aligned list, it doesn't seem to need this.
             } else {
-                //editing chatNode, probably doesn't need scrolling
+                // editing chatNode
+                if (popupMenuHelper.getActiveScrollPosition() != null && keyboardOpened) {
+                    // move top of inputs to right above keyboard
+                    popupMenuHelper.scrollForKeyboardInput()
+                } else if (keyboardClosed) {
+                    // keep list in place while keyboard closes
+                    popupMenuHelper.scrollForKeyboardClose(deltaY)
+                }
             }
         })
     }
@@ -225,7 +263,7 @@ class ChatNodeListFragment : Fragment() {
             if (!binding.chatNodeRecyclerView.isComputingLayout) {
                 chatNodeAdapter.layoutManager.stackFromEnd = false
                 lifecycleScope.launch {
-                    delay(200) //so if it goes to the next line it doesn't jump as much
+                    delay(200) // so if it goes to the next line it doesn't jump as much
                     chatNodeAdapter.layoutManager.stackFromEnd = true
                     binding.chatNodeRecyclerView.scrollToPosition(0)
                 }
@@ -261,7 +299,7 @@ class ChatNodeListFragment : Fragment() {
      * Can't perform action in onPause since it's not completed before next fragment init
      */
     private fun saveTempPrompt() {
-        //store anything that wasn't submitted before leaving the page
+        // store anything that wasn't submitted before leaving the page
         val tempPrompt = binding.promptInputEditText.text.toString()
         if (tempPrompt != "" && tempPrompt != chatTree.tempPrompt) {
             chatTree.tempPrompt = tempPrompt
@@ -271,10 +309,396 @@ class ChatNodeListFragment : Fragment() {
         // Perform your action here before leaving the Fragment
     }
 
+    override fun onPause() {
+        super.onPause()
+        // otherwise remains on screen on next fragment
+        popupMenuHelper.dismiss()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        popupMenuHelper.stateManagement()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
+
+    @SuppressLint("ClickableViewAccessibility")
+    inner class PopupMenuHelper(private val fragment: ChatNodeListFragment, private val context: Context) {
+        private val popupWindow: PopupWindow
+        private val popupBinding: ChatNodeFloatingMenuBinding
+
+        private var activeHolder: ChatNodeAdapter.ChatNodeViewHolder? = null
+        private var previousHolder: ChatNodeAdapter.ChatNodeViewHolder? = null
+        private var previousPosition: Int? = null
+        private var activePosition: Int? = null
+        private var activeScrollPosition: Int? = null
+
+        private val widthClosed = 62.dpToPx()
+        private val widthOpened = 250.dpToPx()
+        private val widthEdit = 156.dpToPx()
+
+        init {
+            val inflater = LayoutInflater.from(context)
+            val popupView = inflater.inflate(R.layout.chat_node_floating_menu, null)
+            popupBinding = ChatNodeFloatingMenuBinding.bind(popupView)
+
+            popupWindow = PopupWindow(
+                popupView,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            popupWindow.apply {
+                isAttachedInDecor = true
+                // Set the popup to be focusable and dismiss when clicked outside
+                // animationStyle = R.style.NodePopupAnimation
+                // isFocusable = true
+                // setBackgroundDrawable(null)
+                // setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                update()
+            }
+            popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+
+            // popupWindow.contentView == popupView == popupBinding.root
+
+            //hide and show when item is scrolled outside of recycler
+            val fadePopupAnimator = ObjectAnimator.ofFloat(popupView, View.ALPHA, 0F).apply {
+                duration = 250
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        popupView.visibility = View.INVISIBLE
+                    }
+                })
+            }
+            val unfadePopupAnimator = ObjectAnimator.ofFloat(popupView, View.ALPHA, 1F).apply {
+                duration = 250
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationStart(animation: Animator) {
+                        popupView.visibility = View.VISIBLE
+                    }
+                })
+            }
+            binding.chatNodeRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    if (!popupWindow.isShowing || activePosition == null) {
+                        return
+                    }
+                    // Get the first and last visible positions of items in the RecyclerView
+                    val firstVisiblePosition = (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                    val lastVisiblePosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+
+                    // Check if the item associated with the popup is visible on the screen
+                    if (activeScrollPosition!! in firstVisiblePosition..lastVisiblePosition) {
+                        //make sure it's shown
+                        if (fadePopupAnimator.isRunning) { fadePopupAnimator.cancel() }
+                        if (!unfadePopupAnimator.isRunning && popupView.alpha != 1F) { unfadePopupAnimator.start() }
+                    } else {
+                        //hide it
+                        if (unfadePopupAnimator.isRunning) { unfadePopupAnimator.cancel() }
+                        if (!fadePopupAnimator.isRunning && popupView.alpha != 0F) { fadePopupAnimator.start() }
+                    }
+                }
+            })
+
+            setupListeners()
+        }
+
+        private fun setupListeners() {
+
+            popupWindow.setOnDismissListener {
+            }
+
+            // Set onClickListeners for the popup buttons
+            popupBinding.apply {
+
+                nodeDelete.setOnClickListener {
+
+                }
+
+                nodeEdit.setOnClickListener {
+                    enableEdit()
+                }
+
+                nodePrev.setOnClickListener {
+                }
+
+                nodeNext.setOnClickListener {
+
+                }
+
+                nodeRegenerate.setOnClickListener {
+                }
+
+                nodeEditAdd.setOnClickListener {
+                }
+
+                nodeEditReplace.setOnClickListener {
+                }
+
+                nodeEditCancel.setOnClickListener {
+                    disableEdit()
+                }
+            }
+        }
+
+        private fun enableEdit() {
+
+            activeHolder!!.enableEdit()
+
+            //update menu buttons to edit menu
+            listOf(popupBinding.nodeEditAdd, popupBinding.nodeEditReplace, popupBinding.nodeEditCancel)
+                .forEach { showButtonAnimation(it, -1) }
+            listOf(popupBinding.nodePrev, popupBinding.nodeNext, popupBinding.nodeEdit, popupBinding.nodeRegenerate, popupBinding.nodeDelete)
+                .forEach { hideButtonAnimation(it, -1) }
+            resizeAnimator(widthOpened, widthEdit).start()
+
+            //hide main prompt input
+            val yItemOffset = activeHolder!!.binding.root.top
+            binding.inputContainer.visibility = View.GONE
+            chatNodeFooterAdapter.updateFooterHeight(binding.inputContainer.height)
+            chatNodeAdapter.layoutManager.scrollToPositionWithOffset(
+                activeScrollPosition!!,
+                yItemOffset
+            )
+        }
+
+        private fun disableEdit() {
+
+            if (previousHolder != activeHolder) {
+                previousHolder?.disableEdit()
+            }
+            activeHolder?.disableEdit()
+
+            if (binding.inputContainer.visibility==View.VISIBLE) {
+                //not enabled so skip animations
+                return
+            }
+
+            //update menu buttons back to default
+            listOf(popupBinding.nodePrev, popupBinding.nodeNext, popupBinding.nodeEdit, popupBinding.nodeRegenerate, popupBinding.nodeDelete)
+                .forEach { showButtonAnimation(it) }
+            listOf(popupBinding.nodeEditAdd, popupBinding.nodeEditReplace, popupBinding.nodeEditCancel)
+                .forEach { hideButtonAnimation(it) }
+            resizeAnimator(widthEdit, widthOpened).start()
+
+            //hide main prompt input
+            var yItemOffset = 0
+            if (activeHolder != null) {
+                yItemOffset = activeHolder!!.binding.root.top
+            } else if (previousHolder != null) {
+                //if activeHolder was null, could be resetting for finish
+                yItemOffset = previousHolder!!.binding.root.top
+            }
+            binding.inputContainer.visibility=View.VISIBLE
+            chatNodeFooterAdapter.updateFooterHeight(0)
+            chatNodeAdapter.layoutManager.scrollToPositionWithOffset(activeScrollPosition!!, yItemOffset)
+        }
+
+        /**
+         * This can get called anytime when the adapter is re-bind
+         *
+         * Case 1: Menu item tapped first time
+         * Case 2: Menu item tapped when open
+         * Case 3: Different menu item tapped when open
+         */
+        fun stateManagement(position: Int? = null) {
+            var showPopup = false
+            // if the user didn't click anything specifically, this should determine what the state should be
+            previousPosition = activePosition
+            previousHolder = activeHolder
+
+            activePosition = chatNodeAdapter.activeNodePosition
+            activeHolder = null
+
+            // menu has been closed
+            if (activePosition == null) {
+                if (popupWindow.isShowing) {
+                    if (previousHolder != null) {
+                        finish()
+                    } else {
+                        dismiss()
+                    }
+                }
+            }
+
+            // something should be open
+            if (activePosition != null) {
+
+                activeScrollPosition = activePosition?.plus(1)
+                val searchHolder = binding.chatNodeRecyclerView.findViewHolderForAdapterPosition(activeScrollPosition!!)
+                if (searchHolder != null) {
+                    activeHolder = searchHolder as ChatNodeAdapter.ChatNodeViewHolder
+                } else {
+                    Log.w(
+                        "Warning",
+                        "chatNodeRecyclerView.findViewHolderForAdapterPosition returned null for $activeScrollPosition"
+                    )
+                    chatNodeAdapter.notifyItemChanged(activePosition!!)
+                    return
+                }
+
+                // nothing has changed, should stay the same
+                if (activePosition == previousPosition) {
+                    if (popupWindow.isShowing) {
+                        //all good
+                    } else {
+                        showPopup = true
+                    }
+                } else if (previousPosition != null) {
+                    if (popupWindow.isShowing) {
+                        finish()
+                    }
+                    showPopup = true
+                } else if (previousPosition == null) {
+                    showPopup = true
+                }
+            }
+
+            previousPosition = null
+            previousHolder = null
+
+            if (showPopup) {
+                show()
+                return
+            }
+        }
+
+        private fun show() {
+            val anchorView = activeHolder!!.binding.chatNodeTopGuide
+
+            // Show the popup below the anchor view
+            val xOffset = activeHolder!!.binding.promptHolder.left
+            val yOffset = -(anchorView.height + popupWindow.contentView.measuredHeight + 10)
+
+            if (!popupWindow.isShowing) {
+                val width = if (chatNodeAdapter.isEditingActive) widthEdit else widthOpened
+                resizeAnimator(widthClosed, width, bounce = true,
+                    onStart = {
+                        popupWindow.contentView.alpha = 1F
+                        popupWindow.contentView.visibility = View.VISIBLE
+                    }
+                ).start()
+                popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
+            }
+        }
+
+        fun dismiss() {
+            popupWindow.dismiss()
+        }
+
+        /**
+         * This will complete the menu action resetting the menu and clearing active
+         * Use at end of: save update/save new/cancel edit/delete
+         */
+        private fun finish() {
+            var quickDismiss = false
+            disableEdit()
+
+            if (previousHolder != null) {
+                if (previousHolder != activeHolder) {
+                    //very likely the holder is reused
+                    previousHolder?.deactivate()
+                }
+                quickDismiss = activeHolder != null
+            } else {
+                activeHolder?.deactivate()
+                activeHolder = null
+                activePosition = null
+                activeScrollPosition = null
+                quickDismiss = false
+            }
+            if (quickDismiss) {
+                popupWindow.dismiss()
+            } else {
+                resizeAnimator(popupWindow.contentView.width, widthClosed, onEnd = {
+                    popupWindow.dismiss()
+                }).start()
+            }
+
+        }
+
+        fun getActiveScrollPosition(): Int? {
+            return activeScrollPosition
+        }
+
+        /**
+         * Want to scroll to line up input if keyboard is opened
+         * Want to let android handle the scrolling itself if the inputs are larger than the recyclerView
+         */
+        fun scrollForKeyboardInput() {
+            if (activeHolder != null && activePosition != null) {
+                activeHolder!!.binding.apply {
+                    val nodeHeight = promptHolder.height + responseHolder.height
+                    if (nodeHeight < binding.chatNodeRecyclerView.height) {
+                        binding.chatNodeRecyclerView.smoothScrollToBottom(activeScrollPosition!!, 100F)
+                    }
+                }
+            }
+        }
+
+        /**
+         * If too close to the top, it shouldn't scroll down
+         */
+        fun scrollForKeyboardClose(delta: Int) {
+            if ((activeScrollPosition ?: 0) > 4)
+                binding.chatNodeRecyclerView.scrollBy(0, -delta)
+        }
+
+        /**
+         * Helper methods:
+         */
+
+        private fun hideButtonAnimation(view: View, spinDirection: Int = 1) {
+            view.alpha = 1F
+            view.rotation = 0F
+            view.animate().rotation(spinDirection * 360F).alpha(0F).setDuration(400).withEndAction{view.visibility=View.GONE}.start()
+        }
+
+        private fun showButtonAnimation(view: View, spinDirection: Int = 1) {
+            view.alpha = 0F
+            view.rotation = 0F
+            view.alpha=0F; view.animate().rotation(spinDirection * 360F).alpha(1F).setDuration(400).withStartAction{view.visibility=View.VISIBLE}.start()
+        }
+
+        private fun resizeAnimator(startWidth: Int, endWidth: Int, onEnd: () -> Unit = {}, onStart: () -> Unit = {}, bounce: Boolean = false): ValueAnimator {
+            val constraintLayout = popupBinding.popupMenuContainer
+            val path = Path().apply {
+                moveTo(0f, 0f)
+                cubicTo(0.4f, 0.1f, 0.36f, 1.1f, 0.49f, 1.14f)
+                cubicTo(0.58f, 1.17f, 0.63f, 0.82f, 0.75f, 0.83f)
+                cubicTo(0.86f, 0.84f, 0.83f, 0.97f, 1f, 1f)
+            }
+            return ValueAnimator.ofInt(startWidth, endWidth).apply {
+                duration = 400 *  (if (bounce) 2L else 1L)
+                if (bounce) {
+                    interpolator = PathInterpolator(path)
+                } else {
+                    interpolator = LinearInterpolator()
+                }
+                addUpdateListener { animation ->
+                    val layoutParams = constraintLayout.layoutParams
+                    layoutParams.width = animation.animatedValue as Int
+                    constraintLayout.layoutParams = layoutParams
+                }
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        onEnd()
+                    }
+                    override fun onAnimationStart(animation: Animator) {
+                        onStart()
+                    }
+                })
+            }
+        }
+
+        private fun Int.dpToPx(): Int {
+            val density = context.resources.displayMetrics.density
+            return (this * density).toInt()
+        }
+    }
+
 
     /**
      * Helper class to help keep button methods organized
@@ -296,15 +720,15 @@ class ChatNodeListFragment : Fragment() {
         private var temporalDisabled = false
 
         fun setupChatSubmitButton() {
-            //callback will change SendToStop into LoadingStop after animation is complete
+            // callback will change SendToStop into LoadingStop after animation is complete
             val animationCallback = object : Animatable2Compat.AnimationCallback() {
-                //after button is animated to a stop, switch it to the loading stop button
+                // after button is animated to a stop, switch it to the loading stop button
                 override fun onAnimationEnd(drawable: Drawable) {
                     super.onAnimationEnd(drawable)
                     if (chatNodeViewModel.isRequestActive(chatTree.id)) {
-                        //sometimes if the request is too fast, it will switch
-                        //back to 'send' before the animation
-                        //but this call back triggers after it's already be set to send
+                        // sometimes if the request is too fast, it will switch
+                        // back to 'send' before the animation
+                        // but this call back triggers after it's already be set to send
                         binding.chatSubmitButton.icon = drawableLoadingStop
                         lastSet = Method.LOAD
                         drawableLoadingStop.start()
@@ -315,13 +739,13 @@ class ChatNodeListFragment : Fragment() {
 
             binding.chatSubmitButton.setOnClickListener {
                 if (!chatNodeViewModel.isRequestActive(chatTree.id)) {
-                    //don't try to submit till chatNodes loaded
+                    // don't try to submit till chatNodes loaded
                     if (chatNodeAdapter.isInit()) {
-                        //create a new request
+                        // create a new request
                         prepareChatRequest()
                     }
                 } else {
-                    //cancel active request
+                    // cancel active request
                     cancelChatRequest()
                 }
                 triggerTemporalDisabled()
@@ -360,7 +784,7 @@ class ChatNodeListFragment : Fragment() {
                 drawableStopToSend.start()
             }
 
-            //allow sending spaces, but not empty returns
+            // allow sending spaces, but not empty returns
             val empty = binding.promptInputEditText.text?.trim { it == '\r' || it == '\n' }.isNullOrEmpty()
             val isEnabled = !empty && !temporalDisabled
             binding.chatSubmitButton.isEnabled = isEnabled
@@ -389,4 +813,22 @@ class ChatNodeListFragment : Fragment() {
             }
         }
     }
+
+    private fun RecyclerView.smoothScrollToBottom(toPos: Int, speed: Float = 25F, offset: Int? = null) {
+        val smoothScroller: SmoothScroller = object : LinearSmoothScroller(context) {
+            override fun getVerticalSnapPreference(): Int {
+                return SNAP_TO_END
+            }
+            override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics?): Float {
+                return speed / displayMetrics!!.densityDpi
+            }
+            // override fun calculateDtToFit(viewStart: Int, viewEnd: Int, boxStart: Int, boxEnd: Int, snapPreference: Int): Int {
+            //     // return boxStart - viewStart + offset
+            //     return super.calculateDtToFit(viewStart, viewEnd, boxStart, boxEnd, snapPreference)
+            // }
+        }
+        smoothScroller.targetPosition = toPos
+        layoutManager?.startSmoothScroll(smoothScroller)
+    }
+
 }

@@ -59,7 +59,13 @@
     </style>
 
     <style name="textHandleOnColor" parent="ThemeOverlay.Material3.TextInputEditText">
-        <item name="colorControlActivated">@color/md_theme_light_onPrimaryContainer</item>
-        <item name="android:textColorHighlight">@color/md_theme_light_onPrimaryContainer</item>
+        <item name="colorControlActivated">@color/md_theme_dark_primaryContainer</item>
+        <item name="android:textColorHighlight">@color/md_theme_dark_primaryContainer</item>
     </style>
+
+    <style name="NodePopupAnimation">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
 </resources>

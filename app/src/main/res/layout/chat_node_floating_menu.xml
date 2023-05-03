@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingEnd="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/popup_menu_container"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/ripple_round_icon"
+        android:backgroundTint="@color/md_theme_light_onSurfaceVariant"
+        android:alpha="0.95"
+        android:paddingHorizontal="15dp"
+        android:paddingVertical="10dp"
+        android:orientation="horizontal">
+
+        <!--   MAIN MENU ITEMS     -->
+
+        <ImageButton
+            android:id="@+id/node_delete"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ripple_round_icon"
+            android:backgroundTint="@color/md_theme_light_errorContainer"
+            android:contentDescription="@string/delete"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/round_delete_forever_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/node_regenerate"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ripple_round_icon"
+            android:backgroundTint="@color/md_theme_dark_onPrimary"
+            android:contentDescription="@string/regenerate"
+            android:padding="3dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/round_regenerate_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/node_edit"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+
+            android:id="@+id/node_edit"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ripple_round_icon"
+            android:backgroundTint="@color/md_theme_dark_tertiary"
+            android:contentDescription="@string/edit"
+            android:padding="3dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/round_edit_note_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+
+            android:id="@+id/node_next"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ripple_round_icon"
+            android:backgroundTint="@color/md_theme_dark_secondary"
+            android:contentDescription="@string/next"
+            android:padding="0dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/round_chevron_right_24"
+            app:layout_constraintEnd_toEndOf="@+id/node_edit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+
+            android:id="@+id/node_prev"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ripple_round_icon"
+            android:backgroundTint="@color/md_theme_dark_secondary"
+            android:contentDescription="@string/previous"
+            android:padding="0dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/round_chevron_left_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!--    EDIT MENU ITEMS    -->
+
+        <ImageButton
+            android:visibility="gone"
+            android:id="@+id/node_edit_cancel"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ripple_round_icon"
+            android:backgroundTint="@color/md_theme_light_errorContainer"
+            android:contentDescription="@string/cancel_editing_message"
+            android:padding="0dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/round_small_close_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:visibility="gone"
+            android:id="@+id/node_edit_add"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ripple_round_icon"
+            android:backgroundTint="@color/md_theme_light_primary"
+            android:contentDescription="@string/create_new_message"
+            android:padding="0dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/round_small_check_plus_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:visibility="gone"
+            android:id="@+id/node_edit_replace"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ripple_round_icon"
+            android:backgroundTint="@color/md_theme_light_primaryContainer"
+            android:contentDescription="@string/replace_current_message"
+            android:padding="0dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/round_small_check_24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>
