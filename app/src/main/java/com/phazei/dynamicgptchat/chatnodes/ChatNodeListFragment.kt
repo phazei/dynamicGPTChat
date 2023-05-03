@@ -6,6 +6,7 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Path
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
@@ -15,10 +16,10 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
 import android.view.animation.LinearInterpolator
+import android.view.animation.PathInterpolator
 import android.widget.PopupWindow
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.animation.doOnStart
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -49,7 +50,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
-import kotlin.math.pow
 
 
 /**
@@ -64,6 +64,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val chatNodeViewModel: ChatNodeViewModel by activityViewModels()
     private val chatTreeViewModel: ChatTreeViewModel by viewModels()
+
     private lateinit var chatNodeAdapter: ChatNodeAdapter
     private lateinit var chatNodeFooterAdapter: ChatNodeFooterAdapter
     private lateinit var chatSubmitButtonHelper: ChatSubmitButtonHelper
@@ -174,11 +175,11 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
         chatNodeAdapter.cancelLastItem()
     }
 
-    //@ChatNodeAdapter
+    // @ChatNodeAdapter
     override fun onNodeSelected(position: Int) {
-        popupMenuHelper.show(position)
+        popupMenuHelper.stateManagement(position)
     }
-    //@ChatNodeAdapter
+    // @ChatNodeAdapter
     override fun onEditNode(position: Int) {
 
     }
@@ -209,6 +210,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 reverseLayout = false
             }
             adapter = concatAdapter
+            recycledViewPool.setMaxRecycledViews(ChatNodeAdapter.ITEM_TYPE_ACTIVE, 0)
         }
         // need to not animate movement sometimes
         // binding.chatNodeRecyclerView.itemAnimator = object : DefaultItemAnimator() {
@@ -237,7 +239,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 // since I made this a bottom aligned list, it doesn't seem to need this.
             } else {
                 // editing chatNode
-                if (popupMenuHelper.currentPosition != null && keyboardOpened) {
+                if (popupMenuHelper.getActiveScrollPosition() != null && keyboardOpened) {
                     // move top of inputs to right above keyboard
                     popupMenuHelper.scrollForKeyboardInput()
                 } else if (keyboardClosed) {
@@ -313,6 +315,11 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
         popupMenuHelper.dismiss()
     }
 
+    override fun onResume() {
+        super.onResume()
+        popupMenuHelper.stateManagement()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -326,13 +333,12 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
         private var activeHolder: ChatNodeAdapter.ChatNodeViewHolder? = null
         private var previousHolder: ChatNodeAdapter.ChatNodeViewHolder? = null
         private var previousPosition: Int? = null
-        private var _currentPosition: Int? = null
-        val currentPosition: Int? get() = _currentPosition
+        private var activePosition: Int? = null
+        private var activeScrollPosition: Int? = null
 
-        private val openAnim: ValueAnimator
-        private val closeAnim: ValueAnimator
-        private val editAnim: ValueAnimator
-        private val exitEditAnim: ValueAnimator
+        private val widthClosed = 62.dpToPx()
+        private val widthOpened = 250.dpToPx()
+        private val widthEdit = 156.dpToPx()
 
         init {
             val inflater = LayoutInflater.from(context)
@@ -357,62 +363,9 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
             // popupWindow.contentView == popupView == popupBinding.root
 
-            // Set the popup animation
-            val constraintLayout = popupBinding.popupMenuContainer
-            openAnim = ValueAnimator.ofInt(62.dpToPx(), popupView.measuredWidth).apply {
-                duration = 500
-                // interpolator = OvershootInterpolator()
-                doOnStart {
-                    // popup could be hidden from scrolling off screen
-                    popupView.alpha = 1F
-                    popupView.visibility = View.VISIBLE
-                }
-                addUpdateListener { animation ->
-                    val layoutParams = constraintLayout.layoutParams
-                    layoutParams.width = animation.animatedValue as Int
-                    constraintLayout.layoutParams = layoutParams
-                }
-                setInterpolator { input ->
-                    // https://wiki.geogebra.org/en/FitPoly_Command
-                    val xDouble = input.toDouble()
-                    (152.08 * xDouble.pow(7) - 426.8 * xDouble.pow(6) + 426.47 * xDouble.pow(5) - 178.84 * xDouble.pow(4) + 26.86 * xDouble.pow(3) + 0.94 * xDouble.pow(2) + 0.29 * xDouble).toFloat()
-                }
-            }
-            closeAnim = ValueAnimator.ofInt(popupView.measuredWidth, 62.dpToPx()).apply {
-                duration = 400 // Adjust the duration to your preference
-                interpolator = LinearInterpolator()
-                addUpdateListener { animation ->
-                    val layoutParams = constraintLayout.layoutParams
-                    layoutParams.width = animation.animatedValue as Int
-                    constraintLayout.layoutParams = layoutParams
-                }
-                addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        popupWindow.dismiss()
-                    }
-                })
-            }
-            editAnim = ValueAnimator.ofInt(popupView.measuredWidth, 156.dpToPx()).apply {
-                duration = 400 // Adjust the duration to your preference
-                interpolator = LinearInterpolator()
-                addUpdateListener { animation ->
-                    val layoutParams = constraintLayout.layoutParams
-                    layoutParams.width = animation.animatedValue as Int
-                    constraintLayout.layoutParams = layoutParams
-                }
-            }
-            exitEditAnim = ValueAnimator.ofInt(156.dpToPx(), popupView.measuredWidth).apply {
-                duration = 400 // Adjust the duration to your preference
-                interpolator = LinearInterpolator()
-                addUpdateListener { animation ->
-                    val layoutParams = constraintLayout.layoutParams
-                    layoutParams.width = animation.animatedValue as Int
-                    constraintLayout.layoutParams = layoutParams
-                }
-            }
-
+            //hide and show when item is scrolled outside of recycler
             val fadePopupAnimator = ObjectAnimator.ofFloat(popupView, View.ALPHA, 0F).apply {
-                duration = 400
+                duration = 250
                 addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
                         popupView.visibility = View.INVISIBLE
@@ -420,7 +373,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 })
             }
             val unfadePopupAnimator = ObjectAnimator.ofFloat(popupView, View.ALPHA, 1F).apply {
-                duration = 400
+                duration = 250
                 addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationStart(animation: Animator) {
                         popupView.visibility = View.VISIBLE
@@ -429,7 +382,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             }
             binding.chatNodeRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    if (!popupWindow.isShowing || currentPosition == null) {
+                    if (!popupWindow.isShowing || activePosition == null) {
                         return
                     }
                     // Get the first and last visible positions of items in the RecyclerView
@@ -437,7 +390,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                     val lastVisiblePosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
 
                     // Check if the item associated with the popup is visible on the screen
-                    if (currentPosition!! in firstVisiblePosition..lastVisiblePosition) {
+                    if (activeScrollPosition!! in firstVisiblePosition..lastVisiblePosition) {
                         //make sure it's shown
                         if (fadePopupAnimator.isRunning) { fadePopupAnimator.cancel() }
                         if (!unfadePopupAnimator.isRunning && popupView.alpha != 1F) { unfadePopupAnimator.start() }
@@ -449,29 +402,19 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 }
             })
 
+            setupListeners()
+        }
+
+        private fun setupListeners() {
+
             popupWindow.setOnDismissListener {
-
-                previousHolder?.disableEdit()
-                disableEdit()
-
-                //make main input visible and prevent list jump
-                val yItemOffset = activeHolder!!.binding.root.top
-                binding.inputContainer.visibility=View.VISIBLE
-                chatNodeFooterAdapter.updateFooterHeight(0)
-                chatNodeAdapter.layoutManager.scrollToPositionWithOffset(currentPosition!!, yItemOffset)
-
-                // if (!dismissedByClick) {
-                //     closePopupWindow(constraintLayout) {}
-                // }
-
             }
 
             // Set onClickListeners for the popup buttons
             popupBinding.apply {
 
                 nodeDelete.setOnClickListener {
-                    // Handle next action
-                    closeAnim.start()
+
                 }
 
                 nodeEdit.setOnClickListener {
@@ -482,7 +425,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 }
 
                 nodeNext.setOnClickListener {
-                    binding.chatNodeRecyclerView.smoothScrollToBottom(currentPosition!!)
+
                 }
 
                 nodeRegenerate.setOnClickListener {
@@ -490,97 +433,139 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
                 nodeEditAdd.setOnClickListener {
                 }
+
                 nodeEditReplace.setOnClickListener {
                 }
+
                 nodeEditCancel.setOnClickListener {
                     disableEdit()
                 }
-
-
-
             }
-
-            // adjust height of input box by dragging on it for testing purposes
-            // var initialY = 0f
-            // var initialHeight = 0
-            binding.promptInputEditText.setOnTouchListener { view, event ->
-            //     when (event.action) {
-            //         MotionEvent.ACTION_DOWN -> {
-            //             // User started touching the view
-            //             initialY = event.rawY
-            //             initialHeight = view.layoutParams.height
-            //         }
-            //         MotionEvent.ACTION_MOVE -> {
-            //             // User is moving their finger on the view
-            //             val deltaY = initialY - event.rawY
-            //             val newHeight = (initialHeight + deltaY).toInt()
-            //             view.layoutParams.height = newHeight.coerceAtLeast(200) // Make sure the new height is not negative
-            //             view.requestLayout()
-            //         }
-            //     }
-                false
-            }
-
         }
 
         private fun enableEdit() {
-            // Handle next action
-            activeHolder!!.apply {
-                enableEdit()
-            }
 
+            activeHolder!!.enableEdit()
+
+            //update menu buttons to edit menu
             listOf(popupBinding.nodeEditAdd, popupBinding.nodeEditReplace, popupBinding.nodeEditCancel)
-                .forEach { showButton(it, -1F) }
+                .forEach { showButtonAnimation(it, -1) }
             listOf(popupBinding.nodePrev, popupBinding.nodeNext, popupBinding.nodeEdit, popupBinding.nodeRegenerate, popupBinding.nodeDelete)
-                .forEach { hideButton(it, -1F) }
-            editAnim.start()
+                .forEach { hideButtonAnimation(it, -1) }
+            resizeAnimator(widthOpened, widthEdit).start()
 
+            //hide main prompt input
             val yItemOffset = activeHolder!!.binding.root.top
             binding.inputContainer.visibility = View.GONE
             chatNodeFooterAdapter.updateFooterHeight(binding.inputContainer.height)
             chatNodeAdapter.layoutManager.scrollToPositionWithOffset(
-                currentPosition!!,
+                activeScrollPosition!!,
                 yItemOffset
             )
         }
+
         private fun disableEdit() {
-            activeHolder!!.apply {
-                disableEdit()
+
+            if (previousHolder != activeHolder) {
+                previousHolder?.disableEdit()
+            }
+            activeHolder?.disableEdit()
+
+            if (binding.inputContainer.visibility==View.VISIBLE) {
+                //not enabled so skip animations
+                return
             }
 
+            //update menu buttons back to default
             listOf(popupBinding.nodePrev, popupBinding.nodeNext, popupBinding.nodeEdit, popupBinding.nodeRegenerate, popupBinding.nodeDelete)
-                .forEach { showButton(it) }
+                .forEach { showButtonAnimation(it) }
             listOf(popupBinding.nodeEditAdd, popupBinding.nodeEditReplace, popupBinding.nodeEditCancel)
-                .forEach { hideButton(it) }
-            exitEditAnim.start()
+                .forEach { hideButtonAnimation(it) }
+            resizeAnimator(widthEdit, widthOpened).start()
+
+            //hide main prompt input
+            var yItemOffset = 0
+            if (activeHolder != null) {
+                yItemOffset = activeHolder!!.binding.root.top
+            } else if (previousHolder != null) {
+                //if activeHolder was null, could be resetting for finish
+                yItemOffset = previousHolder!!.binding.root.top
+            }
+            binding.inputContainer.visibility=View.VISIBLE
+            chatNodeFooterAdapter.updateFooterHeight(0)
+            chatNodeAdapter.layoutManager.scrollToPositionWithOffset(activeScrollPosition!!, yItemOffset)
         }
 
-        private fun hideButton(view: View, direction: Float = 1F) {
-            view.alpha = 1F
-            view.rotation = 0F
-            view.animate().rotation(direction * 360F).alpha(0F).setDuration(400).withEndAction{view.visibility=View.GONE}.start()
-        }
-
-        private fun showButton(view: View, direction: Float = 1F) {
-            view.alpha = 0F
-            view.rotation = 0F
-            view.alpha=0F; view.animate().rotation(direction * 360F).alpha(1F).setDuration(400).withStartAction{view.visibility=View.VISIBLE}.start()
-        }
-
-        fun show(position: Int) {
-            previousPosition = _currentPosition
+        /**
+         * This can get called anytime when the adapter is re-bind
+         *
+         * Case 1: Menu item tapped first time
+         * Case 2: Menu item tapped when open
+         * Case 3: Different menu item tapped when open
+         */
+        fun stateManagement(position: Int? = null) {
+            var showPopup = false
+            // if the user didn't click anything specifically, this should determine what the state should be
+            previousPosition = activePosition
             previousHolder = activeHolder
 
-            _currentPosition = position
-            activeHolder = binding.chatNodeRecyclerView.findViewHolderForAdapterPosition(position) as ChatNodeAdapter.ChatNodeViewHolder
+            activePosition = chatNodeAdapter.activeNodePosition
+            activeHolder = null
 
-            if (popupWindow.isShowing && position != previousPosition) {
-                popupWindow.dismiss()
+            // menu has been closed
+            if (activePosition == null) {
+                if (popupWindow.isShowing) {
+                    if (previousHolder != null) {
+                        finish()
+                    } else {
+                        dismiss()
+                    }
+                }
+            }
+
+            // something should be open
+            if (activePosition != null) {
+
+                activeScrollPosition = activePosition?.plus(1)
+                val searchHolder = binding.chatNodeRecyclerView.findViewHolderForAdapterPosition(activeScrollPosition!!)
+                if (searchHolder != null) {
+                    activeHolder = searchHolder as ChatNodeAdapter.ChatNodeViewHolder
+                } else {
+                    Log.w(
+                        "Warning",
+                        "chatNodeRecyclerView.findViewHolderForAdapterPosition returned null for $activeScrollPosition"
+                    )
+                    chatNodeAdapter.notifyItemChanged(activePosition!!)
+                    return
+                }
+
+                // nothing has changed, should stay the same
+                if (activePosition == previousPosition) {
+                    if (popupWindow.isShowing) {
+                        //all good
+                    } else {
+                        showPopup = true
+                    }
+                } else if (previousPosition != null) {
+                    if (popupWindow.isShowing) {
+                        finish()
+                    }
+                    showPopup = true
+                } else if (previousPosition == null) {
+                    showPopup = true
+                }
             }
 
             previousPosition = null
             previousHolder = null
 
+            if (showPopup) {
+                show()
+                return
+            }
+        }
+
+        private fun show() {
             val anchorView = activeHolder!!.binding.chatNodeTopGuide
 
             // Show the popup below the anchor view
@@ -588,7 +573,13 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             val yOffset = -(anchorView.height + popupWindow.contentView.measuredHeight + 10)
 
             if (!popupWindow.isShowing) {
-                openAnim.start()
+                val width = if (chatNodeAdapter.isEditingActive) widthEdit else widthOpened
+                resizeAnimator(widthClosed, width, bounce = true,
+                    onStart = {
+                        popupWindow.contentView.alpha = 1F
+                        popupWindow.contentView.visibility = View.VISIBLE
+                    }
+                ).start()
                 popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
             }
         }
@@ -598,15 +589,50 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
         }
 
         /**
+         * This will complete the menu action resetting the menu and clearing active
+         * Use at end of: save update/save new/cancel edit/delete
+         */
+        private fun finish() {
+            var quickDismiss = false
+            disableEdit()
+
+            if (previousHolder != null) {
+                if (previousHolder != activeHolder) {
+                    //very likely the holder is reused
+                    previousHolder?.deactivate()
+                }
+                quickDismiss = activeHolder != null
+            } else {
+                activeHolder?.deactivate()
+                activeHolder = null
+                activePosition = null
+                activeScrollPosition = null
+                quickDismiss = false
+            }
+            if (quickDismiss) {
+                popupWindow.dismiss()
+            } else {
+                resizeAnimator(popupWindow.contentView.width, widthClosed, onEnd = {
+                    popupWindow.dismiss()
+                }).start()
+            }
+
+        }
+
+        fun getActiveScrollPosition(): Int? {
+            return activeScrollPosition
+        }
+
+        /**
          * Want to scroll to line up input if keyboard is opened
          * Want to let android handle the scrolling itself if the inputs are larger than the recyclerView
          */
         fun scrollForKeyboardInput() {
-            if (activeHolder != null && _currentPosition != null) {
+            if (activeHolder != null && activePosition != null) {
                 activeHolder!!.binding.apply {
                     val nodeHeight = promptHolder.height + responseHolder.height
                     if (nodeHeight < binding.chatNodeRecyclerView.height) {
-                        binding.chatNodeRecyclerView.smoothScrollToBottom(popupMenuHelper.currentPosition!!, 100F)
+                        binding.chatNodeRecyclerView.smoothScrollToBottom(activeScrollPosition!!, 100F)
                     }
                 }
             }
@@ -616,8 +642,55 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
          * If too close to the top, it shouldn't scroll down
          */
         fun scrollForKeyboardClose(delta: Int) {
-            if ((currentPosition?:0) > 4)
+            if ((activeScrollPosition ?: 0) > 4)
                 binding.chatNodeRecyclerView.scrollBy(0, -delta)
+        }
+
+        /**
+         * Helper methods:
+         */
+
+        private fun hideButtonAnimation(view: View, spinDirection: Int = 1) {
+            view.alpha = 1F
+            view.rotation = 0F
+            view.animate().rotation(spinDirection * 360F).alpha(0F).setDuration(400).withEndAction{view.visibility=View.GONE}.start()
+        }
+
+        private fun showButtonAnimation(view: View, spinDirection: Int = 1) {
+            view.alpha = 0F
+            view.rotation = 0F
+            view.alpha=0F; view.animate().rotation(spinDirection * 360F).alpha(1F).setDuration(400).withStartAction{view.visibility=View.VISIBLE}.start()
+        }
+
+        private fun resizeAnimator(startWidth: Int, endWidth: Int, onEnd: () -> Unit = {}, onStart: () -> Unit = {}, bounce: Boolean = false): ValueAnimator {
+            val constraintLayout = popupBinding.popupMenuContainer
+            val path = Path().apply {
+                moveTo(0f, 0f)
+                cubicTo(0.4f, 0.1f, 0.36f, 1.1f, 0.49f, 1.14f)
+                cubicTo(0.58f, 1.17f, 0.63f, 0.82f, 0.75f, 0.83f)
+                cubicTo(0.86f, 0.84f, 0.83f, 0.97f, 1f, 1f)
+            }
+            return ValueAnimator.ofInt(startWidth, endWidth).apply {
+                duration = 400 *  (if (bounce) 2L else 1L)
+                if (bounce) {
+                    interpolator = PathInterpolator(path)
+                } else {
+                    interpolator = LinearInterpolator()
+                }
+                addUpdateListener { animation ->
+                    val layoutParams = constraintLayout.layoutParams
+                    layoutParams.width = animation.animatedValue as Int
+                    constraintLayout.layoutParams = layoutParams
+                }
+                addListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        onEnd()
+                    }
+                    override fun onAnimationStart(animation: Animator) {
+                        onStart()
+                    }
+                })
+            }
         }
 
         private fun Int.dpToPx(): Int {

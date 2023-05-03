@@ -1,12 +1,16 @@
 package com.phazei.dynamicgptchat.chatnodes
 
 import android.annotation.SuppressLint
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
+import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doBeforeTextChanged
+import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.R
@@ -23,8 +27,18 @@ class ChatNodeAdapter(
     // helper method for ease of access scrolling
     lateinit var layoutManager: LinearLayoutManager
 
+    private var previousActiveNodePosition: Int? = null
     var activeNodePosition: Int? = null
+    var isEditingActive = false
 
+    private val editedData: MutableMap<String, String> = mutableMapOf()
+
+    companion object {
+        const val ITEM_TYPE_ACTIVE = 69
+    }
+
+    private lateinit var drawableMenuToClose: AnimatedVectorDrawable
+    private lateinit var drawableCloseToMenu: AnimatedVectorDrawable
     // private lateinit var knightriderWaiting: AnimatedVectorDrawable
 
     init {
@@ -34,6 +48,14 @@ class ChatNodeAdapter(
         return chatNodes[position].id
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return if (position == activeNodePosition) {
+            ITEM_TYPE_ACTIVE
+        } else {
+            super.getItemViewType(position) // This will return the default viewType, which is 0
+        }
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatNodeViewHolder {
         val binding =
             ChatNodeItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -41,6 +63,12 @@ class ChatNodeAdapter(
         // knightriderWaiting = ContextCompat.getDrawable(parent.context, R.drawable.knightrider) as AnimatedVectorDrawable
         // binding.responseWaiting.setImageDrawable(knightriderWaiting)
         // knightriderWaiting.start()
+        if (!::drawableMenuToClose.isInitialized) {
+            drawableMenuToClose = ContextCompat.getDrawable(parent.context, R.drawable.avd_menu_to_close) as AnimatedVectorDrawable
+        }
+        if (!::drawableCloseToMenu.isInitialized) {
+            drawableCloseToMenu = ContextCompat.getDrawable(parent.context, R.drawable.avd_close_to_menu) as AnimatedVectorDrawable
+        }
 
         return ChatNodeViewHolder(binding)
     }
@@ -60,26 +88,75 @@ class ChatNodeAdapter(
         init {
             // listeners that don't need chatNode, like displaying extra menus
             binding.nodeMenuButton.setOnClickListener {
-                activeNodePosition = bindingAdapterPosition
+                // once node is made active, it's type becomes ITEM_TYPE_ACTIVE
+                // after notification of item change, bind is called again
+                // it's recreated with a new viewHolder, which is what the popup menu needs
+                // to attach to
 
+                //only needed for animated button x->menu
+                previousActiveNodePosition = activeNodePosition
 
-                nodeActionListener.onNodeSelected(absoluteAdapterPosition)
+                if (activeNodePosition == bindingAdapterPosition) {
+                    //disable it after clicking a second time
+                    activeNodePosition = null
+                    notifyItemChanged(bindingAdapterPosition)
+                    nodeActionListener.onNodeSelected(bindingAdapterPosition)
+                } else {
+                    activeNodePosition = bindingAdapterPosition
+                    notifyItemChanged(bindingAdapterPosition)
+                }
+            }
+
+            binding.promptTextView.doOnTextChanged { text, _, _, _ ->
+                if (bindingAdapterPosition == activeNodePosition) {
+                    editedData["prompt$bindingAdapterPosition"] = text.toString()
+                }
+            }
+            binding.responseTextView.doOnTextChanged { text, _, _, _ ->
+                if (bindingAdapterPosition == activeNodePosition) {
+                    editedData["response$bindingAdapterPosition"] = text.toString()
+                }
             }
         }
 
         fun bind(chatNode: ChatNode) {
-
             // hide the root node
             if (chatNode.parentNodeId == null) {
                 binding.root.layoutParams.height = 0
                 binding.root.visibility = View.GONE
+                return
             } else {
                 binding.root.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
                 binding.root.visibility = View.VISIBLE
             }
 
-            binding.promptTextView.setText(chatNode.prompt)
-            binding.responseTextView.setText(chatNode.response)
+            if (bindingAdapterPosition == activeNodePosition) {
+                binding.root.viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                    // this is called after view is complete and attached
+                    override fun onGlobalLayout() {
+                        // remove listener and call popup
+                        binding.root.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                        nodeActionListener.onNodeSelected(bindingAdapterPosition)
+                    }
+                })
+
+                binding.nodeMenuButton.setImageDrawable(drawableMenuToClose)
+                drawableMenuToClose.start()
+            }
+
+            if (bindingAdapterPosition == previousActiveNodePosition) {
+                binding.nodeMenuButton.setImageDrawable(drawableCloseToMenu)
+                drawableCloseToMenu.start()
+                previousActiveNodePosition = null
+            }
+
+            if (bindingAdapterPosition == activeNodePosition && isEditingActive) {
+                binding.promptTextView.setText(editedData["prompt$bindingAdapterPosition"] ?: chatNode.prompt)
+                binding.responseTextView.setText(editedData["response$bindingAdapterPosition"] ?: chatNode.response)
+            } else {
+                binding.promptTextView.setText(chatNode.prompt)
+                binding.responseTextView.setText(chatNode.response)
+            }
 
             // show error
             if (chatNode.error?.isEmpty() == false) {
@@ -102,6 +179,9 @@ class ChatNodeAdapter(
         }
 
         fun enableEdit() {
+            if (bindingAdapterPosition == activeNodePosition) {
+                isEditingActive = true
+            }
             binding.promptTextView.apply {
                 setBackgroundResource(R.drawable.message_editable_bg)
                 isEnabled = true
@@ -110,9 +190,13 @@ class ChatNodeAdapter(
                 setBackgroundResource(R.drawable.message_editable_bg)
                 isEnabled = true
             }
+
         }
 
         fun disableEdit() {
+            if (activeNodePosition == null || bindingAdapterPosition == activeNodePosition) {
+                isEditingActive = false
+            }
             binding.promptTextView.apply {
                 background = null
                 isEnabled = false
@@ -121,18 +205,27 @@ class ChatNodeAdapter(
                 background = null
                 isEnabled = false
             }
-            Log.d("TAG", "DISMISS $bindingAdapterPosition")
+            editedData.clear()
+            editedData.clear()
+
             notifyItemChanged(bindingAdapterPosition)
         }
 
+        /**
+         * It's possible the deactivated binding is reused with the new active binding
+         * Be certain it's not called if the view is reused
+         * BindingAdapter position might change
+         */
         fun deactivate() {
-            if (activeNodePosition != null) {
+            editedData.clear()
+            editedData.clear()
+
+            if (activeNodePosition != null && bindingAdapterPosition == activeNodePosition) {
                 val oldActiveNodePosition = activeNodePosition ?: -1
                 activeNodePosition = null
                 notifyItemChanged(oldActiveNodePosition)
             }
         }
-
     }
 
     fun getItemPosition(chatNode: ChatNode): Int {
