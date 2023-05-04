@@ -19,6 +19,10 @@ object Utils {
 
 }
 
+/**
+ * Simplified way to add a change listener on all child input types without needing to set each individually
+ * if it's a "ViewGroup" it will search all children for EditText, Spinner, and Sliders
+ */
 fun View.setChangeListener(listener: (view: View) -> Unit) {
     when (this) {
         is EditText -> {

@@ -3,10 +3,10 @@ package com.phazei.dynamicgptchat.chatsettings
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
-import android.text.InputType
 import android.util.Log
 import android.util.TypedValue
 import android.view.*
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.activity.addCallback
@@ -17,6 +17,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import com.aallam.openai.api.model.Model
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.R
@@ -34,7 +35,6 @@ import com.tomergoldst.tooltips.ToolTipsManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.Arrays
 import javax.inject.Inject
 
 
@@ -87,8 +87,13 @@ class ChatTreeSettingsFragment : Fragment() {
 
         // if anything is modified, this will be sure to mark it as not saved
         // and change the background color as an indicator
-        binding.chatSettings.setChangeListener {
-            checkModifiedSettings()
+        viewLifecycleOwner.lifecycleScope.launch {
+            //previously had a listener on every input, but need those for other things
+            //this should be good enough
+            while (true) {
+                checkModifiedSettings()
+                delay(1000) // Delay for 1 second
+            }
         }
 
         // prevent accidental back when not saved
@@ -174,16 +179,6 @@ class ChatTreeSettingsFragment : Fragment() {
         binding.modeSpinner.adapter = modeAdapter
         binding.modeSpinner.setSelection(modeOptions.indexOf(settings.mode))
 
-        // Populate the model spinner
-        val modelOptions = resources.getStringArray(R.array.model_options)
-        val modelAdapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_spinner_dropdown_item,
-            modelOptions
-        )
-        binding.modelSpinner.adapter = modelAdapter
-        binding.modelSpinner.setSelection(modelOptions.indexOf(settings.model))
-
         // Populate the temperature slider
         binding.temperatureSlider.value = settings.temperature
 
@@ -211,12 +206,69 @@ class ChatTreeSettingsFragment : Fragment() {
         // Populate the inject restart text input
         binding.injectRestartText.setText(settings.injectRestartText)
 
+        setupModeModelsInput()
+
         setupTokens()
 
     }
 
-    fun setupModelsInput() {
+    private fun setupModeModelsInput() {
+        // Populate the model spinner
+        val settings = chatTree.gptSettings
 
+        viewLifecycleOwner.lifecycleScope.launch {
+            val models = openAIRepository.listModels()
+            val modelIds = openAIRepository.filterModelList(binding.modeSpinner.selectedItem.toString(), models)
+
+            val modelAdapter = ArrayAdapter(
+                requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                modelIds
+            )
+
+            // If the currently saved item is not in the list, add it
+            if (modelIds.indexOf(settings.model) == -1) {
+                modelIds.add(settings.model)
+                modelAdapter.notifyDataSetChanged()
+            }
+
+            binding.modelSpinner.apply {
+                adapter = modelAdapter
+                setSelection(modelIds.indexOf(settings.model))
+            }
+
+            binding.modelSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    val selectedModelId = parent?.getItemAtPosition(position).toString()
+                    val selectedModel = models.find { it.id.id == selectedModelId }
+                    if (selectedModel != null) {
+                        binding.modelDetails.text = openAIRepository.formatModelDetails(selectedModel)
+                    } else {
+                        binding.modelDetails.text = ""
+                    }
+                }
+                override fun onNothingSelected(parent: AdapterView<*>?) { binding.modelDetails.text = "" }
+            }
+
+            binding.modeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    val selectedMode = binding.modeSpinner.selectedItem.toString()
+                    val filteredModelIds = openAIRepository.filterModelList(selectedMode, models)
+
+                    // Update the model spinner with the filtered list
+                    @Suppress("UNCHECKED_CAST")
+                    (binding.modelSpinner.adapter as ArrayAdapter<String>).apply {
+                        clear()
+                        addAll(filteredModelIds)
+                        notifyDataSetChanged()
+                        var index = modelIds.indexOf(settings.model)
+                        if (index == -1) index = 1
+                        binding.modelSpinner.setSelection(index)
+                    }
+                }
+                override fun onNothingSelected(parent: AdapterView<*>?) {}
+            }
+        }
     }
 
     private fun setupTokens() {

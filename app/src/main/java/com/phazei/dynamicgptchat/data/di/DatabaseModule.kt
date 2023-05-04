@@ -16,6 +16,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
@@ -27,16 +28,19 @@ object DatabaseModule {
     }
 
     @Provides
+    @Singleton
     fun provideChatTreeDao(appDatabase: AppDatabase): ChatTreeDao {
         return appDatabase.chatTreeDao()
     }
 
     @Provides
+    @Singleton
     fun provideChatNodeDao(appDatabase: AppDatabase): ChatNodeDao {
         return appDatabase.chatNodeDao()
     }
 
     @Provides
+    @Singleton
     fun provideGPTSettingsDao(appDatabase: AppDatabase): GPTSettingsDao {
         return appDatabase.gptSettingsDao()
     }

@@ -1,5 +1,6 @@
 package com.phazei.dynamicgptchat.data.repo
 
+import android.annotation.SuppressLint
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletion
 import com.aallam.openai.api.chat.ChatCompletionChunk
@@ -13,6 +14,7 @@ import com.aallam.openai.api.moderation.TextModeration
 import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import com.phazei.dynamicgptchat.data.entity.ChatNode
+import com.phazei.utils.CacheUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,10 +27,11 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @OptIn(BetaOpenAI::class)
-class OpenAIRepository @Inject constructor(private val appSettingsRepository: AppSettingsRepository) {
+class OpenAIRepository @Inject constructor(private val appSettingsRepository: AppSettingsRepository, private val cacheUtil: CacheUtil) {
 
     private lateinit var openAI: OpenAI
 
@@ -57,14 +60,23 @@ class OpenAIRepository @Inject constructor(private val appSettingsRepository: Ap
     val activeRequests: StateFlow<Map<Long, Job>> = _activeRequests
 
     private val cachedModels = mutableMapOf<String, Model>()
-    private var cachedModelList: List<Model>? = null
-
 
     suspend fun listModels(forceRefresh: Boolean = false): List<Model> {
-        if (cachedModelList == null || forceRefresh) {
-            cachedModelList = openAI.models().map { it }
+        val cacheFilename = "modelList.cache"
+        val durationTillExpired = 1 * 24 * 60 * 60 * 1000L
+
+        val cachedModels = if (!forceRefresh) {
+            cacheUtil.getObjectPage<List<Model>>(cacheFilename, durationTillExpired)
+        } else {
+            null
         }
-        return cachedModelList ?: emptyList()
+
+        return cachedModels ?: run {
+            // Cache is too old or doesn't exist, fetch from API and save to file
+            val models = openAI.models().map { it }
+            cacheUtil.setObjectPage(cacheFilename, models)
+            models
+        }
     }
     suspend fun getModelById(modelId: String, forceRefresh: Boolean = false): Model? {
         if (!cachedModels.containsKey(modelId) || forceRefresh) {
@@ -73,6 +85,39 @@ class OpenAIRepository @Inject constructor(private val appSettingsRepository: Ap
             cachedModels[modelId] = model
         }
         return cachedModels[modelId]
+    }
+    fun filterModelList(mode: String, models: List<Model>): MutableList<String> {
+        return when (mode) {
+            "ChatCompletion" -> models.filter { it.id.id.contains("gpt") }
+            "Completion" -> models.filter {
+                it.id.id.startsWith("text-")
+                        && !it.id.id.contains(":")
+                        && !it.id.id.contains("text-similarity")
+                        && !it.id.id.contains("text-search")
+                        && !it.id.id.contains("edit")
+                        && !it.id.id.contains("embedding")
+            }
+            else -> models
+        }.map { it.id.id }.sorted().toMutableList()
+    }
+    @SuppressLint("SimpleDateFormat")
+    fun formatModelDetails(model: Model): String {
+        return "ID: ${model.id.id}\n" +
+                "Created: ${SimpleDateFormat("yyyy-MM-dd").format(model.created*1000)}\n" +
+                "Owned by: ${model.ownedBy}\n" +
+                "Permissions:\n" + model.permission.joinToString(separator = "\n") {
+            val permissions = listOf(
+                "Organization: ${it.organization} \n" to true,
+                (if (it.isBlocking) "isBlocking" else "notBlocking") to true,
+                "allowCreateEngine" to it.allowCreateEngine,
+                "allowSampling" to it.allowSampling,
+                "allowLogprobs" to it.allowLogprobs,
+                "allowSearchIndices" to it.allowSearchIndices,
+                "allowView" to it.allowView,
+                "allowFineTuning" to it.allowFineTuning,
+            )
+            "  - ${permissions.filter { p -> p.second }.joinToString(", ") { p -> p.first }}"
+        }
     }
 
     suspend fun sendChatCompletionRequest(
