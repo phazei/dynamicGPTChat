@@ -1,8 +1,6 @@
 package com.phazei.dynamicgptchat.chatnodes
 
-import android.util.Log
 import androidx.lifecycle.*
-import androidx.lifecycle.viewmodel.CreationExtras
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.core.Usage
@@ -10,7 +8,6 @@ import com.aallam.openai.api.model.ModelId
 import com.phazei.dynamicgptchat.data.*
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
-import com.phazei.dynamicgptchat.data.repo.AppSettingsRepository
 import com.phazei.dynamicgptchat.data.repo.ChatRepository
 import com.phazei.dynamicgptchat.data.repo.ChatResponseWrapper
 import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
@@ -18,12 +15,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -39,7 +32,7 @@ class ChatNodeViewModel @Inject constructor(
     val activeRequests: StateFlow<Map<Long, Job>> = openAIRepository.activeRequests
 
     fun isRequestActive(chatTreeId: Long): Boolean {
-        return openAIRepository.isRequestActive(chatTreeId)
+        return openAIRepository.manage.isRequestActive(chatTreeId)
     }
     fun makeChatCompletionRequest(chatTree: ChatTree, chatNode: ChatNode, streaming: Boolean = true) {
         if (chatTree.id != chatNode.chatTreeId) {
@@ -169,7 +162,7 @@ class ChatNodeViewModel @Inject constructor(
     }
 
     fun cancelRequest(chatTreeId: Long) {
-        openAIRepository.cancelRequest(chatTreeId)
+        openAIRepository.manage.cancelRequest(chatTreeId)
         //need to see if we want to keep the latest chatNode, or dump it
         //has it even been saved?
         //if it was streaming and has data, save it and keep it as active

@@ -1,6 +1,6 @@
 package com.phazei.dynamicgptchat.data.repo
 
-import android.annotation.SuppressLint
+import android.content.Context
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletion
 import com.aallam.openai.api.chat.ChatCompletionChunk
@@ -15,6 +15,7 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.utils.CacheUtil
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,17 +28,24 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @OptIn(BetaOpenAI::class)
-class OpenAIRepository @Inject constructor(private val appSettingsRepository: AppSettingsRepository, private val cacheUtil: CacheUtil) {
+class OpenAIRepository @Inject constructor(
+    appSettingsRepository: AppSettingsRepository,
+    private val cacheUtil: CacheUtil,
+    @ApplicationContext val context: Context
+    ) {
 
     private lateinit var openAI: OpenAI
 
     private var apiKey: String? = null
 
+    var manage: OpenAIRepository.Manage
+
     init {
+        //initialize it with an empty string at first
+        updateOpenAIkey("")
         // Set up a collector to get the API key from the AppSettingsRepository
         appSettingsRepository.openAIkeyFlow
             .onEach { openAIkey ->
@@ -47,6 +55,9 @@ class OpenAIRepository @Inject constructor(private val appSettingsRepository: Ap
                 }
             }
             .launchIn(CoroutineScope(Dispatchers.IO)) // Use the IO dispatcher for network requests
+
+        manage = Manage(this)
+
     }
 
     fun updateOpenAIkey(apiKey: String) {
@@ -58,7 +69,6 @@ class OpenAIRepository @Inject constructor(private val appSettingsRepository: Ap
 
     private val _activeRequests = MutableStateFlow<Map<Long, Job>>(emptyMap())
     val activeRequests: StateFlow<Map<Long, Job>> = _activeRequests
-
     private val cachedModels = mutableMapOf<String, Model>()
 
     suspend fun listModels(forceRefresh: Boolean = false): List<Model> {
@@ -85,39 +95,6 @@ class OpenAIRepository @Inject constructor(private val appSettingsRepository: Ap
             cachedModels[modelId] = model
         }
         return cachedModels[modelId]
-    }
-    fun filterModelList(mode: String, models: List<Model>): MutableList<String> {
-        return when (mode) {
-            "ChatCompletion" -> models.filter { it.id.id.contains("gpt") }
-            "Completion" -> models.filter {
-                it.id.id.startsWith("text-")
-                        && !it.id.id.contains(":")
-                        && !it.id.id.contains("text-similarity")
-                        && !it.id.id.contains("text-search")
-                        && !it.id.id.contains("edit")
-                        && !it.id.id.contains("embedding")
-            }
-            else -> models
-        }.map { it.id.id }.sorted().toMutableList()
-    }
-    @SuppressLint("SimpleDateFormat")
-    fun formatModelDetails(model: Model): String {
-        return "ID: ${model.id.id}\n" +
-                "Created: ${SimpleDateFormat("yyyy-MM-dd").format(model.created*1000)}\n" +
-                "Owned by: ${model.ownedBy}\n" +
-                "Permissions:\n" + model.permission.joinToString(separator = "\n") {
-            val permissions = listOf(
-                "Organization: ${it.organization} \n" to true,
-                (if (it.isBlocking) "isBlocking" else "notBlocking") to true,
-                "allowCreateEngine" to it.allowCreateEngine,
-                "allowSampling" to it.allowSampling,
-                "allowLogprobs" to it.allowLogprobs,
-                "allowSearchIndices" to it.allowSearchIndices,
-                "allowView" to it.allowView,
-                "allowFineTuning" to it.allowFineTuning,
-            )
-            "  - ${permissions.filter { p -> p.second }.joinToString(", ") { p -> p.first }}"
-        }
     }
 
     suspend fun sendChatCompletionRequest(
@@ -166,33 +143,12 @@ class OpenAIRepository @Inject constructor(private val appSettingsRepository: Ap
                 onComplete()
             }
         }
-        activeRequestsAdd(chatTreeId, requestJob)
+        manage.activeRequestsAdd(chatTreeId, requestJob)
         requestJob.invokeOnCompletion {
-            activeRequestsRemove(chatTreeId)
+            manage.activeRequestsRemove(chatTreeId)
         }
 
         return requestJob
-    }
-
-    fun cancelRequest(chatTreeId: Long) {
-        _activeRequests.value[chatTreeId]?.cancel()
-        activeRequestsRemove(chatTreeId)
-    }
-
-    private fun activeRequestsAdd(chatTreeId: Long, job: Job) {
-        val updatedRequests = _activeRequests.value.toMutableMap()
-        updatedRequests[chatTreeId] = job
-        _activeRequests.value = updatedRequests
-    }
-
-    private fun activeRequestsRemove(chatTreeId: Long) {
-        val updatedRequests = _activeRequests.value.toMutableMap()
-        updatedRequests.remove(chatTreeId)
-        _activeRequests.value = updatedRequests
-    }
-
-    fun isRequestActive(chatTreeId: Long): Boolean {
-        return _activeRequests.value.containsKey(chatTreeId)
     }
 
     suspend fun completeText(completionRequest: CompletionRequest): TextCompletion {
@@ -204,6 +160,30 @@ class OpenAIRepository @Inject constructor(private val appSettingsRepository: Ap
 
     suspend fun moderateContent(moderationRequest: ModerationRequest): TextModeration {
         return openAI.moderations(moderationRequest)
+    }
+
+    inner class Manage(private val repo: OpenAIRepository) {
+
+        fun cancelRequest(chatTreeId: Long) {
+            _activeRequests.value[chatTreeId]?.cancel()
+            activeRequestsRemove(chatTreeId)
+        }
+
+        fun activeRequestsAdd(chatTreeId: Long, job: Job) {
+            val updatedRequests = _activeRequests.value.toMutableMap()
+            updatedRequests[chatTreeId] = job
+            _activeRequests.value = updatedRequests
+        }
+
+        fun activeRequestsRemove(chatTreeId: Long) {
+            val updatedRequests = _activeRequests.value.toMutableMap()
+            updatedRequests.remove(chatTreeId)
+            _activeRequests.value = updatedRequests
+        }
+
+        fun isRequestActive(chatTreeId: Long): Boolean {
+            return _activeRequests.value.containsKey(chatTreeId)
+        }
     }
 }
 

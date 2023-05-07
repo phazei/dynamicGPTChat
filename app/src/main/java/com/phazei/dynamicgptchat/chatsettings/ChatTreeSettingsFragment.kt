@@ -17,6 +17,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import com.aallam.openai.api.exception.AuthenticationException
 import com.aallam.openai.api.model.Model
 import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
@@ -27,7 +28,7 @@ import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
-import com.phazei.utils.setChangeListener
+import com.phazei.utils.OpenAIHelper
 import com.tokenautocomplete.CharacterTokenizer
 import com.tokenautocomplete.TokenCompleteTextView
 import com.tomergoldst.tooltips.ToolTip
@@ -217,8 +218,25 @@ class ChatTreeSettingsFragment : Fragment() {
         val settings = chatTree.gptSettings
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val models = openAIRepository.listModels()
-            val modelIds = openAIRepository.filterModelList(binding.modeSpinner.selectedItem.toString(), models)
+            var models: List<Model> = emptyList()
+            try {
+                models = openAIRepository.listModels()
+            } catch (exception: Exception) {
+                val message: String
+                when (exception) {
+                    is AuthenticationException ->
+                        message = "Invalid OpenAI Token: Unable to retrieve model list."
+                    else -> {
+                        message = "Error: ${exception.javaClass} ${exception.message}"
+                        Log.e("TAG", "Error: ${exception.javaClass} ${exception.message}")
+                    }
+                }
+                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+            }
+
+
+            val modelIds = OpenAIHelper.filterModelList(binding.modeSpinner.selectedItem.toString(), models)
+
 
             val modelAdapter = ArrayAdapter(
                 requireContext(),
@@ -242,7 +260,7 @@ class ChatTreeSettingsFragment : Fragment() {
                     val selectedModelId = parent?.getItemAtPosition(position).toString()
                     val selectedModel = models.find { it.id.id == selectedModelId }
                     if (selectedModel != null) {
-                        binding.modelDetails.text = openAIRepository.formatModelDetails(selectedModel)
+                        binding.modelDetails.text = OpenAIHelper.formatModelDetails(selectedModel)
                     } else {
                         binding.modelDetails.text = ""
                     }
@@ -253,13 +271,17 @@ class ChatTreeSettingsFragment : Fragment() {
             binding.modeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     val selectedMode = binding.modeSpinner.selectedItem.toString()
-                    val filteredModelIds = openAIRepository.filterModelList(selectedMode, models)
+                    val filteredModelIds = OpenAIHelper.filterModelList(selectedMode, models)
 
                     // Update the model spinner with the filtered list
                     @Suppress("UNCHECKED_CAST")
                     (binding.modelSpinner.adapter as ArrayAdapter<String>).apply {
                         clear()
                         addAll(filteredModelIds)
+                        if (count == 0) {
+                            //should at least have the single item that was selected
+                            add(settings.model)
+                        }
                         notifyDataSetChanged()
                         var index = modelIds.indexOf(settings.model)
                         if (index == -1) index = 1
@@ -408,8 +430,8 @@ class ChatTreeSettingsFragment : Fragment() {
             previousView = v
         }
         // if this is set in the XML it's just ignored and doesn't work
-        view.isFocusable = true
-        view.isFocusableInTouchMode = true
+        // view.isFocusable = true
+        // view.isFocusableInTouchMode = true
         when (view) {
             is Slider -> {
                 view.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
