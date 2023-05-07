@@ -2,12 +2,13 @@ package com.phazei.taginputview
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.drawable.LayerDrawable
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.DisplayMetrics
-import android.util.Log
+import android.util.Xml
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -26,12 +27,13 @@ import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.shape.CornerFamily
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-// import kotlinx.coroutines.delay
-// import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 @Suppress("UNCHECKED_CAST")
@@ -42,53 +44,45 @@ class TagInputView<T> @JvmOverloads constructor(
 ) : FlexboxLayout(context, attrs, defStyleAttr) {
 
     private val tagList = mutableListOf<T>()
+
     private var customFilter: ((T?) -> T?)? = null
     private var inputConverter: (String) -> T? = { it as? T }
     private var displayConverter: (T) -> String = { it.toString() }
+
     private var delimiterChars = ","
     private val delimiterKeys = mutableListOf(KeyEvent.KEYCODE_ENTER)
 
     private val defaultTagStyle = R.style.TagInputTagStyle
     private var customTagStyle: Int? = null
-    private var underlineDrawable: TagInputUnderlineDrawable
+    private var inputTheme: Int? = null
+    private var tagLimit: Int? = null
+
     private lateinit var tagInputEditText: EditText
 
     private var selectedChip: Chip? = null
-    private var tagLimit: Int? = null
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main + Job())
+    private val viewHelper: ViewHelper
 
     init {
         setupSelfView()
         setupEditText()
+        viewHelper = ViewHelper()
 
         val typedArray = context.obtainStyledAttributes(attrs, R.styleable.TagInputView)
 
-        val hint = typedArray.getString(R.styleable.TagInputView_tagInputHint).takeIf { it != "" }
+        val hint = typedArray.getString(R.styleable.TagInputView_hint).takeIf { it != "" }
         tagInputEditText.hint = hint ?: context.getString(R.string.enter_tags)
 
         tagLimit = typedArray.getInt(R.styleable.TagInputView_tagLimit, -1).takeIf { it != -1 }
-
         customTagStyle = typedArray.getResourceId(R.styleable.TagInputView_tagStyle, -1).takeIf { it != -1 }
+        inputTheme = typedArray.getResourceId(R.styleable.TagInputView_inputTheme, -1).takeIf { it != -1 }
 
-        val backgroundColor = typedArray.getColor(R.styleable.TagInputView_android_background, ContextCompat.getColor(context, R.color.tag_input_background))
-        val strokeColor = typedArray.getColor(R.styleable.TagInputView_strokeColor, ContextCompat.getColor(context, R.color.default_stroke_color))
 
-        underlineDrawable = TagInputUnderlineDrawable(context, backgroundColor, strokeColor)
-        val shapeAppearanceModel = ShapeAppearanceModel.builder()
-            .setTopLeftCorner(CornerFamily.ROUNDED, 4.dpToPx().toFloat())
-            .setTopRightCorner(CornerFamily.ROUNDED, 4.dpToPx().toFloat())
-            .build()
-
-        val appearanceDrawable = MaterialShapeDrawable(shapeAppearanceModel).apply {
-            fillColor = ColorStateList.valueOf(Color.RED)
-            setTint(backgroundColor)
-            strokeWidth = 0f
-        }
-        background = LayerDrawable(arrayOf(appearanceDrawable, underlineDrawable))
-
+        viewHelper.setupBackground(typedArray)
 
         typedArray.recycle()
+
 
         // addTag(inputConverter("a")!!)
 
@@ -107,24 +101,34 @@ class TagInputView<T> @JvmOverloads constructor(
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         //hack since minHeight is broken: https://github.com/google/flexbox-layout/issues/562
         val minHeight = 56.dpToPx()
-        if (measuredHeight < minHeight) {
-            setMeasuredDimension(measuredWidth, minHeight)
+        //once the heights been adjusted, it will cycle back and forth, need 1 px leeway to stop
+        if (measuredHeight < minHeight + 1) {
+            val extraPadding = minHeight - measuredHeight
+            if (extraPadding > 0) {
+                setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1] + extraPadding, viewHelper.paddingMod[2], viewHelper.paddingMod[3])
+            }
+        } else {
+            setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1], viewHelper.paddingMod[2], viewHelper.paddingMod[3])
         }
     }
 
     private fun setupEditText() {
-        // contextWrapper = ContextThemeWrapper(context, android.R.attr.editTextStyle)
-        tagInputEditText = EditText(context, null, android.R.attr.editTextStyle, com.google.android.material.R.style.Widget_Material3_TextInputLayout_FilledBox).apply {
+        var contextWrapper = context
+        if (inputTheme != null) {
+            contextWrapper = ContextThemeWrapper(context, inputTheme!!)
+        }
+        tagInputEditText = EditText(contextWrapper, null, android.R.attr.editTextStyle, com.google.android.material.R.style.Widget_Material3_TextInputLayout_FilledBox).apply {
+            // tagInputEditText = TextInputEditText(context, null, com.google.android.material.R.style.Widget_Material3_TextInputLayout_FilledBox).apply {
             id = View.generateViewId()
             layoutParams = LayoutParams(
                 100,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply {
+                alignSelf = AlignItems.CENTER
                 flexGrow = 1f
-                setPadding(10.dpToPx(), 6.dpToPx(), 10.dpToPx(), 6.dpToPx())
-                setMargins(0, 0, 0, 4.dpToPx())
+                setPadding(4.dpToPx(), 4.dpToPx(), 4.dpToPx(), 4.dpToPx())
             }
-            gravity = Gravity.START
+            gravity = Gravity.CENTER_VERTICAL
             hint = context.getString(R.string.enter_tags)
             imeOptions = EditorInfo.IME_ACTION_DONE
             isSingleLine = true
@@ -137,7 +141,7 @@ class TagInputView<T> @JvmOverloads constructor(
         addView(tagInputEditText)
 
         tagInputEditText.setOnFocusChangeListener { _, hasFocus ->
-            underlineDrawable.animateFocus(hasFocus)
+            viewHelper.underlineDrawable.animateFocus(hasFocus)
             uncheckAllChips()
             selectedChip = null
         }
@@ -151,11 +155,24 @@ class TagInputView<T> @JvmOverloads constructor(
             }
         }
 
+        var showLimitMessage = true
         tagInputEditText.addTextChangedListener { text ->
             if (!text.isNullOrEmpty()) {
-                val lastChar = text.last()
-                if (delimiterChars.contains(lastChar)) {
-                    addTagFromEditText()
+                if (tagLimit != null && tagList.size + 1 > tagLimit!!) {
+                    tagInputEditText.setText("")
+                    if (showLimitMessage) {
+                        showLimitMessage = false
+                        coroutineScope.launch {
+                            Snackbar.make(this@TagInputView, "Max tokens ($tagLimit) reached", Snackbar.LENGTH_LONG).show()
+                            delay(3000)
+                            showLimitMessage = true
+                        }
+                    }
+                } else {
+                    val lastChar = text.last()
+                    if (delimiterChars.contains(lastChar)) {
+                        addTagFromEditText()
+                    }
                 }
             }
         }
@@ -215,17 +232,18 @@ class TagInputView<T> @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Lots of extra work to ensure styles are retrieved from R.styles
+     * Note: chip won't show preview unless it's a child of a Material theme hence chipContext
+     *
+     */
     private fun addTagView(tag: T) {
-        // chip won't show preview unless it's a child of a Material theme.
-        val chipContext = ContextThemeWrapper(context, com.google.android.material.R.style.Theme_MaterialComponents_Light)
 
         // // in case issues with creating from scratch
         // val chipInflater = LayoutInflater.from(chipContext)
         // val chip = chipInflater.inflate(R.layout.tag_input_tag, this, false) as Chip
 
-        //really needs defaultTagStyle in all 3 spots to work
-        val chipTagStyle = customTagStyle ?: defaultTagStyle
-        val chipDrawableStyle = ChipDrawable.createFromAttributes(chipContext, null, 0, chipTagStyle)
+        val chipDrawableStyle = ChipDrawable.createFromAttributes(viewHelper.chipContextCustom, viewHelper.attrsCustom, 0, viewHelper.chipTagStyle)
         chipDrawableStyle.apply {
             isCloseIconVisible = false
             isContextClickable = false
@@ -233,16 +251,15 @@ class TagInputView<T> @JvmOverloads constructor(
             isCheckable = true
             isClickable = true
         }
-        val chip = Chip(ContextThemeWrapper(chipContext, chipTagStyle), null, chipTagStyle)
+        val chip = Chip(viewHelper.chipContextCustom, viewHelper.attrsCustom, viewHelper.chipTagStyle)
+
+        // com.google.android.flexbox.R.styleable.FlexboxLayout_Layout_layout_flexGrow
         chip.apply {
             text = displayConverter(tag)
             setChipDrawable(chipDrawableStyle)
-            layoutParams = LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {}
+            layoutParams = LayoutParams(viewHelper.chipContextCustom, viewHelper.attrsCustom)
             // setEnsureMinTouchTargetSize(false)
-            ensureAccessibleTouchTarget(getChipMinTouchTargetSizeFromStyle(chipTagStyle))
+            ensureAccessibleTouchTarget(viewHelper.getChipMinTouchTargetSizeFromStyle(viewHelper.chipTagStyle))
 
             chip.setOnClickListener {
                 // If the clicked chip is the same as the selected chip, remove it from the view and reset the selected chip
@@ -258,12 +275,12 @@ class TagInputView<T> @JvmOverloads constructor(
                     selectedChip = chip
                 }
             }
-
         }
 
         addView(chip, childCount - 1)
 
     }
+
     fun uncheckAllChips() {
         for (i in 0 until this.childCount) {
             val child = this.getChildAt(i)
@@ -271,14 +288,6 @@ class TagInputView<T> @JvmOverloads constructor(
                 child.isChecked = false
             }
         }
-    }
-    private fun getChipMinTouchTargetSizeFromStyle(@StyleRes styleResId: Int): Int {
-        val attributes = intArrayOf(com.google.android.material.R.attr.chipMinTouchTargetSize)
-        val typedArray = context.obtainStyledAttributes(styleResId, attributes)
-        val minTouchTargetSize = typedArray.getDimensionPixelSize(0, 0)
-        typedArray.recycle()
-
-        return minTouchTargetSize
     }
 
     fun removeTag(tag: T) {
@@ -318,6 +327,51 @@ class TagInputView<T> @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         coroutineScope.cancel() // Cancel all coroutines when the view is detached
+    }
+
+    inner class ViewHelper() {
+        val paddingMod = listOf(paddingLeft, paddingTop, paddingRight, paddingBottom)
+        val chipContextCustom: ContextThemeWrapper
+        val attrsCustom: AttributeSet
+        val chipTagStyle = customTagStyle ?: defaultTagStyle
+        lateinit var underlineDrawable: TagInputUnderlineDrawable
+
+        init {
+            val chipContext = ContextThemeWrapper(context, com.google.android.material.R.style.Theme_MaterialComponents_Light)
+            chipContextCustom = ContextThemeWrapper(chipContext, chipTagStyle)
+
+            val parser = chipContextCustom.resources.getXml(R.xml.tag_input_tag_style)
+            attrsCustom = Xml.asAttributeSet(parser)
+
+        }
+
+        fun getChipMinTouchTargetSizeFromStyle(@StyleRes styleResId: Int): Int {
+            val attributes = intArrayOf(com.google.android.material.R.attr.chipMinTouchTargetSize)
+            val typedArray = context.obtainStyledAttributes(styleResId, attributes)
+            val minTouchTargetSize = typedArray.getDimensionPixelSize(0, 0)
+            typedArray.recycle()
+
+            return minTouchTargetSize
+        }
+
+        fun setupBackground(typedArray: TypedArray) {
+            val backgroundColor = typedArray.getColor(R.styleable.TagInputView_android_background, ContextCompat.getColor(context, R.color.tag_input_background))
+            val strokeColor = typedArray.getColor(R.styleable.TagInputView_strokeColor, ContextCompat.getColor(context, R.color.default_stroke_color))
+
+            underlineDrawable = TagInputUnderlineDrawable(context, backgroundColor, strokeColor)
+            val shapeAppearanceModel = ShapeAppearanceModel.builder()
+                .setTopLeftCorner(CornerFamily.ROUNDED, 4.dpToPx().toFloat())
+                .setTopRightCorner(CornerFamily.ROUNDED, 4.dpToPx().toFloat())
+                .build()
+
+            val appearanceDrawable = MaterialShapeDrawable(shapeAppearanceModel).apply {
+                fillColor = ColorStateList.valueOf(Color.RED)
+                setTint(backgroundColor)
+                strokeWidth = 0f
+            }
+            this@TagInputView.background = LayerDrawable(arrayOf(appearanceDrawable, underlineDrawable))
+
+        }
     }
 
     private fun Int.dpToPx(): Int {

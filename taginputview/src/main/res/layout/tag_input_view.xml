@@ -15,9 +15,6 @@
         <com.google.android.material.chip.Chip
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:checkedIconEnabled="true"
-            app:chipIconEnabled="true"
-            app:closeIconEnabled="true"
             android:text="1"
             style="@style/TagInputTagStyle"/>
         <com.google.android.material.chip.Chip
@@ -27,15 +24,21 @@
             style="@style/TagInputTagStyle"/>
         <EditText
             android:id="@+id/tag_input_edit_text"
+
             android:layout_height="wrap_content"
             android:layout_width="100dp"
-            android:gravity="start"
+            android:padding="4dp"
+            android:layout_margin="0dp"
+
+            android:gravity="center_vertical"
             android:hint="@string/enter_tags"
             android:imeOptions="actionDone"
             android:maxLines="1"
-            android:minWidth="100dp"
             android:singleLine="true"
+
             app:layout_flexGrow="1"
+            app:layout_alignSelf="center"
+            app:layout_minHeight="50dp"
 
             android:inputType="text"
             android:textSize="16dp"
