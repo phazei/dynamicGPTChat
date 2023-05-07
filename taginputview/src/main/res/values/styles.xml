@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="TagInputTagStyle" parent="Widget.MaterialComponents.Chip.Action">
+        <!-- Add default chip appearance configurations here -->
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="chipSurfaceColor">?attr/colorPrimaryContainer</item>
+        <item name="android:textColor">?attr/colorOnPrimaryContainer</item>
+        <item name="android:textSize">16sp</item>
+        <item name="chipCornerRadius">20dp</item>
+        <item name="chipMinHeight">30dp</item>
+        <item name="chipMinTouchTargetSize">40dp</item>
+        <item name="android:layout_marginHorizontal">1.5dp</item>
+        <item name="chipStartPadding">6dp</item>
+        <item name="chipEndPadding">6dp</item>
+        <item name="chipStrokeColor">#22000000</item>
+        <item name="chipStrokeWidth">2dp</item>
+
+    </style>
+
+</resources>

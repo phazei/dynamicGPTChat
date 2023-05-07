@@ -68,4 +68,9 @@
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
     </style>
 
+    <style name="CustomTagInputTagStyle" parent="TagInputTagStyle">
+        <!-- Modify tag inputs       -->
+    </style>
+
+
 </resources>
