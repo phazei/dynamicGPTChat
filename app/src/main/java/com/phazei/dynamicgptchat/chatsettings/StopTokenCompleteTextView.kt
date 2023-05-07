@@ -23,10 +23,10 @@ class StopTokenCompleteTextView(context: Context, attrs: AttributeSet?) : TokenC
         return completionText.trim()
     }
 
-    override fun getViewForObject(token: String): View {
+    override fun getViewForObject(obj: String): View {
         val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val view = layoutInflater.inflate(R.layout.token_layout, parent as ViewGroup, false)
-        (view.findViewById<View>(R.id.token_text) as TextView).text = token
+        (view.findViewById<View>(R.id.token_text) as TextView).text = obj
         return view
     }
 

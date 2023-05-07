@@ -21,11 +21,11 @@ class LogitBiasTokenCompleteTextView(context: Context, attrs: AttributeSet?) : T
             LogitBiasWrapper(emptyMap())
         }
     }
-    override fun getViewForObject(token: LogitBiasWrapper): View {
+    override fun getViewForObject(obj: LogitBiasWrapper): View {
         val layoutInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val view = layoutInflater.inflate(R.layout.token_layout, parent as ViewGroup, false)
         val textView = view.findViewById<View>(R.id.token_text) as TextView
-        textView.text = token.logitBias.entries.firstOrNull()?.toString() ?: ""
+        textView.text = obj.logitBias.entries.firstOrNull()?.toString() ?: ""
         return view
     }
 

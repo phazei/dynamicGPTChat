@@ -370,8 +370,7 @@ class ChatNodeHeaderAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        val binding = ChatNodeHeaderItemBinding.inflate(inflater, parent, false)
+        val binding = ChatNodeHeaderItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return HeaderViewHolder(binding)
     }
 

@@ -593,7 +593,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
          * Use at end of: save update/save new/cancel edit/delete
          */
         private fun finish() {
-            var quickDismiss = false
+            val quickDismiss: Boolean
             disableEdit()
 
             if (previousHolder != null) {
