@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.TypedArray
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.LayerDrawable
 import android.text.InputType
 import android.util.AttributeSet
@@ -37,17 +38,14 @@ import kotlinx.coroutines.launch
 
 
 @Suppress("UNCHECKED_CAST")
-class TagInputView<T> @JvmOverloads constructor(
+class TagInputView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : FlexboxLayout(context, attrs, defStyleAttr) {
 
-    private val tagList = mutableListOf<T>()
-
-    private var customFilter: ((T?) -> T?)? = null
-    private var inputConverter: (String) -> T? = { it as? T }
-    private var displayConverter: (T) -> String = { it.toString() }
+    private val defaultTagInputData = TagInputData<String>()
+    private var tagInputData: TagInputData<*> = defaultTagInputData
 
     private var delimiterChars = ","
     private val delimiterKeys = mutableListOf(KeyEvent.KEYCODE_ENTER)
@@ -57,7 +55,7 @@ class TagInputView<T> @JvmOverloads constructor(
     private var inputTheme: Int? = null
     private var tagLimit: Int? = null
 
-    private lateinit var tagInputEditText: EditText
+    lateinit var tagInputEditText: EditText
 
     private var selectedChip: Chip? = null
 
@@ -95,6 +93,9 @@ class TagInputView<T> @JvmOverloads constructor(
         ).apply {}
         this.flexWrap = FlexWrap.WRAP
         this.alignItems = AlignItems.FLEX_END
+        // this.focusable = NOT_FOCUSABLE
+        descendantFocusability = FOCUS_BEFORE_DESCENDANTS
+
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -137,7 +138,10 @@ class TagInputView<T> @JvmOverloads constructor(
             background = null
             inputType = InputType.TYPE_CLASS_TEXT
             backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
+            isFocusedByDefault = true
         }
+
+
         addView(tagInputEditText)
 
         tagInputEditText.setOnFocusChangeListener { _, hasFocus ->
@@ -158,7 +162,7 @@ class TagInputView<T> @JvmOverloads constructor(
         var showLimitMessage = true
         tagInputEditText.addTextChangedListener { text ->
             if (!text.isNullOrEmpty()) {
-                if (tagLimit != null && tagList.size + 1 > tagLimit!!) {
+                if (tagLimit != null && tagInputData.size() + 1 > tagLimit!!) {
                     tagInputEditText.setText("")
                     if (showLimitMessage) {
                         showLimitMessage = false
@@ -197,13 +201,11 @@ class TagInputView<T> @JvmOverloads constructor(
             return@setOnKeyListener false
         }
 
-        // coroutineScope.launch {
-        //     while(true) {
-        //         delay(1000)
-        //         tagInputEditText.hint = tagList.size.toString()
-        //     }
-        // }
+    }
 
+    override fun requestFocus(direction: Int, previouslyFocusedRect: Rect?): Boolean {
+        // Always request focus for the EditText instead of the TagInputView itself
+        return tagInputEditText.requestFocus(direction, previouslyFocusedRect)
     }
 
     private fun addTagFromEditText() {
@@ -213,8 +215,8 @@ class TagInputView<T> @JvmOverloads constructor(
         }
 
         if (input.isNotEmpty()) {
-            val convertedTag = inputConverter(input)
-            val processedTag = customFilter?.invoke(convertedTag) ?: convertedTag
+            val convertedTag = tagInputData.inputConverter(input)
+            val processedTag = tagInputData.applyCustomFilter(convertedTag)
             if (processedTag != null) {
                 addTag(processedTag)
             }
@@ -222,12 +224,12 @@ class TagInputView<T> @JvmOverloads constructor(
         tagInputEditText.setText("")
     }
 
-    fun addTag(tag: T) {
-        if (!tagList.contains(tag)) {
-            if (tagLimit != null && tagList.size + 1 > tagLimit!!) {
+    fun addTag(tag: Any) {
+        if (!tagInputData.containsTag(tag)) {
+            if (tagLimit != null && tagInputData.size() + 1 > tagLimit!!) {
                 return
             }
-            tagList.add(tag)
+            tagInputData.addTag(tag)
             addTagView(tag)
         }
     }
@@ -237,7 +239,7 @@ class TagInputView<T> @JvmOverloads constructor(
      * Note: chip won't show preview unless it's a child of a Material theme hence chipContext
      *
      */
-    private fun addTagView(tag: T) {
+    private fun addTagView(tag: Any) {
 
         // // in case issues with creating from scratch
         // val chipInflater = LayoutInflater.from(chipContext)
@@ -255,7 +257,7 @@ class TagInputView<T> @JvmOverloads constructor(
 
         // com.google.android.flexbox.R.styleable.FlexboxLayout_Layout_layout_flexGrow
         chip.apply {
-            text = displayConverter(tag)
+            text = tagInputData.applyDisplayConverter(tag)
             setChipDrawable(chipDrawableStyle)
             layoutParams = LayoutParams(viewHelper.chipContextCustom, viewHelper.attrsCustom)
             // setEnsureMinTouchTargetSize(false)
@@ -275,6 +277,8 @@ class TagInputView<T> @JvmOverloads constructor(
                     selectedChip = chip
                 }
             }
+            // focusable = NOT_FOCUSABLE
+            chip.onFocusChangeListener = viewHelper.chipFocusListener
         }
 
         addView(chip, childCount - 1)
@@ -290,38 +294,58 @@ class TagInputView<T> @JvmOverloads constructor(
         }
     }
 
-    fun removeTag(tag: T) {
-        val index = tagList.indexOf(tag)
-        if (index != -1) {
-            tagList.removeAt(index)
-            removeViewAt(index)
-        }
-    }
 
-    fun getTags(): List<T> = tagList.toList()
-
-    fun setCustomFilter(filter: (T?) -> T?) {
-        customFilter = filter
-    }
-
-    fun setInputConverter(converter: (String) -> T?) {
-        inputConverter = converter
-    }
-
-    fun setDisplayConverter(converter: (T) -> String) {
-        displayConverter = converter
-    }
 
     fun setTagLimit(limit: Int? = null) {
         tagLimit = limit?:0
     }
-
     fun setDelimiterKeys(keys: List<Int>) {
         delimiterKeys.clear()
         delimiterKeys.addAll(keys)
     }
     fun setDelimiterChars(chars: String) {
         delimiterChars = chars
+    }
+
+    fun <T> setTagInputData(tagInputData: TagInputData<T>) {
+        this.tagInputData = tagInputData
+    }
+    private fun removeTag(tag: Any) {
+        val index = tagInputData.indexOf(tag)
+        if (index != -1) {
+            tagInputData.removeAt(index)
+            removeViewAt(index)
+        }
+    }
+    fun containsTag(tag: Any): Boolean {
+        return tagInputData.containsTag(tag)
+    }
+    fun getTags(): MutableList<Any> {
+        return tagInputData.getTags().toMutableList() as MutableList<Any>
+    }
+    inline fun <reified T> getTagsOfType(): MutableList<T> {
+        return getTags().map { it as T }.toMutableList()
+    }
+
+    fun clearTags() {
+        tagInputData.clearTags()
+    }
+
+
+    fun setCustomFilter(filter: (Any?) -> Any?) {
+        tagInputData.assignCustomFilter(filter)
+    }
+
+    fun setInputConverter(converter: (String) -> Any?) {
+        tagInputData.assignInputConverter(converter)
+    }
+
+    fun setDisplayConverter(converter: (Any) -> String) {
+        tagInputData.assignDisplayConverter(converter)
+    }
+
+    fun updateTagList(tagList: MutableList<Any>) {
+        tagInputData.updateTagList(tagList)
     }
 
     override fun onDetachedFromWindow() {
@@ -334,6 +358,7 @@ class TagInputView<T> @JvmOverloads constructor(
         val chipContextCustom: ContextThemeWrapper
         val attrsCustom: AttributeSet
         val chipTagStyle = customTagStyle ?: defaultTagStyle
+        val chipFocusListener: OnFocusChangeListener
         lateinit var underlineDrawable: TagInputUnderlineDrawable
 
         init {
@@ -342,6 +367,10 @@ class TagInputView<T> @JvmOverloads constructor(
 
             val parser = chipContextCustom.resources.getXml(R.xml.tag_input_tag_style)
             attrsCustom = Xml.asAttributeSet(parser)
+
+            chipFocusListener =  View.OnFocusChangeListener { view, hasFocus ->
+                viewHelper.underlineDrawable.animateFocus(hasFocus)
+            }
 
         }
 

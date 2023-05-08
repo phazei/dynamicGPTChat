@@ -56,7 +56,9 @@ class TagInputUnderlineDrawable(
 
     fun animateFocus(hasFocus: Boolean) {
         val animator = if (hasFocus) {
-            ValueAnimator.ofFloat(0f, 1f)
+            var start = 0f
+            if (lineStart != lineEnd) { start = 1f }
+            ValueAnimator.ofFloat(start, 1f)
         } else {
             ValueAnimator.ofFloat(1f, 0f)
         }
