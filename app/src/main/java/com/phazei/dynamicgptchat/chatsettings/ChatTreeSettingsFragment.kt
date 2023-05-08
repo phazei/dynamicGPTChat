@@ -28,6 +28,8 @@ import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
 import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
+import com.phazei.taginputview.TagInputData
+import com.phazei.taginputview.TagInputView
 import com.phazei.utils.OpenAIHelper
 import com.tokenautocomplete.CharacterTokenizer
 import com.tokenautocomplete.TokenCompleteTextView
@@ -37,6 +39,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 
 @AndroidEntryPoint
@@ -72,8 +75,6 @@ class ChatTreeSettingsFragment : Fragment() {
         setupMenu()
         setupInputs()
         setupToolTips()
-
-
 
         // saves items
         binding.saveChatSettingsButton.setOnClickListener {
@@ -134,9 +135,8 @@ class ChatTreeSettingsFragment : Fragment() {
             topP = binding.topPSlider.value,
             frequencyPenalty = binding.frequencyPenaltySlider.value,
             presencePenalty = binding.presencePenaltySlider.value,
-            stop = binding.stopList.objects.toMutableList(),
-            logitBias = binding.logitBiasList.getMap(),
-            n = binding.numberOfSlider.value.toInt(),
+            stop = binding.stopList.getTags() as MutableList<String>,
+            logitBias = binding.logitBiasList.getTagsOfType<Map<Int, Int>>().flatMap { it.entries }.associate { it.toPair() }.toMutableMap(),
             bestOf = binding.bestOfSlider.value.toInt(),
             injectStartText = binding.injectStartText.text.toString(),
             injectRestartText = binding.injectRestartText.text.toString()
@@ -296,69 +296,45 @@ class ChatTreeSettingsFragment : Fragment() {
     private fun setupTokens() {
 
         binding.stopList.apply {
-            //2 clicks to delete style:
-            setTokenClickStyle(TokenCompleteTextView.TokenClickStyle.Delete)
-            setTokenLimit(4)
-            //only want comma to stop item
-            setTokenizer(CharacterTokenizer(listOf(','), ","))
-
-            //populate it
-            chatTree.gptSettings.stop.forEach { addObjectSync(it) }
-
-            // setTokenListener(object : TokenCompleteTextView.TokenListener<String> {
-            //     override fun onTokenAdded(token: String) {}
-            //     override fun onTokenRemoved(token: String) {}
-            //     override fun onTokenIgnored(token: String) {}
-            // })
+            setTagLimit(4)
+            chatTree.gptSettings.stop.forEach { addTag(it) }
         }
 
         binding.logitBiasList.apply {
-            //2 clicks to delete style:
-            setTokenClickStyle(TokenCompleteTextView.TokenClickStyle.Delete)
-            //only want comma to stop item
-            setTokenizer(CharacterTokenizer(listOf(','), ","))
+            setTagInputData(TagInputData<Map<Int,Int>>())
 
-            //populate it
-            chatTree.gptSettings.logitBias.forEach { (key, value) -> addObjectSync(LogitBiasWrapper(mapOf(key to value))) }
+            setInputConverter { input ->
+                val parts = input.toString().split("=")
+                if (parts.size == 2) {
+                    val key = parts[0].trim().toFloatOrNull()?.roundToInt()
+                    val value = parts[1].trim().toFloatOrNull()?.roundToInt()
+                    if (value !in -100..100) {
+                        null
+                    } else if (key != null && value != null) {
+                        mapOf(key to value)
+                    } else {
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+            setDisplayConverter { tag ->
+                val tagMap = tag as Map<Int, Int>
+                val key = tagMap.keys.first()
+                val value = tagMap.values.first()
+                "$key=$value"
+            }
 
-            // setTokenListener(object : TokenCompleteTextView.TokenListener<LogitBiasWrapper> {
-            //     override fun onTokenAdded(token: LogitBiasWrapper) {}
-            //     override fun onTokenRemoved(token: LogitBiasWrapper) {}
-            //     override fun onTokenIgnored(token: LogitBiasWrapper) {}
-            // })
+            chatTree.gptSettings.logitBias.forEach { addTag(mapOf(it.key to it.value)) }
         }
-
     }
 
     // Update all slider labels to include the value next to the label text
     private fun setupSliderText() {
-        val sliderIds = listOf(
-            R.id.temperature_slider,
-            R.id.max_tokens_slider,
-            R.id.top_p_slider,
-            R.id.frequency_penalty_slider,
-            R.id.presence_penalty_slider,
-            R.id.number_of_slider,
-            R.id.best_of_slider
-        )
-        val textViewIds = listOf(
-            R.id.temperature_text,
-            R.id.max_tokens_text,
-            R.id.top_p_text,
-            R.id.frequency_penalty_text,
-            R.id.presence_penalty_text,
-            R.id.number_of_text,
-            R.id.best_of_text
-        )
-        val stringResourceIds = listOf(
-            R.string.temperature_label,
-            R.string.max_tokens_label,
-            R.string.top_p_label,
-            R.string.frequency_penalty_label,
-            R.string.presence_penalty_label,
-            R.string.number_of_label,
-            R.string.best_of_label
-        )
+        val sliderIds = listOf(R.id.temperature_slider, R.id.max_tokens_slider, R.id.top_p_slider, R.id.frequency_penalty_slider, R.id.presence_penalty_slider, R.id.number_of_slider, R.id.best_of_slider)
+        val textViewIds = listOf(R.id.temperature_text, R.id.max_tokens_text, R.id.top_p_text, R.id.frequency_penalty_text, R.id.presence_penalty_text, R.id.number_of_text, R.id.best_of_text)
+        val stringResourceIds = listOf(R.string.temperature_label, R.string.max_tokens_label, R.string.top_p_label, R.string.frequency_penalty_label, R.string.presence_penalty_label, R.string.number_of_label, R.string.best_of_label)
 
         for (i in sliderIds.indices) {
             val slider = binding.root.findViewById<Slider>(sliderIds[i])
@@ -442,6 +418,12 @@ class ChatTreeSettingsFragment : Fragment() {
                         mToolTipsManager.findAndDismiss(previousView)
                     }
                 })
+            }
+            is TagInputView -> {
+                view.tagInputEditText.setOnLongClickListener { v ->
+                    longTouch(v)
+                    true
+                }
             }
             else -> {
                 view.setOnLongClickListener { v ->

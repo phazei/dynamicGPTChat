@@ -222,26 +222,17 @@
             android:labelFor="@id/stop_list"
             />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/stop_list_parent"
+        <com.phazei.taginputview.TagInputView
+            android:id="@+id/stop_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="6dp"
+            android:background="?attr/colorSurfaceVariant"
+            app:strokeColor="?attr/colorPrimary"
+            app:inputTheme="@style/textHandleOnColor"
             android:layout_marginBottom="10dp"
-            android:hint="@string/stop_list_hint">
-
-            <com.phazei.dynamicgptchat.chatsettings.StopTokenCompleteTextView
-                android:id="@+id/stop_list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="12dp"
-                android:paddingTop="25dp"
-                android:paddingBottom="10dp"
-                app:cornerRadius="10dp"
-                android:textSize="16sp"
-                android:textStyle="normal"
-                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox" />
-
-        </com.google.android.material.textfield.TextInputLayout>
+            app:hint="@string/stop_list_hint" />
 
         <!-- Logit Bias Text -->
         <TextView
@@ -251,25 +242,16 @@
             android:labelFor="@id/logit_bias_list"
             />
 
-        <com.google.android.material.textfield.TextInputLayout
+        <com.phazei.taginputview.TagInputView
+            android:id="@+id/logit_bias_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="?attr/colorSurfaceVariant"
+            app:strokeColor="?attr/colorPrimary"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="6dp"
             android:layout_marginBottom="10dp"
-            android:hint="@string/logit_bias_hint">
-
-            <com.phazei.dynamicgptchat.chatsettings.LogitBiasTokenCompleteTextView
-                android:id="@+id/logit_bias_list"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="12dp"
-                android:paddingTop="25dp"
-                android:paddingBottom="10dp"
-                app:cornerRadius="10dp"
-                android:textSize="16sp"
-                android:textStyle="normal"
-                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox" />
-
-        </com.google.android.material.textfield.TextInputLayout>
+            app:hint="@string/logit_bias_hint" />
 
         <!-- Number of -->
         <TextView
@@ -314,8 +296,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/inject_start_text_label"
-            android:labelFor="@id/inject_start_text"
-            />
+            android:labelFor="@id/inject_start_text" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"

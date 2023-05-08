@@ -46,7 +46,7 @@
     <string name="stop_list_label">Stop String (4 max, comma to enter)</string>
     <string name="stop_list_hint">Strings to halt messages</string>
     <string name="logit_bias_label">Logit Bias (comma to enter)</string>
-    <string name="logit_bias_hint">Adjust token probability -100 to 100 (eg 19849=100)</string>
+    <string name="logit_bias_hint">Adjust token probability -100 to 100 (eg 123=69)</string>
     <string name="number_of_label">Number of (%.0f)</string>
     <string name="best_of_label">Best of (%.0f)</string>
     <string name="inject_start_text_label">Inject Start Text</string>
