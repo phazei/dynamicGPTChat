@@ -201,7 +201,7 @@
             android:layout_height="wrap_content"
             android:background="@drawable/message_bubble_center"
             android:backgroundTint="?attr/colorTertiary"
-            android:gravity="center"
+            android:gravity="start"
             android:paddingTop="6dp"
             android:paddingBottom="12dp"
             android:paddingStart="12dp"

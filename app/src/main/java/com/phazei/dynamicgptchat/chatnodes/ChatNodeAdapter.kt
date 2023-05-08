@@ -159,7 +159,7 @@ class ChatNodeAdapter(
             }
 
             // show error
-            if (chatNode.error?.isEmpty() == false) {
+            if (!chatNode.error.isNullOrBlank()) {
                 binding.errorTextView.visibility = View.VISIBLE
                 binding.errorTextView.text = chatNode.error
             } else {
@@ -168,9 +168,9 @@ class ChatNodeAdapter(
             }
 
             // show moderation
-            if (chatNode.moderation?.isEmpty() == false) {
+            if (!chatNode.moderation.isNullOrBlank()) {
                 binding.moderationTextView.visibility = View.VISIBLE
-                binding.moderationTextView.text = chatNode.error
+                binding.moderationTextView.text = chatNode.moderation
             } else {
                 binding.moderationTextView.visibility = View.GONE
                 binding.moderationTextView.text = ""

@@ -2,9 +2,11 @@ package com.phazei.utils
 
 import android.annotation.SuppressLint
 import com.aallam.openai.api.model.Model
+import com.aallam.openai.api.moderation.TextModeration
 import java.text.SimpleDateFormat
 
 object OpenAIHelper {
+
     fun filterModelList(mode: String, models: List<Model>): MutableList<String> {
         return when (mode) {
             "ChatCompletion" -> models.filter { it.id.id.contains("gpt") }
@@ -19,6 +21,7 @@ object OpenAIHelper {
             else -> models
         }.map { it.id.id }.sorted().toMutableList()
     }
+
     @SuppressLint("SimpleDateFormat")
     fun formatModelDetails(model: Model): String {
         return "ID: ${model.id.id}\n" +
@@ -37,5 +40,40 @@ object OpenAIHelper {
             )
             "  - ${permissions.filter { p -> p.second }.joinToString(", ") { p -> p.first }}"
         }
+    }
+
+    fun formatModerationDetails(moderation: TextModeration): String {
+
+        val output = StringBuilder()
+        moderation.results.forEachIndexed { index, moderationResult ->
+            if (moderationResult.flagged) {
+                val itemType = if (index == 0) "Prompt" else "Response"
+                val flaggedCategoriesWithScores = mutableListOf<String>()
+
+                val categories = moderationResult.categories
+                val categoryScores = moderationResult.categoryScores
+
+                val categoryList = listOf("hate", "hateThreatening", "selfHarm", "sexual", "sexualMinors", "violence", "violenceGraphic")
+
+                categoryList.forEach { categoryName ->
+                    // val categoryFlagged = categories::class.memberProperties.find { it.name == categoryName }?.get(categories) as? Boolean ?: false
+                    // val categoryScore = categoryScores::class.memberProperties.find { it.name == categoryName }?.get(categoryScores) as? Double ?: 0.0
+
+                    val categoryFlaggedField = categories.javaClass.getDeclaredField(categoryName)
+                    categoryFlaggedField.isAccessible = true
+                    val categoryFlagged = categoryFlaggedField.get(categories) as? Boolean ?: false
+
+                    val categoryScoreField = categoryScores.javaClass.getDeclaredField(categoryName)
+                    categoryScoreField.isAccessible = true
+                    val categoryScore = categoryScoreField.get(categoryScores) as? Double ?: 0.0
+
+                    if (categoryFlagged) {
+                        flaggedCategoriesWithScores.add("$categoryName: ${"%.2f".format(categoryScore)}")
+                    }
+                }
+                output.appendLine("$itemType: ${flaggedCategoriesWithScores.joinToString(", ")}")
+            }
+        }
+        return output.toString().trim()
     }
 }

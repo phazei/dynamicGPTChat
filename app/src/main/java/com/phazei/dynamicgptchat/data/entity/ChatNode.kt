@@ -38,6 +38,8 @@ data class ChatNode(
     var response: String = ""
 
     @Ignore
+    var chatTree: ChatTree? = null
+    @Ignore
     lateinit var parent: ChatNode
     fun parentInitialized() = ::parent.isInitialized
     @Ignore

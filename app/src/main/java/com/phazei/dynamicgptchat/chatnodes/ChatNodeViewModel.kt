@@ -5,12 +5,16 @@ import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
 import com.aallam.openai.api.core.Usage
 import com.aallam.openai.api.model.ModelId
+import com.aallam.openai.api.moderation.ModerationModel
+import com.aallam.openai.api.moderation.ModerationRequest
+import com.aallam.openai.api.moderation.TextModeration
 import com.phazei.dynamicgptchat.data.*
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.repo.ChatRepository
 import com.phazei.dynamicgptchat.data.repo.ChatResponseWrapper
 import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
+import com.phazei.utils.OpenAIHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,7 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatNodeViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
-    private val openAIRepository: OpenAIRepository
+    private val openAIRepository: OpenAIRepository,
 ) : ViewModel() {
 
     private val _activeBranchUpdate = MutableSharedFlow<Pair<ChatNode, List<ChatNode>?>?>(extraBufferCapacity = 16)
@@ -34,10 +38,12 @@ class ChatNodeViewModel @Inject constructor(
     fun isRequestActive(chatTreeId: Long): Boolean {
         return openAIRepository.manage.isRequestActive(chatTreeId)
     }
+
     fun makeChatCompletionRequest(chatTree: ChatTree, chatNode: ChatNode, streaming: Boolean = true) {
         if (chatTree.id != chatNode.chatTreeId) {
             throw IllegalArgumentException("chatNode must be child of chatTree")
         }
+        chatNode.chatTree = chatTree
 
         viewModelScope.launch {
             if (chatNode.id == 0L) {
@@ -124,7 +130,50 @@ class ChatNodeViewModel @Inject constructor(
             }
         }
         //need to trigger Adapter to update node
-        updateActiveBranchNode(chatNode)
+        emitSingleChatNodeUpdate(chatNode)
+    }
+
+    /**
+     * Should only be called when entirely complete
+     */
+    private fun handleChatComplete(chatNode: ChatNode) {
+        viewModelScope.launch {
+            chatRepository.saveChatNode(chatNode)
+            // will be triggered even on error, does it matter? probably not
+            moderateChatNodeResponse(chatNode)
+            delay(300)
+            //one final update just in case it glitched previously
+            emitSingleChatNodeUpdate(chatNode)
+        }
+    }
+
+    /**
+     * Once request is complete, this will submit the response and retrieve a moderation result
+     */
+    private fun moderateChatNodeResponse(chatNode: ChatNode) {
+        if (chatNode.chatTree?.gptSettings?.moderateContent == true) {
+            viewModelScope.launch {
+                val moderation: TextModeration
+                try {
+                    moderation = openAIRepository.moderateContent(ModerationRequest(mutableListOf(chatNode.prompt, chatNode.response), ModerationModel.Latest))
+                } catch (e: Exception) {
+                    //ignore, just skip it
+                    return@launch
+                }
+                chatNode.moderation = OpenAIHelper.formatModerationDetails(moderation)
+                chatRepository.saveChatNode(chatNode)
+                emitSingleChatNodeUpdate(chatNode)
+            }
+        }
+    }
+
+    fun cancelRequest(chatTreeId: Long) {
+        openAIRepository.manage.cancelRequest(chatTreeId)
+        //need to see if we want to keep the latest chatNode, or dump it
+        //has it even been saved?
+        //if it was streaming and has data, save it and keep it as active
+        //otherwise dump it
+        //need to update adapter as well
     }
 
     /**
@@ -133,7 +182,7 @@ class ChatNodeViewModel @Inject constructor(
      */
     private val lastEmissionTimes = mutableMapOf<Long, Long>()
     private val debounceJobs = mutableMapOf<Long, Job>()
-    private fun updateActiveBranchNode(updatedChatNode: ChatNode) {
+    private fun emitSingleChatNodeUpdate(updatedChatNode: ChatNode) {
         viewModelScope.launch {
             val key = updatedChatNode.chatTreeId
             debounceJobs[key]?.cancel()
@@ -152,32 +201,19 @@ class ChatNodeViewModel @Inject constructor(
         }
     }
 
-    private fun handleChatComplete(chatNode: ChatNode) {
-        viewModelScope.launch {
-            chatRepository.saveChatNode(chatNode)
-            delay(300)
-            //one final update just in case it glitched previously
-            updateActiveBranchNode(chatNode)
-        }
-    }
-
-    fun cancelRequest(chatTreeId: Long) {
-        openAIRepository.manage.cancelRequest(chatTreeId)
-        //need to see if we want to keep the latest chatNode, or dump it
-        //has it even been saved?
-        //if it was streaming and has data, save it and keep it as active
-        //otherwise dump it
-        //need to update adapter as well
-    }
-
+    /**
+     * Necessary for initialization of Fragment
+     */
     fun loadChatTreeChildrenAndActiveBranch(chatTree: ChatTree) {
         viewModelScope.launch {
             chatRepository.loadChildren(chatTree.rootNode)
-            updateActiveBranch(chatTree.rootNode)
+            updateAndEmitActiveBranch(chatTree.rootNode)
         }
     }
-
-    fun updateActiveBranch(newChatNode: ChatNode) {
+    /**
+     * Retrieves entire branch descending from submitted ChatNode
+     */
+    fun updateAndEmitActiveBranch(newChatNode: ChatNode) {
         viewModelScope.launch {
             val activeBranch = chatRepository.getActiveBranch(newChatNode)
             _activeBranchUpdate.emit(Pair(newChatNode, activeBranch))
