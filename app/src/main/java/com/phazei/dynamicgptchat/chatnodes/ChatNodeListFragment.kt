@@ -92,7 +92,8 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 .filter { (updatedChatNode, _) -> updatedChatNode.chatTreeId == chatTree.id }
                 // .conflate() //conflate could skip items if other trees are triggering here
                 .collect { (updatedChatNode, activeBranch) ->
-                    if (!chatNodeAdapter.isInit() && activeBranch == null) {
+                    val isInit = chatNodeAdapter.isInit()
+                    if (!isInit && activeBranch == null) {
                         // if an individual request completes before the view loads, this will trigger right away
                         // so shouldn't be loaded yet
                         return@collect
@@ -103,15 +104,18 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                     } else {
                         // branch update
                         chatNodeAdapter.updateData(updatedChatNode, activeBranch)
+                        //needs to scroll sooner than it does after adapter binding calls popup
+                        popupMenuHelper.scrollForNodeCycling()
                     }
                     val position : Int
-                    if (updatedChatNode.parentNodeId == null) { // rootNode
+                    if (updatedChatNode.parentNodeId == null && !isInit) { // rootNode
+                        //rootNode should scroll to bottom on first load only
+                        //first childNode could be cycling, so this shouldn't be triggered for that
                         position = chatNodeAdapter.itemCount - 1 // get leaf item
                         binding.chatNodeRecyclerView.scrollToPosition(position + 1) //+1 for header
                     } else {
                         // position = chatNodeAdapter.getItemPosition(updatedChatNode) // stay by edited item
                     }
-                    // TODO: fix scrolling glitchyness when streaming
                 }
             }
         }
@@ -335,6 +339,8 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
         private var previousPosition: Int? = null
         private var activePosition: Int? = null
         private var activeScrollPosition: Int? = null
+        private var isCyclingChildren: Boolean = false
+        private var cyclingPrevYOffset: Int = 0
 
         private val widthClosed = 62.dpToPx()
         private val widthOpened = 250.dpToPx()
@@ -422,10 +428,37 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 }
 
                 nodePrev.setOnClickListener {
+                    activePosition?.let { activePos ->
+                        activeHolder?.let { holder ->
+                            val chatNode = chatNodeAdapter.getItem(activePos)
+                            val prevNode = chatNode.getPrevSibling()
+                            chatNode.parent.activeChildIndex = chatNode.parent.children.indexOf(prevNode)
+                            if (prevNode != null) {
+                                isCyclingChildren = true
+                                cyclingPrevYOffset = holder.binding.root.top
+                                chatNodeViewModel.updateActiveSibling(prevNode)
+
+                                // After this is emitted, the activeNodePosition remains active and maintains the same
+                                //  value because it's in the same position.  The ViewHolder does change, so the
+                                //  popupWindow needs to be reattached.
+
+                            }
+                        }
+                    }
                 }
 
                 nodeNext.setOnClickListener {
-
+                    activePosition?.let { activePos ->
+                        activeHolder?.let { holder ->
+                            val chatNode = chatNodeAdapter.getItem(activePos)
+                            val nextNode = chatNode.getNextSibling()
+                            if (nextNode != null) {
+                                isCyclingChildren = true
+                                cyclingPrevYOffset = holder.binding.root.top
+                                chatNodeViewModel.updateActiveSibling(nextNode)
+                            }
+                        }
+                    }
                 }
 
                 nodeRegenerate.setOnClickListener {
@@ -442,6 +475,11 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                             val chatNode = chatNodeAdapter.getItem(activePos)
                             editAddChatRequest(chatNode, holder.binding.promptTextView.text.toString())
                             finish()
+
+                            // unintentional but acceptable behavior:
+                            // when saving this, the popup comes back on the new item.
+                            // I'm guessing the activePosition doesn't change, and it always seems to use
+                            // the same ViewHolder, so I guess it's ok for now.
                         }
                     }
                 }
@@ -549,9 +587,9 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             if (activePosition != null) {
 
                 activeScrollPosition = activePosition?.plus(1)
-                val searchHolder = binding.chatNodeRecyclerView.findViewHolderForAdapterPosition(activeScrollPosition!!)
-                if (searchHolder != null) {
-                    activeHolder = searchHolder as ChatNodeAdapter.ChatNodeViewHolder
+                val findHolder = binding.chatNodeRecyclerView.findViewHolderForAdapterPosition(activeScrollPosition!!)
+                if (findHolder != null) {
+                    activeHolder = findHolder as ChatNodeAdapter.ChatNodeViewHolder
                 } else {
                     Log.w(
                         "Warning",
@@ -564,7 +602,10 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 // nothing has changed, should stay the same
                 if (activePosition == previousPosition) {
                     if (popupWindow.isShowing) {
-                        //all good
+                        //could be cycling
+                        if (isCyclingChildren) {
+                            showPopup = true
+                        }
                     } else {
                         showPopup = true
                     }
@@ -603,6 +644,16 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                     }
                 ).start()
                 popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
+            } else if (isCyclingChildren) {
+                scrollForNodeCycling()
+                popupWindow.animationStyle = 0 //disable animation
+                popupWindow.dismiss()
+                popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
+                lifecycleScope.launch { delay(500)
+                    popupWindow.animationStyle = -1 //default animation
+                }
+                isCyclingChildren = false
+                cyclingPrevYOffset = 0
             }
         }
 
@@ -643,6 +694,12 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
         fun getActiveScrollPosition(): Int? {
             return activeScrollPosition
+        }
+
+        fun scrollForNodeCycling() {
+            if (cyclingPrevYOffset > 0) {
+                chatNodeAdapter.layoutManager.scrollToPositionWithOffset(activeScrollPosition!!, cyclingPrevYOffset)
+            }
         }
 
         /**

@@ -117,6 +117,11 @@ class ChatRepository @Inject constructor(
             }
         }
     }
+    suspend fun updateChatNode(chatNode: ChatNode) {
+        withContext(Dispatchers.IO) {
+            chatNodeDao.update(chatNode)
+        }
+    }
 
     suspend fun saveGptSettings(gptSettings: GPTSettings) {
         withContext(Dispatchers.IO) {

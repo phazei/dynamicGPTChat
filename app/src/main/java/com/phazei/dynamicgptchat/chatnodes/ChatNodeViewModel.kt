@@ -225,4 +225,18 @@ class ChatNodeViewModel @Inject constructor(
             chatRepository.saveChatNode(chatNode, makeActive)
         }
     }
+
+    /**
+     * Marks a child node as the parent nodes active child
+     */
+    fun updateActiveSibling(chatNode: ChatNode) {
+        viewModelScope.launch {
+            if (chatNode.parentInitialized()) {
+                val parent = chatNode.parent
+                parent.activeChildIndex = parent.children.indexOf(chatNode)
+                chatRepository.updateChatNode(parent)
+                updateAndEmitActiveBranch(parent)
+            }
+        }
+    }
 }

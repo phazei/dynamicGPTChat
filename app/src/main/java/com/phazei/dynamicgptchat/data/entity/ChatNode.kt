@@ -51,4 +51,26 @@ data class ChatNode(
         parentNodeId = null,
         prompt = "",
     )
+
+    fun getNextSibling(): ChatNode? {
+        val siblings = this.parent.children
+        val currentIndex = this.parent.children.indexOf(this)
+        val nextIndex = (currentIndex + 1) % siblings.size
+        return try {
+            siblings[nextIndex]
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun getPrevSibling(): ChatNode? {
+        val siblings = this.parent.children
+        val currentIndex = siblings.indexOf(this)
+        val previousIndex = (currentIndex - 1 + siblings.size) % siblings.size
+        return try {
+            siblings[previousIndex]
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
