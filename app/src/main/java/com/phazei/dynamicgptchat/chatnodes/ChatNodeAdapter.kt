@@ -44,6 +44,7 @@ class ChatNodeAdapter(
     init {
         setHasStableIds(true)
     }
+
     override fun getItemId(position: Int): Long {
         return chatNodes[position].id
     }
@@ -54,6 +55,10 @@ class ChatNodeAdapter(
         } else {
             super.getItemViewType(position) // This will return the default viewType, which is 0
         }
+    }
+
+    override fun getItemCount(): Int {
+        return chatNodes.size
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatNodeViewHolder {
@@ -77,16 +82,12 @@ class ChatNodeAdapter(
         holder.bind(chatNodes[position])
     }
 
-    override fun getItemCount(): Int {
-        return chatNodes.size
-    }
-
     @Suppress("RedundantEmptyInitializerBlock")
     inner class ChatNodeViewHolder(val binding: ChatNodeItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         init {
-            // listeners that don't need chatNode, like displaying extra menus
+            // Displays popup menu
             binding.nodeMenuButton.setOnClickListener {
                 // once node is made active, it's type becomes ITEM_TYPE_ACTIVE
                 // after notification of item change, bind is called again
@@ -119,6 +120,7 @@ class ChatNodeAdapter(
             }
         }
 
+        @SuppressLint("SetTextI18n")
         fun bind(chatNode: ChatNode) {
             // hide the root node
             if (chatNode.parentNodeId == null) {
@@ -158,6 +160,9 @@ class ChatNodeAdapter(
                 binding.responseTextView.setText(chatNode.response)
             }
 
+            binding.nodeIndexCount.text = "${chatNode.parent.children.indexOf(chatNode)+1}/${chatNode.parent.children.size}"
+
+
             // show error
             if (!chatNode.error.isNullOrBlank()) {
                 binding.errorTextView.visibility = View.VISIBLE
@@ -194,9 +199,12 @@ class ChatNodeAdapter(
         }
 
         fun disableEdit() {
+
             if (activeNodePosition == null || bindingAdapterPosition == activeNodePosition) {
-                isEditingActive = false
             }
+            isEditingActive = false
+
+
             binding.promptTextView.apply {
                 background = null
                 isEnabled = false
@@ -208,7 +216,9 @@ class ChatNodeAdapter(
             editedData.clear()
             editedData.clear()
 
-            notifyItemChanged(bindingAdapterPosition)
+            if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
+                notifyItemChanged(bindingAdapterPosition)
+            }
         }
 
         /**
@@ -217,7 +227,6 @@ class ChatNodeAdapter(
          * BindingAdapter position might change
          */
         fun deactivate() {
-            editedData.clear()
             editedData.clear()
 
             if (activeNodePosition != null && bindingAdapterPosition == activeNodePosition) {
@@ -230,6 +239,10 @@ class ChatNodeAdapter(
 
     fun getItemPosition(chatNode: ChatNode): Int {
         return chatNodes.indexOf(chatNode)
+    }
+
+    fun getItem(position: Int): ChatNode {
+        return chatNodes[position]
     }
 
     /**
@@ -273,6 +286,11 @@ class ChatNodeAdapter(
         }
         // Insert the new node after the parent node
         chatNodes.add(parentIndex + 1, newNode)
+        // Notify the recycler view that items have changed
+        notifyItemInserted(parentIndex + 1)
+        // notifyItemRangeInserted(parentIndex + 1, 1)
+
+
         // Calculate the number of items that will be removed
         // Remove any items after the new node
         val itemsToRemove = chatNodes.size - (parentIndex + 2)
@@ -280,9 +298,6 @@ class ChatNodeAdapter(
             chatNodes.subList(parentIndex + 2, chatNodes.size).clear()
             notifyItemRangeRemoved(parentIndex + 2, itemsToRemove)
         }
-        // Notify the recycler view that items have changed
-        notifyItemInserted(parentIndex + 1)
-        // notifyItemRangeInserted(parentIndex + 1, 1)
     }
 
     fun updateItem(chatNode: ChatNode) {
@@ -298,13 +313,10 @@ class ChatNodeAdapter(
         }
     }
 
+    // flow has changed, might not need to do anything, just show it with empty response
     fun cancelLastItem() {
         val lastChatNode = chatNodes[chatNodes.lastIndex]
         if (lastChatNode.id == 0L) {
-            // TODO:
-            // it has not been saved, so can remove it
-            //
-            // flow has changed, might not need to do anything, just show it with empty response
         }
     }
 

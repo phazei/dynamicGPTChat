@@ -51,8 +51,13 @@ class ChatNodeViewModel @Inject constructor(
                 if (!chatNode.parentInitialized()) {
                     throw IllegalArgumentException("chatNode must have parent set")
                 }
-                chatRepository.saveChatNode(chatNode)
+                chatRepository.saveChatNode(chatNode, true)
             }
+
+            //clear out previous items if they exists
+            chatNode.response = ""
+            chatNode.error = null
+            chatNode.moderation = null
 
             val chatCompletionRequest = ChatCompletionRequest(
                 model = ModelId(chatTree.gptSettings.model),
@@ -66,12 +71,6 @@ class ChatNodeViewModel @Inject constructor(
                 logitBias = chatTree.gptSettings.getLogitBiasAsString(),
                 // no good way to display "n" right now so ignore it for now
                 // n = chatTree.gptSettings.n,
-                // logitBias doesn't seem to work as expected
-                //"language" " language" "model" " model" " apologize" " inappropriate" "offensive" " offensive"
-                // "16129"      "3303"   "19849"   "2746"    "16521"        "15679"      "45055"       "5859"
-                // logitBias = mapOf("16129" to -100, "3303" to -100, "19849" to -100, "2746" to -100, "16521" to -100, "15679" to -100, "45055" to -100, "5859" to -100)
-                // "che" "ese" " cheese"
-                // logitBias = mapOf("2395" to 20, "2771" to 20, "9891" to 20)
             )
 
             val job = openAIRepository.sendChatCompletionRequest(
@@ -210,6 +209,7 @@ class ChatNodeViewModel @Inject constructor(
             updateAndEmitActiveBranch(chatTree.rootNode)
         }
     }
+
     /**
      * Retrieves entire branch descending from submitted ChatNode
      */
@@ -217,6 +217,12 @@ class ChatNodeViewModel @Inject constructor(
         viewModelScope.launch {
             val activeBranch = chatRepository.getActiveBranch(newChatNode)
             _activeBranchUpdate.emit(Pair(newChatNode, activeBranch))
+        }
+    }
+
+    fun saveChatNode(chatNode: ChatNode, makeActive: Boolean = false) {
+        viewModelScope.launch {
+            chatRepository.saveChatNode(chatNode, makeActive)
         }
     }
 }

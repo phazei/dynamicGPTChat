@@ -90,9 +90,10 @@ class ChatRepository @Inject constructor(
      * Updates a chatNode. Ensures parent node exists.
      * Also updates parent.activeChildIndex
      */
-    suspend fun saveChatNode(chatNode: ChatNode) {
+    suspend fun saveChatNode(chatNode: ChatNode, makeActive: Boolean = false) {
         withContext(Dispatchers.IO) {
             database.withTransaction {
+                var newNode = false
                 if (chatNode.parentNodeId == null) {
                     if (chatNode.parentInitialized()) {
                         chatNode.parentNodeId = chatNode.parent.id
@@ -101,12 +102,15 @@ class ChatRepository @Inject constructor(
                     }
                 }
                 if (chatNode.id == 0L) {
+                    newNode = true
                     chatNode.id = chatNodeDao.insert(chatNode)
                 } else {
                     chatNodeDao.updateWithTimestamp(chatNode)
                 }
-                if (chatNode.parentInitialized()) {
-                    chatNode.parent.children.add(chatNode)
+                if (makeActive && chatNode.parentInitialized()) {
+                    if (chatNode.parent.children.indexOf(chatNode) == -1) {
+                        chatNode.parent.children.add(chatNode)
+                    }
                     chatNode.parent.activeChildIndex = chatNode.parent.children.indexOf(chatNode)
                     chatNodeDao.update(chatNode.parent)
                 }

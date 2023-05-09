@@ -161,7 +161,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
     /**
      * Creates a new ChatNode and adds it as a child to the parent of edited item
      */
-    private fun editChatRequest(editedNode: ChatNode, prompt: String) {
+    private fun editAddChatRequest(editedNode: ChatNode, prompt: String) {
         val parentLeaf = editedNode.parent
         val newNode = ChatNode(0, chatTree.id, parentLeaf.id, prompt)
         newNode.parent = parentLeaf
@@ -429,12 +429,34 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 }
 
                 nodeRegenerate.setOnClickListener {
+                    activePosition?.let { activePos ->
+                        val chatNode = chatNodeAdapter.getItem(activePos)
+                        chatNodeViewModel.makeChatCompletionRequest(chatTree, chatNode)
+                        finish()
+                    }
                 }
 
                 nodeEditAdd.setOnClickListener {
+                    activePosition?.let { activePos ->
+                        activeHolder?.let { holder ->
+                            val chatNode = chatNodeAdapter.getItem(activePos)
+                            editAddChatRequest(chatNode, holder.binding.promptTextView.text.toString())
+                            finish()
+                        }
+                    }
                 }
 
                 nodeEditReplace.setOnClickListener {
+                    //simply saves data to the chat node
+                    activePosition?.let { activePos ->
+                        activeHolder?.let { holder ->
+                            val chatNode = chatNodeAdapter.getItem(activePos)
+                            chatNode.prompt = holder.binding.promptTextView.text.toString()
+                            chatNode.response = holder.binding.responseTextView.text.toString()
+                            chatNodeViewModel.saveChatNode(chatNode)
+                            finish()
+                        }
+                    }
                 }
 
                 nodeEditCancel.setOnClickListener {
