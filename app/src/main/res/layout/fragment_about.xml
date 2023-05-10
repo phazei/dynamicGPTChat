@@ -32,6 +32,9 @@ back acts the same as any other navigated to location.
 \n\n\n
 Navigate 2.6.0-rc01 - Use bottom most 'About' link from any other page,
 hit back, Title text and menu highlighting still indicate About page.
+Now navigate to Prompts or Settings, then go back to About, you'll see
+that the about page now displays the Promp page every time instead.
+Massively broken.
 "
         android:textSize="20dp"
         app:layout_constraintStart_toStartOf="parent"
