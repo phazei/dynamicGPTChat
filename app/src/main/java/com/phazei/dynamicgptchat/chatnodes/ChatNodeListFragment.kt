@@ -199,7 +199,6 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 chatTreeViewModel.saveGptSettings(chatTree.gptSettings.apply { systemMessage = newSystemMessage })
             },
             onChange = { sysMsgHeight ->
-                Log.d("TAG", "HEADER CHANGE")
                 setupRecyclerHeaderScroll(sysMsgHeight)
             }
         )
