@@ -12,12 +12,32 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="50sp"
-        android:text="PROMPTS (CLICK HERE FOR INFO)"
+        android:text="PROMPTS (TAP HERE FOR INFO)"
         android:gravity="center"
+        app:layout_constraintVertical_bias="0.3"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:text="
+Go to Prompts Info.  Then swipe out the navigation drawer from that page.
+The click Settings.  Then click Prompts again.  You're back at Prompts Info.
+Now click Settings, now tap back, you're now at Prompts.  Now tap Prompts in
+the Drawer, you're now at Prompts Info, the original proper backstack.
+"
+        android:textSize="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/prompts_text"
+
+
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

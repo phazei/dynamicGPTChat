@@ -11,6 +11,7 @@
         android:id="@+id/about_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:layout_constraintVertical_bias="0.2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -18,6 +19,25 @@
         android:textSize="50sp"
         android:text="ABOUT"
         android:contentDescription="@string/about_app"
+        />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="
+Navigate 2.5.3 - use the bottom most 'About' link to navigate here.  It
+provides an animation, but navigates here apparently normally.  Hitting
+back acts the same as any other navigated to location.
+\n\n\n
+Navigate 2.6.0-rc01 - Use bottom most 'About' link from any other page,
+hit back, Title text and menu highlighting still indicate About page.
+"
+        android:textSize="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/about_text"
+
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
