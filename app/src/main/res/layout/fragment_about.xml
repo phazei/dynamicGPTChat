@@ -11,7 +11,7 @@
         android:id="@+id/about_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintVertical_bias="0.2"
+        app:layout_constraintVertical_bias="0.1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -25,6 +25,7 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="20dp"
         android:text="
 Navigate 2.5.3 - use the bottom most 'About' link to navigate here.  It
 provides an animation, but navigates here apparently normally.  Hitting
