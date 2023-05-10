@@ -10,14 +10,18 @@
             android:icon="@drawable/round_chat_24"
             android:title="@string/menu_home"
             app:popUpTo="@id/chat_tree_graph" />
-
         <item
             android:id="@+id/prompts_graph"
             android:icon="@drawable/round_list_alt_24"
             android:title="@string/menu_prompts" />
         <item
-            android:id="@+id/app_settings_fragment"
+            android:id="@+id/AppSettingsFragment"
             android:icon="@drawable/sharp_settings_applications_24"
             android:title="@string/settings" />
+        <item
+            android:visible="false"
+            android:id="@+id/AboutFragment"
+            android:icon="@drawable/round_info_24"
+            android:title="@string/about" />
     </group>
 </menu>
