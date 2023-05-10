@@ -70,7 +70,6 @@ dependencies {
 
     implementation 'com.aallam.openai:openai-client:3.2.3'
     implementation 'com.tomergoldst.android:tooltips:1.1.1'
-    implementation 'com.splitwise:tokenautocomplete:4.0.0-beta05'
     implementation 'io.ktor:ktor-client-okhttp:2.2.4'
     implementation 'io.github.pilgr:paperdb:2.7.2'
     implementation 'com.google.android.flexbox:flexbox:3.0.0'

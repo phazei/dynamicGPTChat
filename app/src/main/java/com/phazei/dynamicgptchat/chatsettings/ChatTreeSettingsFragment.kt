@@ -31,8 +31,6 @@ import com.phazei.dynamicgptchat.databinding.FragmentChatTreeSettingsBinding
 import com.phazei.taginputview.TagInputData
 import com.phazei.taginputview.TagInputView
 import com.phazei.utils.OpenAIHelper
-import com.tokenautocomplete.CharacterTokenizer
-import com.tokenautocomplete.TokenCompleteTextView
 import com.tomergoldst.tooltips.ToolTip
 import com.tomergoldst.tooltips.ToolTipsManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -391,11 +389,6 @@ class ChatTreeSettingsFragment : Fragment() {
                 // it hasn't been created, and it's not currently being shown
                 if (message != "") {
                     // need to include empty messages so Focus listener will still close previous popup
-
-                    // if (v is StopTokenCompleteTextView) {
-                        //would like to stop tooltip from showing when single clicking on a tag, but I don't think it's possible
-                    // }
-
                     tipView = mToolTipsManager.show(builder.build())
                 }
             }
