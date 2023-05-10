@@ -60,7 +60,14 @@ dependencies {
     implementation 'com.squareup.moshi:moshi-kotlin:1.14.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0'
     implementation 'org.jetbrains.kotlin:kotlin-reflect:1.7.10'
+
     implementation 'io.noties.markwon:core:4.6.2'
+    implementation 'io.noties.markwon:linkify:4.6.2'
+    implementation 'io.noties.markwon:ext-strikethrough:4.6.2'
+    implementation 'io.noties.markwon:ext-tables:4.6.2'
+    implementation 'io.noties.markwon:image:4.6.2'
+    implementation 'io.noties.markwon:image-glide:4.6.2'
+
     implementation 'com.aallam.openai:openai-client:3.2.3'
     implementation 'com.tomergoldst.android:tooltips:1.1.1'
     implementation 'com.splitwise:tokenautocomplete:4.0.0-beta05'

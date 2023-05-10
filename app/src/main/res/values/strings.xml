@@ -87,7 +87,7 @@
 
     <string name="stop_and_load_dot">M 5 2.5 A 2.5 2.5 0 0 1 2.5 5 A 2.5 2.5 0 0 1 0 2.5 A 2.5 2.5 0 0 1 2.5 0 A 2.5 2.5 0 0 1 5 2.5 Z</string>
     <string name="knightrider_rect">M 0 6 L 0 0 L 12 0 L 12 6 Z</string>
-    <string name="response">Waiting On Response</string>
+    <string name="response">Response</string>
     <string name="never_mind">Never Mind</string>
     <string name="prompt">Prompt</string>
     <string name="openai_api_key">OpenAI API Key</string>

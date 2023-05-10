@@ -2,6 +2,8 @@ package com.phazei.dynamicgptchat.chatnodes
 
 import android.annotation.SuppressLint
 import android.graphics.drawable.AnimatedVectorDrawable
+import android.text.method.LinkMovementMethod
+import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +19,14 @@ import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.databinding.ChatNodeHeaderItemBinding
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
+import io.noties.markwon.Markwon
+import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
+import io.noties.markwon.ext.tables.TableAwareMovementMethod
+import io.noties.markwon.ext.tables.TablePlugin
+import io.noties.markwon.image.ImagesPlugin
+import io.noties.markwon.image.glide.GlideImagesPlugin
+import io.noties.markwon.linkify.LinkifyPlugin
+import io.noties.markwon.movement.MovementMethodPlugin
 import java.security.InvalidParameterException
 
 @Suppress("unused")
@@ -37,6 +47,7 @@ class ChatNodeAdapter(
         const val ITEM_TYPE_ACTIVE = 69
     }
 
+    private lateinit var markwon: Markwon
     private lateinit var drawableMenuToClose: AnimatedVectorDrawable
     private lateinit var drawableCloseToMenu: AnimatedVectorDrawable
     // private lateinit var knightriderWaiting: AnimatedVectorDrawable
@@ -64,6 +75,17 @@ class ChatNodeAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChatNodeViewHolder {
         val binding =
             ChatNodeItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+
+        if (!::markwon.isInitialized) {
+            markwon = Markwon.builder(parent.context)
+                .usePlugin(LinkifyPlugin.create())
+                .usePlugin(ImagesPlugin.create())
+                .usePlugin(GlideImagesPlugin.create(parent.context))
+                .usePlugin(StrikethroughPlugin.create())
+                .usePlugin(TablePlugin.create(parent.context))
+                .usePlugin(MovementMethodPlugin.create(TableAwareMovementMethod.create()))
+                .build()
+        }
 
         // knightriderWaiting = ContextCompat.getDrawable(parent.context, R.drawable.knightrider) as AnimatedVectorDrawable
         // binding.responseWaiting.setImageDrawable(knightriderWaiting)
@@ -108,12 +130,12 @@ class ChatNodeAdapter(
                 }
             }
 
-            binding.promptTextView.doOnTextChanged { text, _, _, _ ->
+            binding.promptTextEdit.doOnTextChanged { text, _, _, _ ->
                 if (bindingAdapterPosition == activeNodePosition) {
                     editedData["prompt$bindingAdapterPosition"] = text.toString()
                 }
             }
-            binding.responseTextView.doOnTextChanged { text, _, _, _ ->
+            binding.responseTextEdit.doOnTextChanged { text, _, _, _ ->
                 if (bindingAdapterPosition == activeNodePosition) {
                     editedData["response$bindingAdapterPosition"] = text.toString()
                 }
@@ -152,13 +174,18 @@ class ChatNodeAdapter(
                 previousActiveNodePosition = null
             }
 
-            if (bindingAdapterPosition == activeNodePosition && isEditingActive) {
-                binding.promptTextView.setText(editedData["prompt$bindingAdapterPosition"] ?: chatNode.prompt)
-                binding.responseTextView.setText(editedData["response$bindingAdapterPosition"] ?: chatNode.response)
-            } else {
-                binding.promptTextView.setText(chatNode.prompt)
-                binding.responseTextView.setText(chatNode.response)
+            if (bindingAdapterPosition == activeNodePosition) {
+                binding.promptTextEdit.setText(editedData["prompt$bindingAdapterPosition"] ?: chatNode.prompt)
+                binding.responseTextEdit.setText(editedData["response$bindingAdapterPosition"] ?: chatNode.response)
             }
+
+            //view text
+            binding.promptTextView.text = chatNode.prompt
+            markwon.setMarkdown(binding.responseTextView, chatNode.response)
+            binding.responseTextView.movementMethod = LinkMovementMethod.getInstance()
+            //horizontally scrolling textViews have terrible functionality compared to <HorizontalScrollView>
+            binding.responseTextView.setHorizontallyScrolling(false)
+
 
             binding.nodeIndexCount.text = "${chatNode.parent.children.indexOf(chatNode)+1}/${chatNode.parent.children.size}"
 
@@ -184,40 +211,30 @@ class ChatNodeAdapter(
         }
 
         fun enableEdit() {
-            if (bindingAdapterPosition == activeNodePosition) {
-                isEditingActive = true
-            }
-            binding.promptTextView.apply {
-                setBackgroundResource(R.drawable.message_editable_bg)
-                isEnabled = true
-            }
-            binding.responseTextView.apply {
-                setBackgroundResource(R.drawable.message_editable_bg)
-                isEnabled = true
-            }
+            isEditingActive = true
 
+            binding.promptTextEdit.visibility = View.VISIBLE
+            binding.promptTextView.visibility = View.GONE
+
+            binding.responseTextEdit.visibility = View.VISIBLE
+            binding.responseTextView.visibility = View.GONE
         }
 
-        fun disableEdit() {
-
-            if (activeNodePosition == null || bindingAdapterPosition == activeNodePosition) {
-            }
+        fun disableEdit(notify: Boolean = false) {
             isEditingActive = false
 
+            binding.promptTextEdit.visibility = View.GONE
+            binding.promptTextView.visibility = View.VISIBLE
 
-            binding.promptTextView.apply {
-                background = null
-                isEnabled = false
-            }
-            binding.responseTextView.apply {
-                background = null
-                isEnabled = false
-            }
-            editedData.clear()
+            binding.responseTextEdit.visibility = View.GONE
+            binding.responseTextView.visibility = View.VISIBLE
+
             editedData.clear()
 
-            if (bindingAdapterPosition != RecyclerView.NO_POSITION) {
-                notifyItemChanged(bindingAdapterPosition)
+            if (notify) {
+                activeNodePosition?.let { pos ->
+                    notifyItemChanged(pos)
+                }
             }
         }
 

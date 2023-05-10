@@ -473,7 +473,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                     activePosition?.let { activePos ->
                         activeHolder?.let { holder ->
                             val chatNode = chatNodeAdapter.getItem(activePos)
-                            editAddChatRequest(chatNode, holder.binding.promptTextView.text.toString())
+                            editAddChatRequest(chatNode, holder.binding.promptTextEdit.text.toString())
                             finish()
 
                             // unintentional but acceptable behavior:
@@ -489,8 +489,8 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                     activePosition?.let { activePos ->
                         activeHolder?.let { holder ->
                             val chatNode = chatNodeAdapter.getItem(activePos)
-                            chatNode.prompt = holder.binding.promptTextView.text.toString()
-                            chatNode.response = holder.binding.responseTextView.text.toString()
+                            chatNode.prompt = holder.binding.promptTextEdit.text.toString()
+                            chatNode.response = holder.binding.responseTextEdit.text.toString()
                             chatNodeViewModel.saveChatNode(chatNode)
                             finish()
                         }
