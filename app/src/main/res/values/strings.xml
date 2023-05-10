@@ -14,46 +14,17 @@
 
 
     <!-- Strings used for fragments for navigation -->
-    <string name="chat_tree_list_label">Dynamic GPT Chats</string>
-    <string name="chat_node_list_label">Conversation</string>
-    <string name="chat_tree_settings_label">Chat Settings</string>
 
     <string name="app_settings_label">App Settings</string>
-    <string name="prompt_settings_label">Custom Prompts</string>
+    <string name="prompt_settings_label">Prompts</string>
+    <string name="prompt_info_label">Prompts Info</string>
     <string name="about_label">About App</string>
     <string name="todo">TODO</string>
-    <string name="new_chat">New Chat</string>
-    <string name="tree_title">Title</string>
 
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
-    <!--    Settings Page-->
-    <string name="undo">Undo</string>
-    <string name="items_not_saved">Items Not Saved</string>
 
-    <string name="save">Save</string>
-    <string name="title_label">Title</string>
-    <string name="title_hint">Enter a title</string>
-    <string name="system_message_label">System Message</string>
-    <string name="system_message_hint">Pre-message before all others</string>
-    <string name="mode_label">Mode</string>
-    <string name="model_label">Model</string>
-    <string name="temperature_label">Temperature (%.2f)</string>
-    <string name="max_tokens_label">Max Tokens (%.0f)</string>
-    <string name="top_p_label">TopP (%.2f)</string>
-    <string name="frequency_penalty_label">Frequency Penalty (%.2f)</string>
-    <string name="presence_penalty_label">Presence Penalty (%.2f)</string>
-    <string name="stop_list_label">Stop String (4 max, comma to enter)</string>
-    <string name="stop_list_hint">Strings to halt messages</string>
-    <string name="logit_bias_label">Logit Bias (comma to enter)</string>
-    <string name="logit_bias_hint">Adjust token probability -100 to 100 (eg 123=69)</string>
-    <string name="number_of_label">Number of (%.0f)</string>
-    <string name="best_of_label">Best of (%.0f)</string>
-    <string name="inject_start_text_label">Inject Start Text</string>
-    <string name="inject_start_text_hint">Enter text to inject at the start</string>
-    <string name="inject_restart_text_label">Inject Restart Text</string>
-    <string name="inject_restart_text_hint">Enter text to inject when restarting</string>
     <string-array name="mode_options">
         <item>Completion</item>
         <item>ChatCompletion</item>

@@ -9,6 +9,19 @@
         android:name="com.phazei.dynamicgptchat.prompts.PromptsFragment"
         android:label="@string/prompt_settings_label"
         tools:layout="@layout/fragment_prompts">
+        <action
+            android:id="@+id/action_PromptsFragment_to_PromptsInfoFragment"
+            app:destination="@id/PromptsInfoFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/PromptsInfoFragment"
+        android:name="com.phazei.dynamicgptchat.prompts.PromptsInfoFragment"
+        android:label="@string/prompt_info_label"
+        tools:layout="@layout/fragment_prompts">
+        <action
+            android:id="@+id/action_PromptsInfoFragment_to_PromptsFragment"
+            app:destination="@id/PromptsFragment" />
     </fragment>
 
 </navigation>

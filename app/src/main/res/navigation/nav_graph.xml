@@ -3,9 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/chat_tree_graph">
+    app:startDestination="@id/prompts_graph">
 
-    <include app:graph="@navigation/chat_tree_graph" />
     <include app:graph="@navigation/prompts_graph" />
 
     <fragment

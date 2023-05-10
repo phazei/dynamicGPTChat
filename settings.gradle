@@ -14,4 +14,3 @@ dependencyResolutionManagement {
 }
 rootProject.name = "DynamicGPTChat"
 include ':app'
-include ':taginputview'

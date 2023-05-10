@@ -4,20 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#BBBBFF"
-    tools:context=".prompts.PromptsFragment">
+    android:background="#BBFFBB"
+    tools:context=".prompts.PromptsInfoFragment">
 
     <TextView
-        android:id="@+id/about_text"
+        android:id="@+id/prompts_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textSize="50sp"
+        android:text="PROMPTS INFO"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:textSize="50sp"
-        android:text="ABOUT"
-        android:contentDescription="@string/about_app"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

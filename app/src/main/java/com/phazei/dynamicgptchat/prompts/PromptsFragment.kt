@@ -4,19 +4,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import com.phazei.dynamicgptchat.SharedViewModel
+import androidx.navigation.fragment.findNavController
+import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.databinding.FragmentPromptsBinding
 
 class PromptsFragment : Fragment() {
 
     private var _binding: FragmentPromptsBinding? = null
     private val binding get() = _binding!!
-    private val sharedViewModel: SharedViewModel by activityViewModels()
-    private val promptsViewModel: PromptsViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -24,13 +20,17 @@ class PromptsFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentPromptsBinding.inflate(inflater, container, false)
-
-        val textView: TextView = binding.promptsText
-        promptsViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
-        }
         return binding.root
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.promptsText.setOnClickListener {
+            findNavController().navigate(R.id.action_PromptsFragment_to_PromptsInfoFragment)
+        }
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()
