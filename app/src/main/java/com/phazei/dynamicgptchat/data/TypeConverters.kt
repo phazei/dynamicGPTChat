@@ -59,7 +59,7 @@ class MapConverter {
 
     @TypeConverter
     fun fromStringToMap(value: String?): MutableMap<Int, Int>? {
-        return adapter.fromJson(value ?: "{}") as MutableMap<Int, Int>?
+        return adapter.fromJson(value ?: "{}")
     }
 
     @TypeConverter

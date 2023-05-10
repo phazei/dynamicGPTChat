@@ -180,8 +180,8 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
     }
 
     // @ChatNodeAdapter
-    override fun onNodeSelected(position: Int) {
-        popupMenuHelper.stateManagement(position)
+    override fun onNodeSelected() {
+        popupMenuHelper.stateManagement()
     }
     // @ChatNodeAdapter
     override fun onEditNode(position: Int) {
@@ -420,7 +420,24 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             popupBinding.apply {
 
                 nodeDelete.setOnClickListener {
-
+                    //remove item from chatNode.parent.children.  Check if activeChild
+                    activePosition?.let { activePos ->
+                        activeHolder?.let { holder ->
+                            val chatNode = chatNodeAdapter.getItem(activePos)
+                            val isLastChild = chatNode.parent.children.size <= 1
+                            if (!isLastChild) {
+                                //this is essentially the same as cycling until there are no more nodes left
+                                isCyclingChildren = true
+                                cyclingPrevYOffset = holder.binding.root.top
+                            }
+                            chatNodeViewModel.deleteChildNode(chatNode)
+                            // It's possible this is the last child of the parent being deleted, in which case there will be no more
+                            // activeHolder.  Otherwise it could be the last holder and finish will not close the popup Menu
+                            if (isLastChild) {
+                                finish()
+                            }
+                        }
+                    }
                 }
 
                 nodeEdit.setOnClickListener {
@@ -474,12 +491,9 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                         activeHolder?.let { holder ->
                             val chatNode = chatNodeAdapter.getItem(activePos)
                             editAddChatRequest(chatNode, holder.binding.promptTextEdit.text.toString())
-                            finish()
 
-                            // unintentional but acceptable behavior:
-                            // when saving this, the popup comes back on the new item.
-                            // I'm guessing the activePosition doesn't change, and it always seems to use
-                            // the same ViewHolder, so I guess it's ok for now.
+                            //close menu
+                            finish(true)
                         }
                     }
                 }
@@ -492,13 +506,15 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                             chatNode.prompt = holder.binding.promptTextEdit.text.toString()
                             chatNode.response = holder.binding.responseTextEdit.text.toString()
                             chatNodeViewModel.saveChatNode(chatNode)
-                            finish()
+
+                            //keep menu open and refresh its data
+                            disableEdit(true)
                         }
                     }
                 }
 
                 nodeEditCancel.setOnClickListener {
-                    disableEdit()
+                    disableEdit(true)
                 }
             }
         }
@@ -524,12 +540,12 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             )
         }
 
-        private fun disableEdit() {
+        private fun disableEdit(notify: Boolean = false) {
 
-            if (previousHolder != activeHolder) {
+            if (previousHolder != null && previousHolder != activeHolder) {
                 previousHolder?.disableEdit()
             }
-            activeHolder?.disableEdit()
+            activeHolder?.disableEdit(notify)
 
             if (binding.inputContainer.visibility==View.VISIBLE) {
                 //not enabled so skip animations
@@ -563,7 +579,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
          * Case 2: Menu item tapped when open
          * Case 3: Different menu item tapped when open
          */
-        fun stateManagement(position: Int? = null) {
+        fun stateManagement() {
             var showPopup = false
             // if the user didn't click anything specifically, this should determine what the state should be
             previousPosition = activePosition
@@ -611,10 +627,12 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                     }
                 } else if (previousPosition != null) {
                     if (popupWindow.isShowing) {
+                        // clicked new menu while already open on another item
                         finish()
                     }
                     showPopup = true
                 } else if (previousPosition == null) {
+                    // first time opened
                     showPopup = true
                 }
             }
@@ -665,18 +683,21 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
          * This will complete the menu action resetting the menu and clearing active
          * Use at end of: save update/save new/cancel edit/delete
          */
-        private fun finish() {
+        private fun finish(force: Boolean = false) {
             val quickDismiss: Boolean
-            disableEdit()
+
+            if (chatNodeAdapter.isEditingActive) {
+                disableEdit()
+            }
 
             if (previousHolder != null) {
                 if (previousHolder != activeHolder) {
                     //very likely the holder is reused
-                    previousHolder?.deactivate()
+                    previousHolder?.deactivate(force)
                 }
                 quickDismiss = activeHolder != null
             } else {
-                activeHolder?.deactivate()
+                activeHolder?.deactivate(force)
                 activeHolder = null
                 activePosition = null
                 activeScrollPosition = null

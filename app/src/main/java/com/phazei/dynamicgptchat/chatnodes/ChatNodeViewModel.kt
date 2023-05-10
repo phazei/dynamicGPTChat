@@ -239,4 +239,17 @@ class ChatNodeViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Deletes a node from it's parent
+     */
+    fun deleteChildNode(chatNode: ChatNode) {
+        viewModelScope.launch {
+            if (chatNode.parentInitialized()) {
+                val parent = chatNode.parent
+                chatRepository.deleteChatNode(chatNode)
+                updateAndEmitActiveBranch(parent)
+            }
+        }
+    }
 }

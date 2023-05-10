@@ -86,6 +86,8 @@ class ChatRepository @Inject constructor(
 
     suspend fun deleteChatTree(chatTree: ChatTree) = chatTreeDao.delete(chatTree)
 
+
+
     /**
      * Updates a chatNode. Ensures parent node exists.
      * Also updates parent.activeChildIndex
@@ -117,9 +119,35 @@ class ChatRepository @Inject constructor(
             }
         }
     }
+
     suspend fun updateChatNode(chatNode: ChatNode) {
         withContext(Dispatchers.IO) {
             chatNodeDao.update(chatNode)
+        }
+    }
+
+    /**
+     * When a child node is deleted, the parents active index needs to point to a valid
+     * index, so check the index and modify it if necessary
+     */
+    suspend fun deleteChatNode(chatNode: ChatNode) {
+        withContext(Dispatchers.IO) {
+            database.withTransaction {
+                var parent: ChatNode? = null
+                if (chatNode.parentInitialized()) {
+                    parent = chatNode.parent
+                    parent.children.remove(chatNode)
+                    if (parent.children.size == 0) {
+                        parent.activeChildIndex = 0
+                    } else if (parent.activeChildIndex > parent.children.lastIndex) {
+                        parent.activeChildIndex = parent.children.lastIndex
+                    }
+                }
+                chatNodeDao.delete(chatNode)
+                if (parent != null) {
+                    chatNodeDao.update(parent)
+                }
+            }
         }
     }
 
@@ -128,6 +156,8 @@ class ChatRepository @Inject constructor(
             gptSettingsDao.upsert(gptSettings)
         }
     }
+
+
 
     /**
      * Loads all children for entire branch and assigns parent as well
@@ -145,8 +175,6 @@ class ChatRepository @Inject constructor(
             processChildren(chatNode)
         }
     }
-
-    suspend fun deleteChatNode(chatNode: ChatNode) = chatNodeDao.delete(chatNode)
 
     /**
      * The following non-suspension methods are helper functions to manage the entities after

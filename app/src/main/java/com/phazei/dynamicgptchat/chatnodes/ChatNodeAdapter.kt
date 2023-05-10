@@ -123,7 +123,7 @@ class ChatNodeAdapter(
                     //disable it after clicking a second time
                     activeNodePosition = null
                     notifyItemChanged(bindingAdapterPosition)
-                    nodeActionListener.onNodeSelected(bindingAdapterPosition)
+                    nodeActionListener.onNodeSelected()
                 } else {
                     activeNodePosition = bindingAdapterPosition
                     notifyItemChanged(bindingAdapterPosition)
@@ -160,7 +160,7 @@ class ChatNodeAdapter(
                     override fun onGlobalLayout() {
                         // remove listener and call popup
                         binding.root.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                        nodeActionListener.onNodeSelected(bindingAdapterPosition)
+                        nodeActionListener.onNodeSelected()
                     }
                 })
 
@@ -243,10 +243,10 @@ class ChatNodeAdapter(
          * Be certain it's not called if the view is reused
          * BindingAdapter position might change
          */
-        fun deactivate() {
+        fun deactivate(force: Boolean = false) {
             editedData.clear()
 
-            if (activeNodePosition != null && bindingAdapterPosition == activeNodePosition) {
+            if (force || (activeNodePosition != null && bindingAdapterPosition == activeNodePosition)) {
                 val oldActiveNodePosition = activeNodePosition ?: -1
                 activeNodePosition = null
                 notifyItemChanged(oldActiveNodePosition)
@@ -342,7 +342,7 @@ class ChatNodeAdapter(
     }
 
     interface OnNodeActionListener {
-        fun onNodeSelected(position: Int)
+        fun onNodeSelected()
         fun onEditNode(position: Int)
         // Add other actions as needed
     }
