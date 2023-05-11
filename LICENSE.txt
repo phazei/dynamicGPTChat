@@ -1,0 +1,74 @@
+DynamicGPTChat Software License
+===============================
+
+Copyright (c) 2023 Adam Segal
+
+1. Grant of License
+-------------------
+
+Subject to the terms of this License, the copyright holder of DynamicGPTChat ("Licensor") hereby grants to you ("Licensee") a worldwide, royalty-free, non-exclusive, non-transferable license to use, modify, and distribute the DynamicGPTChat software and its source code, provided that the distribution is for non-commercial purposes only.
+
+
+2. License Compatibility
+------------------------
+
+This License is compatible with the terms of the Apache License 2.0 and the MIT License. When using third-party libraries or components with their respective licenses, ensure that you are complying with the terms of those licenses.
+
+
+3. Contributor License Agreement
+--------------------------------
+
+Contributors to DynamicGPTChat must sign a Contributor License Agreement (CLA) granting the Licensor the rights to their contributed code if the Licensor chooses to use it commercially. The Licensor values the hard work and dedication of significant contributors and may, with excitement and appreciation, offer compensation if a commercial agreement is reached, at their sole discretion. Contributions to third-party libraries used in DynamicGPTChat are not subject to this CLA.
+
+
+4. Redistribution
+-----------------
+
+Redistribution of modified versions of DynamicGPTChat is allowed, provided that the modified versions remain available under the same terms as this License, are distributed for non-commercial purposes only, and include the following attribution notice: "This software is based on DynamicGPTChat, Copyright (c) 2023 Adam Segal."
+
+
+5. Derivative Works
+-------------------
+
+Creation of derivative works based on DynamicGPTChat is allowed, provided that such works are released under the same terms as this License, are not used for commercial purposes without a separate agreement with the Licensor, and include the following attribution notice: "This software is based on DynamicGPTChat, Copyright (c) 2023 Adam Segal."
+
+
+6. Warranties and Disclaimers
+-----------------------------
+
+DynamicGPTChat is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the Licensor be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of, or in connection with DynamicGPTChat or the use or other dealings in DynamicGPTChat.
+
+
+7. Application Image and Name Restrictions
+-------------------------------------------
+The application image (robot head with a dot eye and circular eye w/eyebrow with fuchsia and teal paint streak) and the name "DynamicGPTChat" included in the DynamicGPTChat project are the exclusive property of the Licensor and are not licensed for use, modification, or distribution under this License. When creating a modified version or derivative work based on DynamicGPTChat, you must replace the original application image with a different image and use a different name for the project. Any unauthorized use of the original application image or the name "DynamicGPTChat" is strictly prohibited.
+
+
+8. Termination
+--------------
+
+This License will terminate automatically if Licensee fails to comply with any of its terms and conditions. Upon termination, Licensee must cease all use, modification, and distribution of DynamicGPTChat and its source code.
+
+
+9. Compliance with OpenAI Terms of Use
+--------------------------------------
+
+All uses of DynamicGPTChat must comply with OpenAI's terms of use, as the software relies on OpenAI's technology.
+
+
+10. Compliance with Additional AI API Terms of Use
+-------------------------------------------------
+
+In the event that other AI APIs are integrated with DynamicGPTChat, this License may be updated to include a requirement to comply with the terms of use of such additional APIs. Licensees are responsible for ensuring their use of DynamicGPTChat complies with the terms of use of all integrated AI APIs.
+
+
+11. Commercial Licensing
+------------------------
+
+Licensees interested in using DynamicGPTChat for commercial purposes must contact the Licensor to discuss and establish a separate commercial license agreement. This may involve creating a multi-license structure with a fork of the main project for unique branding or paywall features, while still committing functional features to the main project.
+
+
+12. Governing Law
+-----------------
+
+This License shall be governed by and construed in accordance with the laws of Washington, USA, without regard to its conflict of laws principles.

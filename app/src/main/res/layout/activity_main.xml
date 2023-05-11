@@ -23,6 +23,13 @@
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer">
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="bottom"
+            android:background="#66808080"
+            android:layout_marginBottom="52dp"
+            />
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
