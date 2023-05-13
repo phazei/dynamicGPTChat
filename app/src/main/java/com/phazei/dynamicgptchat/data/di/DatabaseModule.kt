@@ -5,6 +5,9 @@ import com.phazei.dynamicgptchat.data.AppDatabase
 import com.phazei.dynamicgptchat.data.dao.ChatNodeDao
 import com.phazei.dynamicgptchat.data.dao.ChatTreeDao
 import com.phazei.dynamicgptchat.data.dao.GPTSettingsDao
+import com.phazei.dynamicgptchat.data.dao.PromptDao
+import com.phazei.dynamicgptchat.data.dao.PromptTagDao
+import com.phazei.dynamicgptchat.data.dao.TagDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,4 +42,23 @@ object DatabaseModule {
     fun provideGPTSettingsDao(appDatabase: AppDatabase): GPTSettingsDao {
         return appDatabase.gptSettingsDao()
     }
+
+    @Provides
+    @Singleton
+    fun providePromptDao(appDatabase: AppDatabase): PromptDao {
+        return appDatabase.promptDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePromptTagDao(appDatabase: AppDatabase): PromptTagDao {
+        return appDatabase.promptTagDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideTagDao(appDatabase: AppDatabase): TagDao {
+        return appDatabase.tagDao()
+    }
+
 }
