@@ -1,13 +1,41 @@
 package com.phazei.dynamicgptchat.prompts
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.phazei.dynamicgptchat.data.entity.ChatTree
+import com.phazei.dynamicgptchat.data.entity.Prompt
+import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.repo.PromptsRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PromptsViewModel : ViewModel() {
+@HiltViewModel
+class PromptsViewModel @Inject constructor(private val promptsRepository: PromptsRepository) : ViewModel() {
 
-    private val _text = MutableLiveData<String>().apply {
-        value = "This is Prompts"
+    private val _promptsWithTags = MutableSharedFlow<List<PromptWithTags>>()
+    val promptsWithTags: Flow<List<PromptWithTags>> = _promptsWithTags.asSharedFlow()
+
+    fun loadPromptsWithTags() {
+        viewModelScope.launch {
+            _promptsWithTags.emit(promptsRepository.loadPromptsWithTags())
+        }
     }
-    val text: LiveData<String> = _text
+
+    fun savePromptWithTags(promptWithTags: PromptWithTags) {
+        viewModelScope.launch {
+            promptsRepository.savePromptWithTags(promptWithTags)
+        }
+    }
+
+    fun deletePrompt(prompt: Prompt) {
+        viewModelScope.launch {
+            promptsRepository.deletePrompt(prompt)
+        }
+    }
 }

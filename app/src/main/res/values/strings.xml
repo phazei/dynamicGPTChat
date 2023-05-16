@@ -32,6 +32,10 @@
     <string name="undo">Undo</string>
     <string name="items_not_saved">Items Not Saved</string>
 
+    <!-- Prompt Dialog -->
+    <string name="dialog_title_edit">Editing Prompt</string>
+    <string name="dialog_title_add">New Prompt</string>
+
     <string name="save">Save</string>
     <string name="title_label">Title</string>
     <string name="title_hint">Enter a title</string>
