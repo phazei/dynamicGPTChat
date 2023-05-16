@@ -19,11 +19,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
+            android:focusableInTouchMode="true"
             android:paddingHorizontal="20dp"
             android:background="?attr/colorError"
             android:drawableEnd="@drawable/round_delete_sweep_24"
             android:singleLine="true"
-            android:contentDescription="Trash"
+            android:contentDescription="@string/prompt_delete"
             tools:ignore="ButtonStyle, TextContrastCheck" />
     </LinearLayout>
 
@@ -57,10 +58,10 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:src="@drawable/round_edit_24"
-            android:backgroundTint="#01FFFFFF"
+
             app:layout_constraintEnd_toStartOf="@id/prompt_copy"
             app:layout_constraintTop_toTopOf="parent"
-            />
+            android:contentDescription="@string/prompt_edit" />
 
         <ImageButton
             android:id="@+id/prompt_copy"
@@ -68,30 +69,35 @@
             android:layout_height="wrap_content"
             android:padding="10dp"
             android:src="@drawable/round_content_copy_24"
-            android:backgroundTint="#01FFFFFF"
+
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            />
+            android:contentDescription="@string/prompt_copy" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/prompt_group_tags"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:singleLine="false"
+            app:layout_constraintTop_toBottomOf="@id/prompt_title"
+            app:layout_constraintStart_toStartOf="parent"/>
 
         <TextView
             android:id="@+id/prompt_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:textSize="16sp"
             android:text="Body"
-            android:minLines="3"
-            app:layout_constraintTop_toBottomOf="@id/prompt_title"
+            android:minLines="2"
+            android:maxLines="3"
+            android:ellipsize="end"
+            app:layout_constraintTop_toBottomOf="@id/prompt_group_tags"
             app:layout_constraintStart_toStartOf="parent"
             />
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chip_group_tags"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:singleLine="false"
-            app:layout_constraintTop_toBottomOf="@id/prompt_body"
-            app:layout_constraintStart_toStartOf="parent"
-            />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.phazei.dynamicgptchat.swipereveal.SwipeRevealLayout>

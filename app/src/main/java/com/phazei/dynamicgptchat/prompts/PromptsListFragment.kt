@@ -2,6 +2,7 @@ package com.phazei.dynamicgptchat.prompts
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -68,7 +69,16 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
         promptSelectedListener = listener
     }
     fun updatePromptWithTagsItem(promptWithTags: PromptWithTags) {
+        // item always moves to top, so scroll to top
+
         promptListAdapter.updateItem(promptWithTags)
+        binding.promptListRecyclerView.scrollToPosition(0)
+        binding.promptListRecyclerView.post {
+            val position = promptListAdapter.getItemPosition(promptWithTags)
+            val holder = binding.promptListRecyclerView.findViewHolderForAdapterPosition(position) as PromptListAdapter.PromptWithTagsViewHolder
+            promptListAdapter.flashItem(position, holder)
+        }
+
     }
 
     interface OnPromptSelectedListener {

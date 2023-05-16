@@ -32,10 +32,15 @@
     <string name="undo">Undo</string>
     <string name="items_not_saved">Items Not Saved</string>
 
-    <!-- Prompt Dialog -->
+    <!-- Prompt Related -->
     <string name="dialog_title_edit">Editing Prompt</string>
     <string name="dialog_title_add">New Prompt</string>
+    <string name="prompt_edit">Edit Prompt</string>
+    <string name="prompt_copy">Copy Prompt</string>
+    <string name="prompt_delete">Click to delete prompt</string>
 
+
+    <!--  Settings Related  -->
     <string name="save">Save</string>
     <string name="title_label">Title</string>
     <string name="title_hint">Enter a title</string>
@@ -89,6 +94,8 @@
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="error_message">Error message</string>
+
+
 
     <string name="stop_and_load_dot">M 5 2.5 A 2.5 2.5 0 0 1 2.5 5 A 2.5 2.5 0 0 1 0 2.5 A 2.5 2.5 0 0 1 2.5 0 A 2.5 2.5 0 0 1 5 2.5 Z</string>
     <string name="knightrider_rect">M 0 6 L 0 0 L 12 0 L 12 6 Z</string>
