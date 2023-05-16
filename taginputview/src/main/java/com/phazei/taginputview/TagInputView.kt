@@ -6,6 +6,7 @@ import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.LayerDrawable
+import android.text.InputFilter
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.DisplayMetrics
@@ -54,6 +55,7 @@ class TagInputView @JvmOverloads constructor(
     private var customTagStyle: Int? = null
     private var inputTheme: Int? = null
     private var tagLimit: Int? = null
+    private var maxTextLength: Int? = null
 
     lateinit var tagInputEditText: EditText
 
@@ -69,8 +71,15 @@ class TagInputView @JvmOverloads constructor(
 
         val typedArray = context.obtainStyledAttributes(attrs, R.styleable.TagInputView)
 
-        val hint = typedArray.getString(R.styleable.TagInputView_hint).takeIf { it != "" }
+        val hint = typedArray.getString(R.styleable.TagInputView_android_hint).takeIf { it != "" }
         tagInputEditText.hint = hint ?: context.getString(R.string.enter_tags)
+
+        maxTextLength = typedArray.getInt(R.styleable.TagInputView_android_maxLength, -1).takeIf { it != -1 }
+        if (maxTextLength != null) tagInputEditText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(maxTextLength!!))
+
+        val isEnabled = typedArray.getBoolean(R.styleable.TagInputView_android_enabled, true)
+        setEnabled(isEnabled)
+
 
         tagLimit = typedArray.getInt(R.styleable.TagInputView_tagLimit, -1).takeIf { it != -1 }
         customTagStyle = typedArray.getResourceId(R.styleable.TagInputView_tagStyle, -1).takeIf { it != -1 }
@@ -86,18 +95,6 @@ class TagInputView @JvmOverloads constructor(
 
     }
 
-    private fun setupSelfView() {
-        this.layoutParams = LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply {}
-        this.flexWrap = FlexWrap.WRAP
-        this.alignItems = AlignItems.FLEX_END
-        // this.focusable = NOT_FOCUSABLE
-        descendantFocusability = FOCUS_BEFORE_DESCENDANTS
-
-    }
-
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         //hack since minHeight is broken: https://github.com/google/flexbox-layout/issues/562
@@ -108,9 +105,40 @@ class TagInputView @JvmOverloads constructor(
             if (extraPadding > 0) {
                 setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1] + extraPadding, viewHelper.paddingMod[2], viewHelper.paddingMod[3])
             }
+            //not needed most of the time, but discovered one case in a Dialog where the height didn't change with padding alone
+            setMeasuredDimension(measuredWidth, minHeight)
         } else {
             setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1], viewHelper.paddingMod[2], viewHelper.paddingMod[3])
         }
+    }
+
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+        // Control the state of your custom view's components
+
+        setChipsEnabled(enabled)
+        if (enabled) {
+            tagInputEditText.visibility = View.VISIBLE
+        } else {
+            tagInputEditText.visibility = View.GONE
+        }
+    }
+
+    override fun requestFocus(direction: Int, previouslyFocusedRect: Rect?): Boolean {
+        // Always request focus for the EditText instead of the TagInputView itself
+        return tagInputEditText.requestFocus(direction, previouslyFocusedRect)
+    }
+
+    private fun setupSelfView() {
+        this.layoutParams = LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {}
+        this.flexWrap = FlexWrap.WRAP
+        this.alignItems = AlignItems.FLEX_END
+        // this.focusable = NOT_FOCUSABLE
+        descendantFocusability = FOCUS_BEFORE_DESCENDANTS
+
     }
 
     private fun setupEditText() {
@@ -203,11 +231,6 @@ class TagInputView @JvmOverloads constructor(
 
     }
 
-    override fun requestFocus(direction: Int, previouslyFocusedRect: Rect?): Boolean {
-        // Always request focus for the EditText instead of the TagInputView itself
-        return tagInputEditText.requestFocus(direction, previouslyFocusedRect)
-    }
-
     private fun addTagFromEditText() {
         var input = tagInputEditText.text.toString()
         if (input.isNotEmpty() && delimiterChars.contains(input.last())) {
@@ -257,6 +280,9 @@ class TagInputView @JvmOverloads constructor(
 
         // com.google.android.flexbox.R.styleable.FlexboxLayout_Layout_layout_flexGrow
         chip.apply {
+            // could be programmatically added while disabled so need to check here
+            isEnabled = this@TagInputView.isEnabled
+
             text = tagInputData.applyDisplayConverter(tag)
             setChipDrawable(chipDrawableStyle)
             layoutParams = LayoutParams(viewHelper.chipContextCustom, viewHelper.attrsCustom)
@@ -264,6 +290,9 @@ class TagInputView @JvmOverloads constructor(
             ensureAccessibleTouchTarget(viewHelper.getChipMinTouchTargetSizeFromStyle(viewHelper.chipTagStyle))
 
             chip.setOnClickListener {
+                if (!this@TagInputView.isEnabled) {
+                    return@setOnClickListener
+                }
                 // If the clicked chip is the same as the selected chip, remove it from the view and reset the selected chip
                 if (selectedChip == chip) {
                     removeTag(tag)
@@ -290,6 +319,14 @@ class TagInputView @JvmOverloads constructor(
             val child = this.getChildAt(i)
             if (child is Chip) {
                 child.isChecked = false
+            }
+        }
+    }
+    fun setChipsEnabled(enabled: Boolean) {
+        for (i in 0 until this.childCount) {
+            val child = this.getChildAt(i)
+            if (child is Chip) {
+                child.isEnabled = enabled
             }
         }
     }
