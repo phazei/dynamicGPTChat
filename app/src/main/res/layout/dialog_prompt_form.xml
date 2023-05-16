@@ -36,13 +36,15 @@
         android:id="@+id/prompt_tags"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
         android:paddingHorizontal="12dp"
-        android:paddingVertical="12dp"
+        android:paddingVertical="6dp"
+
         android:background="?attr/colorSurfaceVariant"
         app:strokeColor="?attr/colorPrimary"
         app:inputTheme="@style/textHandleOnColor"
-        android:layout_marginBottom="10dp"
-        app:hint="Tags for prompt" />
+        android:maxLength="16"
+        android:hint="Tags for prompt" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/prompt_layout_body"
@@ -54,6 +56,7 @@
             android:id="@+id/prompt_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="top"
             android:inputType="textMultiLine"
             android:minLines="4"
             android:maxLines="10"
