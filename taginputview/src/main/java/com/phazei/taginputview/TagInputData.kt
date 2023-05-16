@@ -50,7 +50,7 @@ class TagInputData<T> {
         return if (customFilter != null) {
             customFilter?.invoke(input as T)
         } else {
-            input
+            input as T
         }
     }
 

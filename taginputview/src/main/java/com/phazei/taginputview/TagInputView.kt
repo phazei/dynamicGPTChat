@@ -10,13 +10,16 @@ import android.text.InputFilter
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.DisplayMetrics
+import android.util.Log
 import android.util.Xml
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.ListView
 import androidx.annotation.StyleRes
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
@@ -57,7 +60,7 @@ class TagInputView @JvmOverloads constructor(
     private var tagLimit: Int? = null
     private var maxTextLength: Int? = null
 
-    lateinit var tagInputEditText: EditText
+    lateinit var tagInputEditText: AutoCompleteTextView
 
     private var selectedChip: Chip? = null
 
@@ -65,11 +68,14 @@ class TagInputView @JvmOverloads constructor(
     private val viewHelper: ViewHelper
 
     init {
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.TagInputView)
+        //needs to be initiated before edit text
+        inputTheme = typedArray.getResourceId(R.styleable.TagInputView_inputTheme, -1).takeIf { it != -1 }
+
         setupSelfView()
         setupEditText()
         viewHelper = ViewHelper()
 
-        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.TagInputView)
 
         val hint = typedArray.getString(R.styleable.TagInputView_android_hint).takeIf { it != "" }
         tagInputEditText.hint = hint ?: context.getString(R.string.enter_tags)
@@ -83,7 +89,6 @@ class TagInputView @JvmOverloads constructor(
 
         tagLimit = typedArray.getInt(R.styleable.TagInputView_tagLimit, -1).takeIf { it != -1 }
         customTagStyle = typedArray.getResourceId(R.styleable.TagInputView_tagStyle, -1).takeIf { it != -1 }
-        inputTheme = typedArray.getResourceId(R.styleable.TagInputView_inputTheme, -1).takeIf { it != -1 }
 
 
         viewHelper.setupBackground(typedArray)
@@ -146,7 +151,8 @@ class TagInputView @JvmOverloads constructor(
         if (inputTheme != null) {
             contextWrapper = ContextThemeWrapper(context, inputTheme!!)
         }
-        tagInputEditText = EditText(contextWrapper, null, android.R.attr.editTextStyle, com.google.android.material.R.style.Widget_Material3_TextInputLayout_FilledBox).apply {
+
+        tagInputEditText = AutoCompleteTextView(contextWrapper, null, android.R.attr.autoCompleteTextViewStyle, com.google.android.material.R.style.ThemeOverlay_Material3_AutoCompleteTextView_FilledBox).apply {
             // tagInputEditText = TextInputEditText(context, null, com.google.android.material.R.style.Widget_Material3_TextInputLayout_FilledBox).apply {
             id = View.generateViewId()
             layoutParams = LayoutParams(
@@ -164,7 +170,7 @@ class TagInputView @JvmOverloads constructor(
             maxLines = 1
             textSize = 16F
             background = null
-            inputType = InputType.TYPE_CLASS_TEXT
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
             backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
             isFocusedByDefault = true
         }
@@ -211,7 +217,10 @@ class TagInputView @JvmOverloads constructor(
 
         tagInputEditText.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN) {
-                if (delimiterKeys.contains(keyCode)) {
+                val position = tagInputEditText.getListSelection()
+                if (keyCode == KeyEvent.KEYCODE_ENTER && tagInputEditText.isPopupShowing && position != ListView.INVALID_POSITION) {
+                    //if autoComplete popup is showing and an item is selected, then it shouldn't add
+                } else if (delimiterKeys.contains(keyCode)) {
                     addTagFromEditText()
                     return@setOnKeyListener true
                 }
@@ -229,6 +238,19 @@ class TagInputView @JvmOverloads constructor(
             return@setOnKeyListener false
         }
 
+        /**
+         * Array
+         */
+        tagInputEditText.setOnItemClickListener { _, _, position, _ ->
+            val item = tagInputEditText.adapter.getItem(position)
+            var convertedItem = item
+            if (item is String) {
+                convertedItem = tagInputData.inputConverter(item)
+            }
+            addTag(convertedItem)
+            tagInputEditText.setText("")
+        }
+
     }
 
     private fun addTagFromEditText() {
@@ -239,9 +261,8 @@ class TagInputView @JvmOverloads constructor(
 
         if (input.isNotEmpty()) {
             val convertedTag = tagInputData.inputConverter(input)
-            val processedTag = tagInputData.applyCustomFilter(convertedTag)
-            if (processedTag != null) {
-                addTag(processedTag)
+            if (convertedTag != null) {
+                addTag(convertedTag)
             }
         }
         tagInputEditText.setText("")
@@ -252,8 +273,11 @@ class TagInputView @JvmOverloads constructor(
             if (tagLimit != null && tagInputData.size() + 1 > tagLimit!!) {
                 return
             }
-            tagInputData.addTag(tag)
-            addTagView(tag)
+            val processedTag = tagInputData.applyCustomFilter(tag)
+            if (processedTag != null) {
+                tagInputData.addTag(tag)
+                addTagView(tag)
+            }
         }
     }
 
@@ -368,6 +392,13 @@ class TagInputView @JvmOverloads constructor(
         tagInputData.clearTags()
     }
 
+    /**
+     * ArrayAdapter for autocomplete.  Optional.
+     * Should be same type as TagInputData.
+     */
+    fun <T> setAutoCompleteAdapter(adapter: ArrayAdapter<T>?) {
+        tagInputEditText.setAdapter(adapter)
+    }
 
     fun setCustomFilter(filter: (Any?) -> Any?) {
         tagInputData.assignCustomFilter(filter)
