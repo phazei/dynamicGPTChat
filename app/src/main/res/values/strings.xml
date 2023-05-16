@@ -38,6 +38,11 @@
     <string name="prompt_edit">Edit Prompt</string>
     <string name="prompt_copy">Copy Prompt</string>
     <string name="prompt_delete">Click to delete prompt</string>
+    <string name="prompt_search_view_tag">View Tag Filter</string>
+    <string name="prompt_search_submit">Submit Filter</string>
+    <string name="prompt_text_filter">Filter By Text</string>
+    <string name="prompt_tag_filter">Filter By Tag</string>
+
 
 
     <!--  Settings Related  -->

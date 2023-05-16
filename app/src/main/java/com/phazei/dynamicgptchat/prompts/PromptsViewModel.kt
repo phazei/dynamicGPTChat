@@ -1,10 +1,12 @@
 package com.phazei.dynamicgptchat.prompts
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.data.entity.Prompt
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.data.repo.PromptsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -20,10 +22,18 @@ class PromptsViewModel @Inject constructor(private val promptsRepository: Prompt
 
     private val _promptsWithTags = MutableSharedFlow<List<PromptWithTags>>()
     val promptsWithTags: Flow<List<PromptWithTags>> = _promptsWithTags.asSharedFlow()
+    private val _tags = MutableSharedFlow<List<Tag>>()
+    val tags: Flow<List<Tag>> = _tags.asSharedFlow()
 
     fun loadPromptsWithTags() {
         viewModelScope.launch {
             _promptsWithTags.emit(promptsRepository.loadPromptsWithTags())
+        }
+    }
+
+    fun loadAllTags() {
+        viewModelScope.launch {
+            _tags.emit(promptsRepository.loadTags())
         }
     }
 

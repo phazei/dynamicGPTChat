@@ -16,41 +16,73 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/prompt_list_recycler_view">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <EditText
-                android:layout_width="wrap_content"
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/search_prompt_text_layout"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:paddingEnd="40dp"
-                android:text="Search"/>
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="@id/prompt_search_tag_toggle"
+                android:hint="@string/prompt_text_filter">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/prompt_search_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="50dp"
+                    android:singleLine="true"
+                    android:inputType="text|textNoSuggestions"
+                    android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <ImageButton
+                android:id="@+id/prompt_search_tag_toggle"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="-50dp"
-                android:src="@drawable/round_add_circle_outline_24"
+                android:layout_height="0dp"
+                android:layout_margin="0dp"
+                android:src="@drawable/round_add_tag_outline_24"
                 app:tint="?attr/colorPrimary"
-                android:backgroundTint="@android:color/transparent"
+                android:backgroundTint="?attr/colorSurfaceVariant"
+                android:contentDescription="@string/prompt_search_view_tag"
+
+                app:layout_constraintEnd_toEndOf="@id/search_prompt_text_layout"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
                 />
             <ImageButton
+                android:id="@+id/prompt_search_submit"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
+                android:layout_height="0dp"
+                android:layout_margin="0dp"
                 android:src="@drawable/baseline_search_24"
                 app:tint="?attr/colorPrimary"
-                android:backgroundTint="@android:color/transparent"
-                />
-        </LinearLayout>
+                android:backgroundTint="?attr/colorSurface"
+                android:contentDescription="@string/prompt_search_submit"
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/prompt_chip_filter"
-            android:layout_width="wrap_content"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/prompt_search_tag_toggle"
+                app:layout_constraintEnd_toEndOf="parent"
+                />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.phazei.taginputview.TagInputView
+            android:id="@+id/prompt_search_tags"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            app:singleLine="false" />
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:background="?attr/colorSurfaceVariant"
+            app:strokeColor="?attr/colorPrimary"
+            app:inputTheme="@style/textHandleOnColor"
+            android:maxLength="16"
+            android:hint="@string/prompt_tag_filter" />
 
     </LinearLayout>
 

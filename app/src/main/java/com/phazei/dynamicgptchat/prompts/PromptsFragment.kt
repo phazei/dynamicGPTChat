@@ -2,6 +2,7 @@ package com.phazei.dynamicgptchat.prompts
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -73,8 +74,8 @@ class PromptsFragment : Fragment(), PromptsListFragment.OnPromptSelectedListener
         openPromptFormDialog(promptWithTags)
     }
 
-    //
     /**
+     * Save prompt submitted from dialog
      * From @PromptFormDialog interface - communicate with dialog, what happens when item is submitted from dialog
      */
     override fun onSavePrompt(promptWithTags: PromptWithTags) {

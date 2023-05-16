@@ -1,6 +1,7 @@
 package com.phazei.dynamicgptchat.data.dao
 
 import androidx.room.*
+import com.phazei.dynamicgptchat.data.entity.Prompt
 import com.phazei.dynamicgptchat.data.entity.Tag
 
 @Dao
@@ -10,6 +11,9 @@ interface TagDao {
 
     @Delete
     suspend fun delete(tag: Tag)
+
+    @Query("SELECT * FROM tags")
+    suspend fun getAllTags(): List<Tag>
 
     @Query("SELECT * FROM tags WHERE id = :tagId")
     suspend fun getTagById(tagId: Long): Tag

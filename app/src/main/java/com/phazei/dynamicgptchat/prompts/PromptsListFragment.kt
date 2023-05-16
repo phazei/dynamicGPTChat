@@ -2,6 +2,7 @@ package com.phazei.dynamicgptchat.prompts
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -15,7 +16,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.databinding.FragmentPromptsListBinding
+import com.phazei.taginputview.TagInputData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -45,16 +48,53 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
 
         viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            promptsViewModel.promptsWithTags
-                .collect { promptsWithTags ->
-                    promptListAdapter.updateData(promptsWithTags)
-                }
+            launch {
+                promptsViewModel.promptsWithTags
+                    .collect { promptsWithTags ->
+                        promptListAdapter.updateData(promptsWithTags)
+                    }
+            }
+            launch {
+                promptsViewModel.tags
+                    .collect { tags ->
+                        setupTagsSearch(tags)
+                    }
+            }
         }}
         viewLifecycleOwner.lifecycleScope.launch {
             delay(100)
             promptsViewModel.loadPromptsWithTags()
+            promptsViewModel.loadAllTags()
         }
+    }
 
+    private fun setupTagsSearch(tags: List<Tag>) {
+
+        val tagsAdapter = TagsArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, tags)
+
+        binding.promptSearchTags.apply {
+            setAutoCompleteAdapter(tagsAdapter)
+            setTagInputData(TagInputData<Tag>())
+            setInputConverter { input ->
+                // Check if tag exists. If so, use existing tag with id.
+                val foundTag = tagsAdapter.run {
+                    (0 until count).asSequence()
+                        .map { getItem(it) }
+                        .firstOrNull { it.name == input }
+                }
+
+                // If foundTag is not null, it means the tag exists.
+                foundTag?.let {
+                    return@setInputConverter it
+                }
+                // If tag doesn't exist, return null.
+                null
+            }
+            setDisplayConverter { tag ->
+                val tagTag = tag as Tag
+                tagTag.name
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -68,6 +108,10 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
     fun setOnPromptSelectedListener(listener: OnPromptSelectedListener) {
         promptSelectedListener = listener
     }
+
+    /**
+     * Handle updating prompts RecyclerView after being saved
+     */
     fun updatePromptWithTagsItem(promptWithTags: PromptWithTags) {
         // item always moves to top, so scroll to top
 
@@ -81,6 +125,9 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
 
     }
 
+    /**
+     * When recyclerView item is clicked
+     */
     interface OnPromptSelectedListener {
         fun onPromptSelected(promptWithTags: PromptWithTags)
     }

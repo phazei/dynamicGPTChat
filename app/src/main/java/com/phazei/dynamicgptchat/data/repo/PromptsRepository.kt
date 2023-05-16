@@ -8,6 +8,7 @@ import com.phazei.dynamicgptchat.data.dao.TagDao
 import com.phazei.dynamicgptchat.data.entity.Prompt
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
 import com.phazei.dynamicgptchat.data.entity.PromptTag
+import com.phazei.dynamicgptchat.data.entity.Tag
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,11 +23,12 @@ class PromptsRepository @Inject constructor(
     private val database: AppDatabase
 ) {
 
-    private val _promptsWithTags = MutableStateFlow<List<PromptWithTags>>(emptyList())
-    val promptsWithTags: Flow<List<PromptWithTags>> = _promptsWithTags.asStateFlow()
-
     suspend fun loadPromptsWithTags(): List<PromptWithTags> {
         return promptDao.getAllPromptsWithTags()
+    }
+
+    suspend fun loadTags(): List<Tag> {
+        return tagDao.getAllTags()
     }
 
     suspend fun savePromptWithTags(promptWithTags: PromptWithTags) {

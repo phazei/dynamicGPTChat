@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
-            android:focusableInTouchMode="true"
+            android:focusableInTouchMode="false"
             android:paddingHorizontal="20dp"
             android:background="?attr/colorError"
             android:drawableEnd="@drawable/round_delete_sweep_24"
