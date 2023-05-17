@@ -48,8 +48,7 @@ class TagInputView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FlexboxLayout(context, attrs, defStyleAttr) {
 
-    private val defaultTagInputData = TagInputData<String>()
-    private var tagInputData: TagInputData<*> = defaultTagInputData
+    private var tagInputData: TagInputData<*> = StringTagInputData()
 
     private var delimiterChars = ","
     private val delimiterKeys = mutableListOf(KeyEvent.KEYCODE_ENTER)
@@ -342,7 +341,7 @@ class TagInputView @JvmOverloads constructor(
 
     }
 
-    fun uncheckAllChips() {
+    private fun uncheckAllChips() {
         for (i in 0 until this.childCount) {
             val child = this.getChildAt(i)
             if (child is Chip) {
@@ -350,7 +349,7 @@ class TagInputView @JvmOverloads constructor(
             }
         }
     }
-    fun setChipsEnabled(enabled: Boolean) {
+    private fun setChipsEnabled(enabled: Boolean) {
         for (i in 0 until this.childCount) {
             val child = this.getChildAt(i)
             if (child is Chip) {
@@ -379,6 +378,14 @@ class TagInputView @JvmOverloads constructor(
         delimiterChars = chars
     }
 
+    /**
+     * ArrayAdapter for autocomplete.  Optional.
+     * Should be same type as TagInputData.
+     */
+    fun <T> setAutoCompleteAdapter(adapter: ArrayAdapter<T>?) {
+        tagInputEditText.setAdapter(adapter)
+    }
+
     fun <T> setTagInputData(tagInputData: TagInputData<T>) {
         this.tagInputData = tagInputData
     }
@@ -404,28 +411,11 @@ class TagInputView @JvmOverloads constructor(
     }
 
     /**
-     * ArrayAdapter for autocomplete.  Optional.
-     * Should be same type as TagInputData.
+     * TODO: this should also update the view if it's to be used
      */
-    fun <T> setAutoCompleteAdapter(adapter: ArrayAdapter<T>?) {
-        tagInputEditText.setAdapter(adapter)
-    }
-
-    fun setCustomFilter(filter: (Any?) -> Any?) {
-        tagInputData.assignCustomFilter(filter)
-    }
-
-    fun setInputConverter(converter: (String) -> Any?) {
-        tagInputData.assignInputConverter(converter)
-    }
-
-    fun setDisplayConverter(converter: (Any) -> String) {
-        tagInputData.assignDisplayConverter(converter)
-    }
-
-    fun updateTagList(tagList: MutableList<Any>) {
-        tagInputData.updateTagList(tagList)
-    }
+    // fun updateTagList(tagList: MutableList<Any>) {
+    //     tagInputData.updateTagList(tagList)
+    // }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
