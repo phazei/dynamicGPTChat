@@ -6,16 +6,20 @@ import android.content.res.TypedArray
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.LayerDrawable
+import android.text.InputFilter
 import android.text.InputType
 import android.util.AttributeSet
 import android.util.DisplayMetrics
+import android.util.Log
 import android.util.Xml
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.ListView
 import androidx.annotation.StyleRes
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.core.content.ContextCompat
@@ -44,8 +48,7 @@ class TagInputView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FlexboxLayout(context, attrs, defStyleAttr) {
 
-    private val defaultTagInputData = TagInputData<String>()
-    private var tagInputData: TagInputData<*> = defaultTagInputData
+    private var tagInputData: TagInputData<*> = StringTagInputData()
 
     private var delimiterChars = ","
     private val delimiterKeys = mutableListOf(KeyEvent.KEYCODE_ENTER)
@@ -54,8 +57,12 @@ class TagInputView @JvmOverloads constructor(
     private var customTagStyle: Int? = null
     private var inputTheme: Int? = null
     private var tagLimit: Int? = null
+    private var maxTextLength: Int? = null
 
-    lateinit var tagInputEditText: EditText
+
+    var onTagChangeListener: OnTagChangeListener<Any>? = null
+
+    lateinit var tagInputEditText: AutoCompleteTextView
 
     private var selectedChip: Chip? = null
 
@@ -63,18 +70,27 @@ class TagInputView @JvmOverloads constructor(
     private val viewHelper: ViewHelper
 
     init {
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.TagInputView)
+        //needs to be initiated before edit text
+        inputTheme = typedArray.getResourceId(R.styleable.TagInputView_inputTheme, -1).takeIf { it != -1 }
+
         setupSelfView()
         setupEditText()
         viewHelper = ViewHelper()
 
-        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.TagInputView)
 
-        val hint = typedArray.getString(R.styleable.TagInputView_hint).takeIf { it != "" }
+        val hint = typedArray.getString(R.styleable.TagInputView_android_hint).takeIf { it != "" }
         tagInputEditText.hint = hint ?: context.getString(R.string.enter_tags)
+
+        maxTextLength = typedArray.getInt(R.styleable.TagInputView_android_maxLength, -1).takeIf { it != -1 }
+        if (maxTextLength != null) tagInputEditText.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(maxTextLength!!))
+
+        val isEnabled = typedArray.getBoolean(R.styleable.TagInputView_android_enabled, true)
+        setEnabled(isEnabled)
+
 
         tagLimit = typedArray.getInt(R.styleable.TagInputView_tagLimit, -1).takeIf { it != -1 }
         customTagStyle = typedArray.getResourceId(R.styleable.TagInputView_tagStyle, -1).takeIf { it != -1 }
-        inputTheme = typedArray.getResourceId(R.styleable.TagInputView_inputTheme, -1).takeIf { it != -1 }
 
 
         viewHelper.setupBackground(typedArray)
@@ -84,6 +100,40 @@ class TagInputView @JvmOverloads constructor(
 
         // addTag(inputConverter("a")!!)
 
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        //hack since minHeight is broken: https://github.com/google/flexbox-layout/issues/562
+        val minHeight = 56.dpToPx()
+        //once the heights been adjusted, it will cycle back and forth, need 1 px leeway to stop
+        if (measuredHeight < minHeight + 1) {
+            val extraPadding = minHeight - measuredHeight
+            if (extraPadding > 0) {
+                setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1] + extraPadding, viewHelper.paddingMod[2], viewHelper.paddingMod[3])
+            }
+            //not needed most of the time, but discovered one case in a Dialog where the height didn't change with padding alone
+            setMeasuredDimension(measuredWidth, minHeight)
+        } else {
+            setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1], viewHelper.paddingMod[2], viewHelper.paddingMod[3])
+        }
+    }
+
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+        // Control the state of your custom view's components
+
+        setChipsEnabled(enabled)
+        if (enabled) {
+            tagInputEditText.visibility = View.VISIBLE
+        } else {
+            tagInputEditText.visibility = View.GONE
+        }
+    }
+
+    override fun requestFocus(direction: Int, previouslyFocusedRect: Rect?): Boolean {
+        // Always request focus for the EditText instead of the TagInputView itself
+        return tagInputEditText.requestFocus(direction, previouslyFocusedRect)
     }
 
     private fun setupSelfView() {
@@ -98,27 +148,13 @@ class TagInputView @JvmOverloads constructor(
 
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        //hack since minHeight is broken: https://github.com/google/flexbox-layout/issues/562
-        val minHeight = 56.dpToPx()
-        //once the heights been adjusted, it will cycle back and forth, need 1 px leeway to stop
-        if (measuredHeight < minHeight + 1) {
-            val extraPadding = minHeight - measuredHeight
-            if (extraPadding > 0) {
-                setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1] + extraPadding, viewHelper.paddingMod[2], viewHelper.paddingMod[3])
-            }
-        } else {
-            setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1], viewHelper.paddingMod[2], viewHelper.paddingMod[3])
-        }
-    }
-
     private fun setupEditText() {
         var contextWrapper = context
         if (inputTheme != null) {
             contextWrapper = ContextThemeWrapper(context, inputTheme!!)
         }
-        tagInputEditText = EditText(contextWrapper, null, android.R.attr.editTextStyle, com.google.android.material.R.style.Widget_Material3_TextInputLayout_FilledBox).apply {
+
+        tagInputEditText = AutoCompleteTextView(contextWrapper, null, android.R.attr.autoCompleteTextViewStyle, com.google.android.material.R.style.ThemeOverlay_Material3_AutoCompleteTextView_FilledBox).apply {
             // tagInputEditText = TextInputEditText(context, null, com.google.android.material.R.style.Widget_Material3_TextInputLayout_FilledBox).apply {
             id = View.generateViewId()
             layoutParams = LayoutParams(
@@ -136,7 +172,7 @@ class TagInputView @JvmOverloads constructor(
             maxLines = 1
             textSize = 16F
             background = null
-            inputType = InputType.TYPE_CLASS_TEXT
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
             backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
             isFocusedByDefault = true
         }
@@ -183,7 +219,10 @@ class TagInputView @JvmOverloads constructor(
 
         tagInputEditText.setOnKeyListener { _, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN) {
-                if (delimiterKeys.contains(keyCode)) {
+                val position = tagInputEditText.getListSelection()
+                if (keyCode == KeyEvent.KEYCODE_ENTER && tagInputEditText.isPopupShowing && position != ListView.INVALID_POSITION) {
+                    //if autoComplete popup is showing and an item is selected, then it shouldn't add
+                } else if (delimiterKeys.contains(keyCode)) {
                     addTagFromEditText()
                     return@setOnKeyListener true
                 }
@@ -201,11 +240,19 @@ class TagInputView @JvmOverloads constructor(
             return@setOnKeyListener false
         }
 
-    }
+        /**
+         * Array
+         */
+        tagInputEditText.setOnItemClickListener { _, _, position, _ ->
+            val item = tagInputEditText.adapter.getItem(position)
+            var convertedItem = item
+            if (item is String) {
+                convertedItem = tagInputData.inputConverter(item)
+            }
+            addTag(convertedItem)
+            tagInputEditText.setText("")
+        }
 
-    override fun requestFocus(direction: Int, previouslyFocusedRect: Rect?): Boolean {
-        // Always request focus for the EditText instead of the TagInputView itself
-        return tagInputEditText.requestFocus(direction, previouslyFocusedRect)
     }
 
     private fun addTagFromEditText() {
@@ -216,9 +263,8 @@ class TagInputView @JvmOverloads constructor(
 
         if (input.isNotEmpty()) {
             val convertedTag = tagInputData.inputConverter(input)
-            val processedTag = tagInputData.applyCustomFilter(convertedTag)
-            if (processedTag != null) {
-                addTag(processedTag)
+            if (convertedTag != null) {
+                addTag(convertedTag)
             }
         }
         tagInputEditText.setText("")
@@ -229,8 +275,12 @@ class TagInputView @JvmOverloads constructor(
             if (tagLimit != null && tagInputData.size() + 1 > tagLimit!!) {
                 return
             }
-            tagInputData.addTag(tag)
-            addTagView(tag)
+            val processedTag = tagInputData.applyCustomFilter(tag)
+            if (processedTag != null) {
+                tagInputData.addTag(tag)
+                addTagView(tag)
+                onTagChangeListener?.onTagChange(tag, null)
+            }
         }
     }
 
@@ -257,6 +307,9 @@ class TagInputView @JvmOverloads constructor(
 
         // com.google.android.flexbox.R.styleable.FlexboxLayout_Layout_layout_flexGrow
         chip.apply {
+            // could be programmatically added while disabled so need to check here
+            isEnabled = this@TagInputView.isEnabled
+
             text = tagInputData.applyDisplayConverter(tag)
             setChipDrawable(chipDrawableStyle)
             layoutParams = LayoutParams(viewHelper.chipContextCustom, viewHelper.attrsCustom)
@@ -264,6 +317,9 @@ class TagInputView @JvmOverloads constructor(
             ensureAccessibleTouchTarget(viewHelper.getChipMinTouchTargetSizeFromStyle(viewHelper.chipTagStyle))
 
             chip.setOnClickListener {
+                if (!this@TagInputView.isEnabled) {
+                    return@setOnClickListener
+                }
                 // If the clicked chip is the same as the selected chip, remove it from the view and reset the selected chip
                 if (selectedChip == chip) {
                     removeTag(tag)
@@ -285,7 +341,7 @@ class TagInputView @JvmOverloads constructor(
 
     }
 
-    fun uncheckAllChips() {
+    private fun uncheckAllChips() {
         for (i in 0 until this.childCount) {
             val child = this.getChildAt(i)
             if (child is Chip) {
@@ -293,8 +349,23 @@ class TagInputView @JvmOverloads constructor(
             }
         }
     }
+    private fun setChipsEnabled(enabled: Boolean) {
+        for (i in 0 until this.childCount) {
+            val child = this.getChildAt(i)
+            if (child is Chip) {
+                child.isEnabled = enabled
+            }
+        }
+    }
 
-
+    fun removeTag(tag: Any) {
+        val index = tagInputData.indexOf(tag)
+        if (index != -1) {
+            tagInputData.removeAt(index)
+            removeViewAt(index)
+            onTagChangeListener?.onTagChange(null, tag)
+        }
+    }
 
     fun setTagLimit(limit: Int? = null) {
         tagLimit = limit?:0
@@ -307,15 +378,16 @@ class TagInputView @JvmOverloads constructor(
         delimiterChars = chars
     }
 
+    /**
+     * ArrayAdapter for autocomplete.  Optional.
+     * Should be same type as TagInputData.
+     */
+    fun <T> setAutoCompleteAdapter(adapter: ArrayAdapter<T>?) {
+        tagInputEditText.setAdapter(adapter)
+    }
+
     fun <T> setTagInputData(tagInputData: TagInputData<T>) {
         this.tagInputData = tagInputData
-    }
-    private fun removeTag(tag: Any) {
-        val index = tagInputData.indexOf(tag)
-        if (index != -1) {
-            tagInputData.removeAt(index)
-            removeViewAt(index)
-        }
     }
     fun containsTag(tag: Any): Boolean {
         return tagInputData.containsTag(tag)
@@ -329,28 +401,36 @@ class TagInputView @JvmOverloads constructor(
 
     fun clearTags() {
         tagInputData.clearTags()
+        for (i in this.childCount - 1 downTo 0) {
+                val child = this.getChildAt(i)
+            if (child is Chip) {
+                removeView(child)
+            }
+        }
+        onTagChangeListener?.onTagChange(null, null)
     }
 
-
-    fun setCustomFilter(filter: (Any?) -> Any?) {
-        tagInputData.assignCustomFilter(filter)
-    }
-
-    fun setInputConverter(converter: (String) -> Any?) {
-        tagInputData.assignInputConverter(converter)
-    }
-
-    fun setDisplayConverter(converter: (Any) -> String) {
-        tagInputData.assignDisplayConverter(converter)
-    }
-
-    fun updateTagList(tagList: MutableList<Any>) {
-        tagInputData.updateTagList(tagList)
-    }
+    /**
+     * TODO: this should also update the view if it's to be used
+     */
+    // fun updateTagList(tagList: MutableList<Any>) {
+    //     tagInputData.updateTagList(tagList)
+    // }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         coroutineScope.cancel() // Cancel all coroutines when the view is detached
+    }
+
+    fun setOnTagChangeListener(listener: (addedTag: Any?, removedTag: Any?) -> Unit) {
+        this.onTagChangeListener = object : OnTagChangeListener<Any> {
+            override fun onTagChange(addedTag: Any?, removedTag: Any?) {
+                listener(addedTag, removedTag)
+            }
+        }
+    }
+    interface OnTagChangeListener<T> {
+        fun onTagChange(addedTag: T?, removedTag: T?)
     }
 
     inner class ViewHelper() {

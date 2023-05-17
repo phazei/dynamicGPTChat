@@ -232,7 +232,7 @@
             app:strokeColor="?attr/colorPrimary"
             app:inputTheme="@style/textHandleOnColor"
             android:layout_marginBottom="10dp"
-            app:hint="@string/stop_list_hint" />
+            android:hint="@string/stop_list_hint" />
 
         <!-- Logit Bias Text -->
         <TextView
@@ -251,7 +251,7 @@
             android:paddingHorizontal="6dp"
             android:paddingVertical="6dp"
             android:layout_marginBottom="10dp"
-            app:hint="@string/logit_bias_hint" />
+            android:hint="@string/logit_bias_hint" />
 
         <!-- Number of -->
         <TextView
