@@ -10,6 +10,9 @@ interface PromptDao : BaseDao<Prompt> {
     @Insert
     suspend fun insert(prompt: Prompt): Long
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertAll(tags: List<Prompt>): List<Long>
+
     @Delete
     suspend fun delete(prompt: Prompt)
 

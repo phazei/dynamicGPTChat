@@ -20,6 +20,8 @@ import com.phazei.dynamicgptchat.data.entity.GPTSettings
 import com.phazei.dynamicgptchat.data.entity.Prompt
 import com.phazei.dynamicgptchat.data.entity.PromptTag
 import com.phazei.dynamicgptchat.data.entity.Tag
+import com.phazei.dynamicgptchat.data.migrations.SeedData
+import java.util.concurrent.Executors
 import javax.inject.Singleton
 
 @Database(
@@ -47,6 +49,19 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         const val LATEST_VERSION = 1
 
+        fun seedDatabaseCallback(context: Context): Callback {
+            return object : Callback() {
+                override fun onCreate(db: SupportSQLiteDatabase) {
+                    super.onCreate(db)
+                    Executors.newSingleThreadExecutor().execute {
+                        val database = getDatabase(context)
+                        val seedData = SeedData(context, database)
+                        seedData.seed()
+                    }
+                }
+            }
+        }
+
         /**
          * For future use
          * Manual migration will override auto migration
@@ -70,6 +85,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 )
+                    .addCallback(seedDatabaseCallback(context))
                     // .addMigrations(MIGRATION_1_2)
                     .build()
                 INSTANCE = instance

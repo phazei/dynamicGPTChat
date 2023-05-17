@@ -8,6 +8,13 @@ interface PromptTagDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(promptTags: PromptTag)
 
+    @Transaction
+    suspend fun addTagToPrompts(tagId: Long, promptIds: List<Long>) {
+        for (promptId in promptIds) {
+            insert(PromptTag(promptId, tagId))
+        }
+    }
+
     @Delete
     suspend fun delete(promptTags: PromptTag)
 
