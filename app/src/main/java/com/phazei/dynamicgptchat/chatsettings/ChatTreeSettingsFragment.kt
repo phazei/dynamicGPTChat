@@ -299,31 +299,29 @@ class ChatTreeSettingsFragment : Fragment() {
         }
 
         binding.logitBiasList.apply {
-            setTagInputData(TagInputData<Map<Int,Int>>())
-
-            setInputConverter { input ->
-                val parts = input.toString().split("=")
-                if (parts.size == 2) {
-                    val key = parts[0].trim().toFloatOrNull()?.roundToInt()
-                    val value = parts[1].trim().toFloatOrNull()?.roundToInt()
-                    if (value !in -100..100) {
-                        null
-                    } else if (key != null && value != null) {
-                        mapOf(key to value)
+            setTagInputData(object : TagInputData<Map<Int,Int>>() {
+                override fun inputConverter(input: String): Map<Int,Int>? {
+                    val parts = input.toString().split("=")
+                    return if (parts.size == 2) {
+                        val key = parts[0].trim().toFloatOrNull()?.roundToInt()
+                        val value = parts[1].trim().toFloatOrNull()?.roundToInt()
+                        if (value !in -100..100) {
+                            null
+                        } else if (key != null && value != null) {
+                            mapOf(key to value)
+                        } else {
+                            null
+                        }
                     } else {
                         null
                     }
-                } else {
-                    null
                 }
-            }
-            setDisplayConverter { tag ->
-                val tagMap = tag as Map<Int, Int>
-                val key = tagMap.keys.first()
-                val value = tagMap.values.first()
-                "$key=$value"
-            }
-
+                override fun displayConverter(tag: Map<Int,Int>): String {
+                    val key = tag.keys.first()
+                    val value = tag.values.first()
+                    return "$key=$value"
+                }
+            })
             chatTree.gptSettings.logitBias.forEach { addTag(mapOf(it.key to it.value)) }
         }
     }
