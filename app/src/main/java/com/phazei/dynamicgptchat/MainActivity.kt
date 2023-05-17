@@ -42,9 +42,9 @@ class MainActivity : AppCompatActivity() {
         // appBarConfiguration = AppBarConfiguration(navController.graph)
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.PromptsFragment,
-                R.id.AppSettingsFragment,
-                R.id.AboutFragment
+                R.id.prompts_graph,
+                R.id.settings_graph,
+                R.id.about_graph
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -52,8 +52,8 @@ class MainActivity : AppCompatActivity() {
 
         binding.AboutFragment.setOnClickListener {
             // navView.setCheckedItem(R.id.AboutFragment)
-            navView.menu.performIdentifierAction(R.id.AboutFragment, Menu.FLAG_ALWAYS_PERFORM_CLOSE)
-            navController.navigate(R.id.AboutFragment, null, NavOptions.Builder()
+            navView.menu.performIdentifierAction(R.id.about_graph, Menu.FLAG_ALWAYS_PERFORM_CLOSE)
+            navController.navigate(R.id.about_graph, null, NavOptions.Builder()
                 //to distinguish navigation via this action
                 .setEnterAnim(R.anim.spin_in_crazy)
                 .setExitAnim(R.anim.spin_out_crazy)
@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
                 .setLaunchSingleTop(true)
                 .setRestoreState(false)
-                .setPopUpTo(R.id.AboutFragment, true)
+                .setPopUpTo(R.id.about_graph, true)
                 .build()
             )
         }

@@ -73,6 +73,7 @@
     <string name="theme">Theme</string>
     <string name="model_details">Model Details</string>
     <string name="about">About</string>
+    <string name="aboutno">About (dont click me)</string>
     <string name="about_app">About this application</string>
 
 </resources>

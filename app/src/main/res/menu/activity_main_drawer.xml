@@ -9,12 +9,12 @@
             android:icon="@drawable/round_list_alt_24"
             android:title="@string/menu_prompts" />
         <item
-            android:id="@+id/AppSettingsFragment"
+            android:id="@+id/settings_graph"
             android:icon="@drawable/sharp_settings_applications_24"
             android:title="@string/settings" />
         <item
-            android:id="@+id/AboutFragment"
+            android:id="@+id/about_graph"
             android:icon="@drawable/round_info_24"
-            android:title="@string/about" />
+            android:title="@string/aboutno" />
     </group>
 </menu>
