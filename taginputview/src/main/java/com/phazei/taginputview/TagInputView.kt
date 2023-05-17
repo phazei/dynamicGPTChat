@@ -60,6 +60,9 @@ class TagInputView @JvmOverloads constructor(
     private var tagLimit: Int? = null
     private var maxTextLength: Int? = null
 
+
+    var onTagChangeListener: OnTagChangeListener<Any>? = null
+
     lateinit var tagInputEditText: AutoCompleteTextView
 
     private var selectedChip: Chip? = null
@@ -277,6 +280,7 @@ class TagInputView @JvmOverloads constructor(
             if (processedTag != null) {
                 tagInputData.addTag(tag)
                 addTagView(tag)
+                onTagChangeListener?.onTagChange(tag, null)
             }
         }
     }
@@ -355,7 +359,14 @@ class TagInputView @JvmOverloads constructor(
         }
     }
 
-
+    fun removeTag(tag: Any) {
+        val index = tagInputData.indexOf(tag)
+        if (index != -1) {
+            tagInputData.removeAt(index)
+            removeViewAt(index)
+            onTagChangeListener?.onTagChange(null, tag)
+        }
+    }
 
     fun setTagLimit(limit: Int? = null) {
         tagLimit = limit?:0
@@ -371,13 +382,6 @@ class TagInputView @JvmOverloads constructor(
     fun <T> setTagInputData(tagInputData: TagInputData<T>) {
         this.tagInputData = tagInputData
     }
-    private fun removeTag(tag: Any) {
-        val index = tagInputData.indexOf(tag)
-        if (index != -1) {
-            tagInputData.removeAt(index)
-            removeViewAt(index)
-        }
-    }
     fun containsTag(tag: Any): Boolean {
         return tagInputData.containsTag(tag)
     }
@@ -390,6 +394,13 @@ class TagInputView @JvmOverloads constructor(
 
     fun clearTags() {
         tagInputData.clearTags()
+        for (i in this.childCount - 1 downTo 0) {
+                val child = this.getChildAt(i)
+            if (child is Chip) {
+                removeView(child)
+            }
+        }
+        onTagChangeListener?.onTagChange(null, null)
     }
 
     /**
@@ -419,6 +430,17 @@ class TagInputView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         coroutineScope.cancel() // Cancel all coroutines when the view is detached
+    }
+
+    fun setOnTagChangeListener(listener: (addedTag: Any?, removedTag: Any?) -> Unit) {
+        this.onTagChangeListener = object : OnTagChangeListener<Any> {
+            override fun onTagChange(addedTag: Any?, removedTag: Any?) {
+                listener(addedTag, removedTag)
+            }
+        }
+    }
+    interface OnTagChangeListener<T> {
+        fun onTagChange(addedTag: T?, removedTag: T?)
     }
 
     inner class ViewHelper() {
