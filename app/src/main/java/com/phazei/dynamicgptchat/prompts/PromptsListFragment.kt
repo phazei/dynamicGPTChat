@@ -2,11 +2,10 @@ package com.phazei.dynamicgptchat.prompts
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.DisplayMetrics
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -14,11 +13,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
 import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.databinding.FragmentPromptsListBinding
 import com.phazei.taginputview.TagInputData
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -66,6 +67,35 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
             promptsViewModel.loadPromptsWithTags()
             promptsViewModel.loadAllTags()
         }
+
+        binding.promptSearchTagToggle.setOnClickListener {
+            if (binding.promptSearchTags.visibility == View.VISIBLE) {
+                binding.promptSearchTags.clearTags()
+                binding.promptSearchTags.visibility = View.GONE
+                binding.promptSearchTagToggle.setImageResource(R.drawable.round_add_tag_outline_24)
+            } else {
+                binding.promptSearchTags.visibility = View.VISIBLE
+                binding.promptSearchTagToggle.setImageResource(R.drawable.round_remove_tag_outline_24)
+            }
+        }
+
+        var textChangeJob: Job? = null
+        binding.promptSearchText.doOnTextChanged { text, _, _, _ ->
+            textChangeJob?.cancel()
+            textChangeJob = viewLifecycleOwner.lifecycleScope.launch {
+                delay(1000)
+                searchPrompts()
+            }
+        }
+
+        binding.promptSearchTags.setOnTagChangeListener { _, _ ->
+            searchPrompts()
+        }
+
+    }
+
+    private fun searchPrompts() {
+        promptsViewModel.searchPromptsWithTags(binding.promptSearchText.text.toString(), binding.promptSearchTags.getTagsOfType())
     }
 
     private fun setupTagsSearch(tags: List<Tag>) {

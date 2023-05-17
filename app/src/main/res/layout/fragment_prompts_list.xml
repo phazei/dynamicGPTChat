@@ -27,7 +27,7 @@
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="@id/prompt_search_tag_toggle"
+                app:layout_constraintEnd_toEndOf="parent"
                 android:hint="@string/prompt_text_filter">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -55,24 +55,10 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 />
-            <ImageButton
-                android:id="@+id/prompt_search_submit"
-                android:layout_width="wrap_content"
-                android:layout_height="0dp"
-                android:layout_margin="0dp"
-                android:src="@drawable/baseline_search_24"
-                app:tint="?attr/colorPrimary"
-                android:backgroundTint="?attr/colorSurface"
-                android:contentDescription="@string/prompt_search_submit"
-
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/prompt_search_tag_toggle"
-                app:layout_constraintEnd_toEndOf="parent"
-                />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <com.phazei.taginputview.TagInputView
+            android:visibility="gone"
             android:id="@+id/prompt_search_tags"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

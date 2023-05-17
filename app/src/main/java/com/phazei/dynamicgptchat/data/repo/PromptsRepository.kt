@@ -31,6 +31,21 @@ class PromptsRepository @Inject constructor(
         return tagDao.getAllTags()
     }
 
+    suspend fun searchPromptsWithTags(string: String, tags: List<Tag>): List<PromptWithTags> {
+        val formattedString = if (string.trim().isNotEmpty()) "%${string.trim()}%" else null
+        val idList = tags.map { it.id }
+
+        return if (formattedString != null && idList.isEmpty()) {
+            promptDao.searchPrompts(formattedString)
+        } else if (formattedString == null && idList.isNotEmpty()) {
+            promptDao.searchPromptsByTags(tags.map { it.id })
+        } else if (formattedString != null && idList.isNotEmpty()) {
+            promptDao.searchPromptsByQueryAndTags(formattedString, tags.map { it.id })
+        } else {
+            promptDao.getAllPromptsWithTags()
+        }
+    }
+
     suspend fun savePromptWithTags(promptWithTags: PromptWithTags) {
         database.withTransaction {
             val prompt = promptWithTags.prompt
