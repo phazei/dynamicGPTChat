@@ -104,26 +104,26 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
 
         binding.promptSearchTags.apply {
             setAutoCompleteAdapter(tagsAdapter)
-            setTagInputData(TagInputData<Tag>())
-            setInputConverter { input ->
-                // Check if tag exists. If so, use existing tag with id.
-                val foundTag = tagsAdapter.run {
-                    (0 until count).asSequence()
-                        .map { getItem(it) }
-                        .firstOrNull { it.name == input }
+            setTagInputData(object : TagInputData<Tag>() {
+                override fun inputConverter(input: String): Tag? {
+                    // Check if tag exists. If so, use existing tag with id.
+                    val foundTag = tagsAdapter.run {
+                        (0 until count).asSequence()
+                            .map { getItem(it) }
+                            .firstOrNull { it.name == input }
+                    }
+                    // If foundTag is not null, it means the tag exists.
+                    foundTag?.let {
+                        return it
+                    }
+                    // If tag doesn't exist, return null.
+                    return null
                 }
-
-                // If foundTag is not null, it means the tag exists.
-                foundTag?.let {
-                    return@setInputConverter it
+                override fun displayConverter(tag: Tag): String {
+                    val tagTag = tag as Tag
+                    return tagTag.name
                 }
-                // If tag doesn't exist, return null.
-                null
-            }
-            setDisplayConverter { tag ->
-                val tagTag = tag as Tag
-                tagTag.name
-            }
+            })
         }
     }
 

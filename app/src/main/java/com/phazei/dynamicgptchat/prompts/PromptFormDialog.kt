@@ -66,15 +66,16 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
         binding.promptTitle.setText(promptWithTags.prompt.title)
         binding.promptBody.setText(promptWithTags.prompt.body)
         binding.promptTags.apply {
-            setTagInputData(TagInputData<Tag>())
-            setInputConverter { input ->
-                //check if tag exists, if so, use existing tag with id
-                Tag(input.toString())
-            }
-            setDisplayConverter { tag ->
-                val tagTag = tag as Tag
-                tagTag.name
-            }
+            setTagInputData(object : TagInputData<Tag>() {
+                override fun inputConverter(input: String): Tag? {
+                    //check if tag exists, if so, use existing tag with id
+                    return Tag(input.toString())
+                }
+                override fun displayConverter(tag: Tag): String {
+                    val tagTag = tag as Tag
+                    return tagTag.name
+                }
+            })
             promptWithTags.tags.forEach { addTag(it) }
         }
     }
