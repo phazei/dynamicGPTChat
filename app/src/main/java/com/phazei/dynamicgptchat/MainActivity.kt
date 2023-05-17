@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.AboutFragment.setOnClickListener {
             // navView.setCheckedItem(R.id.AboutFragment)
-            navView.menu.performIdentifierAction(R.id.about_graph, Menu.FLAG_ALWAYS_PERFORM_CLOSE)
+            // navView.menu.performIdentifierAction(R.id.about_graph, Menu.FLAG_ALWAYS_PERFORM_CLOSE)
             navController.navigate(R.id.about_graph, null, NavOptions.Builder()
                 //to distinguish navigation via this action
                 .setEnterAnim(R.anim.spin_in_crazy)
@@ -60,8 +60,8 @@ class MainActivity : AppCompatActivity() {
                 .setPopEnterAnim(R.anim.spin_in_crazy)
                 .setPopExitAnim(R.anim.spin_out_crazy)
 
-                .setLaunchSingleTop(true)
-                .setRestoreState(false)
+                // .setLaunchSingleTop(true)
+                // .setRestoreState(false)
                 .setPopUpTo(R.id.about_graph, true)
                 .build()
             )
