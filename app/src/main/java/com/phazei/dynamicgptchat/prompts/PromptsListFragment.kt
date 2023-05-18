@@ -1,10 +1,16 @@
 package com.phazei.dynamicgptchat.prompts
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -68,14 +74,33 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
             promptsViewModel.loadAllTags()
         }
 
+        val addToRemoveTag = ContextCompat.getDrawable(view.context, R.drawable.avd_add_to_remove_tag) as AnimatedVectorDrawable
+        val removeToAddTag = ContextCompat.getDrawable(view.context, R.drawable.avd_remove_to_add_tag) as AnimatedVectorDrawable
+
+        binding.promptSearchTags.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val searchTagHeight = binding.promptSearchTags.measuredHeight
+        val minHeight = binding.promptSearchTags.minimumHeight
         binding.promptSearchTagToggle.setOnClickListener {
+            binding.promptSearchTags.minimumHeight = 0
             if (binding.promptSearchTags.visibility == View.VISIBLE) {
-                binding.promptSearchTags.clearTags()
-                binding.promptSearchTags.visibility = View.GONE
-                binding.promptSearchTagToggle.setImageResource(R.drawable.round_add_tag_outline_24)
+                resizeAnimator(binding.promptSearchTags, binding.promptSearchTags.height, 1,
+                    onEnd ={
+                        binding.promptSearchTags.visibility = View.GONE
+                        binding.promptSearchTags.minimumHeight = minHeight
+                        binding.promptSearchTags.clearTags()
+                    }).start()
+                binding.promptSearchTagToggle.setImageDrawable(removeToAddTag)
+                removeToAddTag.start()
             } else {
-                binding.promptSearchTags.visibility = View.VISIBLE
-                binding.promptSearchTagToggle.setImageResource(R.drawable.round_remove_tag_outline_24)
+                resizeAnimator(binding.promptSearchTags, 1, searchTagHeight,
+                    onStart ={ binding.promptSearchTags.visibility = View.VISIBLE },
+                    onEnd ={
+                        binding.promptSearchTags.layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                        binding.promptSearchTags.minimumHeight = minHeight
+                    }).start()
+
+                binding.promptSearchTagToggle.setImageDrawable(addToRemoveTag)
+                addToRemoveTag.start()
             }
         }
 
@@ -104,7 +129,6 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
         val selectedTags = binding.promptSearchTags.getTagsOfType<Tag>()
 
         val tagsAdapter = TagsArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, tags)
-
         binding.promptSearchTags.apply {
             setAutoCompleteAdapter(tagsAdapter)
             setTagInputData(object : TagInputData<Tag>() {
@@ -201,4 +225,24 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
                 }).show()
         }
     }
+
+    private fun resizeAnimator(view: View, start: Int, end: Int, onEnd: () -> Unit = {}, onStart: () -> Unit = {}): ValueAnimator {
+        return ValueAnimator.ofInt(start, end).apply {
+            duration = 300
+            addUpdateListener { animation ->
+                val layoutParams = view.layoutParams
+                layoutParams.height = animation.animatedValue as Int
+                view.layoutParams = layoutParams
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: Animator) {
+                    onEnd()
+                }
+                override fun onAnimationStart(animation: Animator) {
+                    onStart()
+                }
+            })
+        }
+    }
+
 }
