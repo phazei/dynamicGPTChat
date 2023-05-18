@@ -8,22 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.Prompt
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
-import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.databinding.FragmentPromptsBinding
-import com.phazei.dynamicgptchat.settings.AppSettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class PromptsFragment : Fragment(), PromptsListFragment.OnPromptSelectedListener, PromptFormDialog.OnPromptFormDialogListener {
@@ -31,7 +21,7 @@ class PromptsFragment : Fragment(), PromptsListFragment.OnPromptSelectedListener
     private var _binding: FragmentPromptsBinding? = null
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
-    private val promptsViewModel: PromptsViewModel by viewModels()
+    private val promptsViewModel: PromptsViewModel by activityViewModels()
     private lateinit var promptsListFragment: PromptsListFragment
 
     override fun onCreateView(
@@ -79,7 +69,10 @@ class PromptsFragment : Fragment(), PromptsListFragment.OnPromptSelectedListener
      * From @PromptFormDialog interface - communicate with dialog, what happens when item is submitted from dialog
      */
     override fun onSavePrompt(promptWithTags: PromptWithTags) {
-        promptsViewModel.savePromptWithTags(promptWithTags)
+        promptsViewModel.savePromptWithTags(promptWithTags).invokeOnCompletion {
+            // could be new tags added need to make sure they're in the search by tag autocomplete
+            promptsViewModel.loadAllTags()
+        }
         promptsListFragment.updatePromptWithTagsItem(promptWithTags)
     }
 

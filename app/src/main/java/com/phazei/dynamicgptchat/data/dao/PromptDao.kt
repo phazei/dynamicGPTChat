@@ -31,13 +31,19 @@ interface PromptDao : BaseDao<Prompt> {
     suspend fun getPromptWithTag(promptId: Long): List<PromptWithTags>
 
     @Transaction
-    @Query("SELECT * FROM prompts WHERE title LIKE :query OR body LIKE :query")
+    @Query("SELECT * FROM prompts WHERE title LIKE :query OR body LIKE :query ORDER BY updated_at DESC")
     suspend fun searchPrompts(query: String): List<PromptWithTags>
 
+    /**
+     * This returns only prompts that have at least ONE of the submitted tags
+     */
     @Transaction
-    @Query("SELECT prompts.* FROM prompts INNER JOIN prompts_tags ON prompts.id = prompts_tags.prompt_id WHERE prompts_tags.tag_id IN (:tagIds)")
+    @Query("SELECT prompts.* FROM prompts INNER JOIN prompts_tags ON prompts.id = prompts_tags.prompt_id WHERE prompts_tags.tag_id IN (:tagIds) ORDER BY updated_at DESC")
     suspend fun searchPromptsByTags(tagIds: List<Long>): List<PromptWithTags>
 
+    /**
+     * This returns only prompts that have at least ONE of the submitted tags
+     */
     @Transaction
     @Query("""
     SELECT * FROM prompts 
@@ -46,7 +52,40 @@ interface PromptDao : BaseDao<Prompt> {
         SELECT prompt_id FROM prompts_tags
         WHERE tag_id IN (:tagIds)
     )
+    ORDER BY updated_at DESC
 """)
     suspend fun searchPromptsByQueryAndTags(query: String, tagIds: List<Long>): List<PromptWithTags>
+
+    /**
+     * This returns only prompts that have ALL submitted tags
+     */
+    @Transaction
+    @Query("""
+    SELECT prompts.* FROM prompts 
+    INNER JOIN prompts_tags ON prompts.id = prompts_tags.prompt_id 
+    WHERE prompts_tags.tag_id IN (:tagIds) 
+    GROUP BY prompts.id 
+    HAVING COUNT(prompts.id) = :tagCount
+    ORDER BY prompts.updated_at DESC
+    """)
+    suspend fun searchPromptsByTags(tagIds: List<Long>, tagCount: Int): List<PromptWithTags>
+
+    /**
+     * This returns only prompts that have ALL submitted tags
+     */
+    @Transaction
+    @Query("""
+    SELECT * FROM prompts 
+    WHERE (title LIKE :query OR body LIKE :query)
+    AND id IN (
+        SELECT prompt_id FROM prompts_tags
+        WHERE tag_id IN (:tagIds)
+        GROUP BY prompt_id
+        HAVING COUNT(prompt_id) = :tagCount
+    )
+    ORDER BY updated_at DESC
+    """)
+    suspend fun searchPromptsByQueryAndTags(query: String, tagIds: List<Long>, tagCount: Int): List<PromptWithTags>
+
 
 }

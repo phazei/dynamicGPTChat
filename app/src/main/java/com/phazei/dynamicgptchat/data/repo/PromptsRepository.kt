@@ -38,9 +38,9 @@ class PromptsRepository @Inject constructor(
         return if (formattedString != null && idList.isEmpty()) {
             promptDao.searchPrompts(formattedString)
         } else if (formattedString == null && idList.isNotEmpty()) {
-            promptDao.searchPromptsByTags(tags.map { it.id })
+            promptDao.searchPromptsByTags(tags.map { it.id }, tags.size)
         } else if (formattedString != null && idList.isNotEmpty()) {
-            promptDao.searchPromptsByQueryAndTags(formattedString, tags.map { it.id })
+            promptDao.searchPromptsByQueryAndTags(formattedString, tags.map { it.id }, tags.size)
         } else {
             promptDao.getAllPromptsWithTags()
         }

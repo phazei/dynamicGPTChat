@@ -14,20 +14,19 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.R
-import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
 import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.databinding.FragmentPromptsListBinding
 import com.phazei.taginputview.TagInputData
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListener {
 
     private var _binding: FragmentPromptsListBinding? = null
     private val binding get() = _binding!!
-    private val sharedViewModel: SharedViewModel by activityViewModels()
     private val promptsViewModel: PromptsViewModel by activityViewModels()
 
     private var promptSelectedListener: OnPromptSelectedListener? = null
@@ -57,6 +56,7 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
             }
             launch {
                 promptsViewModel.tags
+                    .filterNotNull()
                     .collect { tags ->
                         setupTagsSearch(tags)
                     }
@@ -81,6 +81,7 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
 
         var textChangeJob: Job? = null
         binding.promptSearchText.doOnTextChanged { text, _, _, _ ->
+            // debounce on text search
             textChangeJob?.cancel()
             textChangeJob = viewLifecycleOwner.lifecycleScope.launch {
                 delay(1000)
@@ -99,6 +100,8 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
     }
 
     private fun setupTagsSearch(tags: List<Tag>) {
+        // if tags are updated, then we can to keep the selected ones selected
+        val selectedTags = binding.promptSearchTags.getTagsOfType<Tag>()
 
         val tagsAdapter = TagsArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, tags)
 
@@ -110,7 +113,7 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
                     val foundTag = tagsAdapter.run {
                         (0 until count).asSequence()
                             .map { getItem(it) }
-                            .firstOrNull { it.name == input }
+                            .firstOrNull { it.name.lowercase() == input.lowercase() }
                     }
                     // If foundTag is not null, it means the tag exists.
                     foundTag?.let {
@@ -124,6 +127,9 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
                     return tagTag.name
                 }
             })
+            if (selectedTags.size > 0) {
+                selectedTags.forEach { addTag(it) }
+            }
         }
     }
 

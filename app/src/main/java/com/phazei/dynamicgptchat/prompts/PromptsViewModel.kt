@@ -8,9 +8,12 @@ import com.phazei.dynamicgptchat.data.entity.PromptWithTags
 import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.data.repo.PromptsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -19,8 +22,9 @@ class PromptsViewModel @Inject constructor(private val promptsRepository: Prompt
 
     private val _promptsWithTags = MutableSharedFlow<List<PromptWithTags>>()
     val promptsWithTags: Flow<List<PromptWithTags>> = _promptsWithTags.asSharedFlow()
-    private val _tags = MutableSharedFlow<List<Tag>>()
-    val tags: Flow<List<Tag>> = _tags.asSharedFlow()
+
+    private val _tags = MutableStateFlow<List<Tag>?>(null)
+    val tags: Flow<List<Tag>?> = _tags.asStateFlow()
 
     fun loadPromptsWithTags() {
         viewModelScope.launch {
@@ -40,10 +44,11 @@ class PromptsViewModel @Inject constructor(private val promptsRepository: Prompt
         }
     }
 
-    fun savePromptWithTags(promptWithTags: PromptWithTags) {
-        viewModelScope.launch {
+    fun savePromptWithTags(promptWithTags: PromptWithTags): Job {
+        val job = viewModelScope.launch {
             promptsRepository.savePromptWithTags(promptWithTags)
         }
+        return job
     }
 
     fun deletePrompt(prompt: Prompt) {

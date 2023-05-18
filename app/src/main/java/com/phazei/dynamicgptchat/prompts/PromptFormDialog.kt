@@ -6,15 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.R
-import com.phazei.dynamicgptchat.data.entity.Prompt
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
 import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.databinding.DialogPromptFormBinding
 import com.phazei.taginputview.TagInputData
-import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
+
 
 class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragment() {
 
@@ -42,9 +46,18 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupPromptWithTags()
 
-        // Set up the button click listener
+        viewLifecycleOwner.lifecycleScope.launch {
+            launch {
+                // this should always have a value from the initial call in the PromptsListFragment
+                promptsViewModel.tags
+                    .filterNotNull()
+                    .collect { tags ->
+                        setupPromptTags(tags)
+                    }
+            }
+        }
+
         binding.apply {
             toolbar.setNavigationOnClickListener { v -> dismiss() }
             toolbar.setOnMenuItemClickListener { item ->
@@ -56,6 +69,9 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
                 toolbar.navigationIcon = it
             }
         }
+
+        setupPromptWithTags()
+
     }
 
     fun setOnPromptFormDialogListener(listener: OnPromptFormDialogListener) {
@@ -68,11 +84,30 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
 
         binding.promptTitle.setText(promptWithTags.prompt.title)
         binding.promptBody.setText(promptWithTags.prompt.body)
+
+        //tags are setup after full tag list is returned for auto-complete
+    }
+
+    private fun setupPromptTags(tags: List<Tag>) {
+
+        val tagsAdapter = TagsArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, tags)
+
         binding.promptTags.apply {
+            setAutoCompleteAdapter(tagsAdapter)
             setTagInputData(object : TagInputData<Tag>() {
-                override fun inputConverter(input: String): Tag? {
-                    //check if tag exists, if so, use existing tag with id
-                    return Tag(input.toString())
+                override fun inputConverter(input: String): Tag {
+                    // Check if tag exists. If so, use existing tag with id.
+                    val foundTag = tagsAdapter.run {
+                        (0 until count).asSequence()
+                            .map { getItem(it) }
+                            .firstOrNull { it.name == input }
+                    }
+                    // If foundTag is not null, it means the tag exists.
+                    foundTag?.let {
+                        return it
+                    }
+                    // If tag doesn't exist, create new one!
+                    return Tag(input.ucWords())
                 }
                 override fun displayConverter(tag: Tag): String {
                     val tagTag = tag as Tag
@@ -110,4 +145,9 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
         super.onDestroyView()
         _binding = null
     }
+
+    fun String.ucWords(): String {
+        return this.lowercase().split(" ").joinToString(" ") { it.replaceFirstChar { it.uppercase() } }
+    }
+
 }
