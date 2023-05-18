@@ -1,7 +1,6 @@
 package com.phazei.dynamicgptchat.data.di
 
 import android.content.Context
-import androidx.room.Room
 import com.phazei.dynamicgptchat.data.AppDatabase
 import com.phazei.dynamicgptchat.data.dao.ChatNodeDao
 import com.phazei.dynamicgptchat.data.dao.ChatTreeDao
@@ -20,11 +19,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "app_database"
-        ).build()
+        return AppDatabase.getDatabase(context)
     }
 
     @Provides
