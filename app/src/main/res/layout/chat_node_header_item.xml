@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="4dp">
+    android:padding="4dp"
+    tools:context=".chatnodes.ChatNodeHeaderAdapter"
+    >
 
     <LinearLayout
         android:id="@+id/prompt_holder"
@@ -15,7 +17,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
@@ -54,12 +57,12 @@
                 android:textSize="@dimen/abc_text_size_body_1_material" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <LinearLayout
-            android:id="@+id/edit_system_message_buttons"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/system_message_buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:layout_gravity="right|center_vertical"
+            android:layout_marginStart="-6dp"
             android:paddingBottom="6dp"
             tools:ignore="RtlHardcoded">
 
@@ -70,12 +73,16 @@
                 app:iconTint="?attr/colorOnPrimaryContainer"
                 app:iconSize="24dp"
                 android:paddingStart="3.5dp"
-                android:gravity="top"
-                android:contentDescription="@string/never_mind"
+                android:contentDescription="@string/system_message_cancel"
                 android:layout_width="30dp"
                 android:layout_height="40dp"
                 android:layout_marginEnd="6dp"
                 app:cornerRadius="10dp"
+
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/edit_system_message_submit_button"
                 tools:ignore="RtlHardcoded,RtlSymmetry" />
 
             <com.google.android.material.button.MaterialButton
@@ -85,15 +92,40 @@
                 app:iconTint="?attr/colorOnPrimaryContainer"
                 app:iconSize="24dp"
                 android:paddingStart="3.5dp"
-                android:layout_gravity="bottom"
-                android:contentDescription="@string/submit"
+                android:contentDescription="@string/system_message_save"
                 android:layout_width="30dp"
                 android:layout_height="40dp"
                 android:layout_marginEnd="6dp"
+
                 app:cornerRadius="10dp"
+
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edit_system_message_cancel_button"
+                app:layout_constraintBottom_toBottomOf="parent"
                 tools:ignore="RtlHardcoded,RtlSymmetry" />
 
-        </LinearLayout>
+            <ImageButton
+                android:visibility="gone"
+                android:id="@+id/system_message_insert_prompt_button"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/ripple_round_icon"
+                android:backgroundTint="@color/md_theme_dark_secondary"
+                android:contentDescription="@string/system_message_insert_prompt"
+                android:padding="3dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/round_p_note_24"
+
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
     <androidx.constraintlayout.widget.Guideline

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".chatnodes.PromptSearchDialog">
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/prompts_list_fragment"
+        android:name="com.phazei.dynamicgptchat.prompts.PromptsListFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout="@layout/fragment_prompts_list" />
+
+</FrameLayout>
