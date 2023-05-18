@@ -105,12 +105,12 @@ class TagInputView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         //hack since minHeight is broken: https://github.com/google/flexbox-layout/issues/562
-        val minHeight = 56.dpToPx()
+        val minHeight = minimumHeight
         //once the heights been adjusted, it will cycle back and forth, need 1 px leeway to stop
         if (measuredHeight < minHeight + 1) {
             val extraPadding = minHeight - measuredHeight
             if (extraPadding > 0) {
-                setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1] + extraPadding, viewHelper.paddingMod[2], viewHelper.paddingMod[3])
+                setPadding(viewHelper.paddingMod[0], viewHelper.paddingMod[1] + extraPadding/2+extraPadding%2, viewHelper.paddingMod[2], viewHelper.paddingMod[3]  + extraPadding/2)
             }
             //not needed most of the time, but discovered one case in a Dialog where the height didn't change with padding alone
             setMeasuredDimension(measuredWidth, minHeight)
@@ -387,6 +387,7 @@ class TagInputView @JvmOverloads constructor(
     }
 
     fun <T> setTagInputData(tagInputData: TagInputData<T>) {
+        clearTags()
         this.tagInputData = tagInputData
     }
     fun containsTag(tag: Any): Boolean {
