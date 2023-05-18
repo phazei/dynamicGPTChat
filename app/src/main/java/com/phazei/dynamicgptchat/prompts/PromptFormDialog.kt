@@ -1,5 +1,6 @@
 package com.phazei.dynamicgptchat.prompts
 
+import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,15 +18,24 @@ import kotlin.math.roundToInt
 
 class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragment() {
 
+    private var _binding: DialogPromptFormBinding? = null
+    private val binding get() = _binding!!
+    private val promptsViewModel: PromptsViewModel by activityViewModels()
+
     private lateinit var listener: OnPromptFormDialogListener
-    private lateinit var binding: DialogPromptFormBinding
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        setStyle(DialogFragment.STYLE_NORMAL, R.style.Theme_DynamicGPTChat_FullScreenDialog)
+        return super.onCreateDialog(savedInstanceState)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DialogPromptFormBinding.inflate(inflater, container, false)
+        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        _binding = DialogPromptFormBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -35,23 +45,16 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
         setupPromptWithTags()
 
         // Set up the button click listener
-        binding.promptSave.setOnClickListener {
-            savePromptWithTags()
-        }
-
-        binding.promptClose.setOnClickListener {
-            this.dismiss()
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        dialog?.let {
-            val width = ViewGroup.LayoutParams.MATCH_PARENT
-            val height = ViewGroup.LayoutParams.WRAP_CONTENT
-            it.window?.setLayout(width, height)
-
-            it.setCanceledOnTouchOutside(false)
+        binding.apply {
+            toolbar.setNavigationOnClickListener { v -> dismiss() }
+            toolbar.setOnMenuItemClickListener { item ->
+                savePromptWithTags()
+                true
+            }
+            toolbar.navigationIcon?.mutate()?.let {
+                it.setTint(ContextCompat.getColor(view.context, R.color.md_theme_light_surface))
+                toolbar.navigationIcon = it
+            }
         }
     }
 
@@ -61,7 +64,7 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
 
     fun setupPromptWithTags() {
 
-        binding.promptDialogTitle.text = if (promptWithTags.prompt.id == 0L) getString(R.string.dialog_title_add) else getString(R.string.dialog_title_edit)
+        binding.toolbar.title = if (promptWithTags.prompt.id == 0L) getString(R.string.dialog_title_add) else getString(R.string.dialog_title_edit)
 
         binding.promptTitle.setText(promptWithTags.prompt.title)
         binding.promptBody.setText(promptWithTags.prompt.body)
@@ -103,4 +106,8 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
         fun onSavePrompt(promptWithTags: PromptWithTags)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

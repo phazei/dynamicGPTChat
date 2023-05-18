@@ -1,91 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:layout_height="match_parent"
+    android:theme="@style/Theme.DynamicGPTChat"
+    tools:context=".prompts.PromptFormDialog">
 
-    <TextView
-        android:id="@+id/prompt_dialog_title"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:gravity="center"
-        style="@style/TextAppearance.Widget.AppCompat.Toolbar.Title"
-        android:text="Title" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/prompt_layout_title"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:hint="Title">
+        android:theme="@style/Theme.DynamicGPTChat.AppBarOverlay"
+        android:background="?android:statusBarColor"
+        app:elevation="0dp"
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/prompt_title"
+        >
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:maxLength="36"
-            android:inputType="text" />
+            android:layout_height="?attr/actionBarSize"
 
-    </com.google.android.material.textfield.TextInputLayout>
 
-    <com.phazei.taginputview.TagInputView
-        android:id="@+id/prompt_tags"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="6dp"
+            android:paddingEnd="16dp"
+            android:paddingStart="0dp"
+            app:titleMarginStart="16dp"
 
-        android:background="?attr/colorSurfaceVariant"
-        app:strokeColor="?attr/colorPrimary"
-        app:inputTheme="@style/textHandleOnColor"
-        android:maxLength="16"
-        android:hint="Tags for prompt" />
+            app:contentInsetStartWithNavigation="0dp"
+            app:navigationIcon="@drawable/round_close_24"
+            app:title="Title"
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/prompt_layout_body"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Body">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/prompt_body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="top"
-            android:inputType="textMultiLine"
-            android:minLines="4"
-            android:maxLines="10"
+            app:menu="@menu/prompt_dialog_menu"
             />
 
-    </com.google.android.material.textfield.TextInputLayout>
+    </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <Button
-            android:id="@+id/prompt_close"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            android:textColor="?attr/colorPrimary"
-            android:background="@android:color/transparent"
-            android:text="Close" />
-        <Button
-            android:id="@+id/prompt_save"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:textColor="?attr/colorPrimary"
-            android:background="@android:color/transparent"
-            android:text="Save" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-</LinearLayout>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/prompt_layout_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
+
+                android:hint="Prompt Title"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                >
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/prompt_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLength="36" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.phazei.taginputview.TagInputView
+                android:id="@+id/prompt_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:minHeight="56dp"
+
+                android:background="?attr/colorSurfaceVariant"
+
+                android:hint="Prompt Tags"
+                android:maxLength="16"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                app:inputTheme="@style/textHandleOnColor"
+
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/prompt_layout_title"
+                app:strokeColor="?attr/colorPrimary" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/prompt_layout_body"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="10dp"
+
+                android:hint="Prompt Body"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/prompt_tags"
+                app:layout_constraintBottom_toBottomOf="parent"
+                >
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/prompt_body"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"
+                    android:minLines="4" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
