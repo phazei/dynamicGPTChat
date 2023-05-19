@@ -146,10 +146,13 @@ class MainActivity : AppCompatActivity() {
 
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.PromptsFragment,
                 R.id.ChatTreeListFragment -> {
                     fab.show()
                     updateAppBarScrollFlags(true)
+                }
+                R.id.PromptsFragment -> {
+                    fab.show()
+                    updateAppBarScrollFlags(false)
                 }
                 else -> {
                     fab.hide()

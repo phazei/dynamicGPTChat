@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.phazei.dynamicgptchat.swipereveal.SwipeRevealLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/prompt_reveal_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="0dp"
+    app:dragEdge="right"
+    app:mode="normal">
+
+    <LinearLayout
+        android:id="@+id/prompt_swipe_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/delete_prompt_button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_vertical"
+            android:focusableInTouchMode="false"
+            android:paddingHorizontal="20dp"
+            android:background="?attr/colorErrorContainer"
+            android:drawableEnd="@drawable/round_delete_sweep_24"
+            android:drawableTint="?attr/colorOnErrorContainer"
+            android:singleLine="true"
+            android:contentDescription="@string/prompt_delete"
+            tools:ignore="ButtonStyle, TextContrastCheck" />
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/prompt_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="8dp"
+        android:background="?attr/colorSurfaceVariant"
+        >
+
+        <ImageButton
+            android:visibility="visible"
+            android:id="@+id/prompt_select"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:src="@drawable/round_finger_point_24"
+            android:padding="10dp"
+
+            android:scaleType="fitXY"
+            app:tint="?attr/colorOnSurface"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/prompt_group_tags"
+            android:contentDescription="@string/prompt_edit" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/prompt_select_barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="end"
+            app:constraint_referenced_ids="prompt_select" />
+
+        <TextView
+            android:id="@+id/prompt_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+            android:gravity="bottom"
+            android:minHeight="36dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:text="Title"
+            app:layout_constraintVertical_bias="0"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/prompt_button_barrier_h"
+            app:layout_constraintStart_toStartOf="@id/prompt_select_barrier"
+            app:layout_constraintEnd_toStartOf="@id/prompt_button_barrier_v"
+            />
+
+        <LinearLayout
+            android:visibility="visible"
+            android:id="@+id/prompt_button_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageButton
+                android:id="@+id/prompt_edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:src="@drawable/round_edit_24"
+                app:tint="?attr/colorOnSurface"
+                android:contentDescription="@string/prompt_edit" />
+
+            <ImageButton
+                android:id="@+id/prompt_copy"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:src="@drawable/round_content_copy_24"
+                app:tint="?attr/colorOnSurface"
+                android:contentDescription="@string/prompt_copy" />
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/prompt_button_barrier_v"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="start"
+            app:constraint_referenced_ids="prompt_button_layout" />
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/prompt_button_barrier_h"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="prompt_button_layout" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/prompt_group_tags"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginHorizontal="10dp"
+            app:singleLine="false"
+            app:layout_constraintTop_toBottomOf="@id/prompt_title"
+            app:layout_constraintStart_toStartOf="@id/prompt_select_barrier"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+        <TextView
+            android:id="@+id/prompt_body"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginHorizontal="10dp"
+            android:textSize="16sp"
+            android:text="Body"
+            android:minLines="2"
+            android:maxLines="3"
+            android:ellipsize="end"
+            app:layout_constraintTop_toBottomOf="@id/prompt_group_tags"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+
+            />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.phazei.dynamicgptchat.swipereveal.SwipeRevealLayout>

@@ -360,13 +360,34 @@ public class SwipeRevealLayout extends ViewGroup {
         int desiredWidth = 0;
         int desiredHeight = 0;
 
+        int wrapChildHeight = 0;
+        int wrapChildWidth = 0;
+
         // first find the largest child
         for (int i = 0; i < getChildCount(); i++) {
             final View child = getChildAt(i);
+            final LayoutParams childParams = child.getLayoutParams();
             measureChild(child, widthMeasureSpec, heightMeasureSpec);
-            desiredWidth = Math.max(child.getMeasuredWidth(), desiredWidth);
-            desiredHeight = Math.max(child.getMeasuredHeight(), desiredHeight);
+
+            if (childParams.height == LayoutParams.WRAP_CONTENT &&
+                    (mDragEdge == DRAG_EDGE_LEFT || mDragEdge == DRAG_EDGE_RIGHT))
+                wrapChildHeight = Math.max(child.getMeasuredHeight(), wrapChildHeight);
+            else
+                desiredHeight = Math.max(child.getMeasuredHeight(), desiredHeight);
+
+            if (childParams.width == LayoutParams.WRAP_CONTENT &&
+                    (mDragEdge == DRAG_EDGE_TOP || mDragEdge == DRAG_EDGE_BOTTOM))
+                wrapChildWidth = Math.max(child.getMeasuredWidth(), wrapChildWidth);
+            else
+                desiredWidth = Math.max(child.getMeasuredWidth(), desiredWidth);
+
         }
+
+        if (wrapChildHeight != 0)
+            desiredHeight = wrapChildHeight;
+        if (wrapChildWidth != 0)
+            desiredWidth = wrapChildWidth;
+
         // create new measure spec using the largest child width
         widthMeasureSpec = MeasureSpec.makeMeasureSpec(desiredWidth, widthMode);
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(desiredHeight, heightMode);
@@ -379,12 +400,12 @@ public class SwipeRevealLayout extends ViewGroup {
             final LayoutParams childParams = child.getLayoutParams();
 
             if (childParams != null) {
-                if (childParams.height == LayoutParams.MATCH_PARENT) {
-                    child.setMinimumHeight(measuredHeight);
+                if (childParams.height != LayoutParams.WRAP_CONTENT) {
+                    childParams.height = measuredHeight;
                 }
 
                 if (childParams.width == LayoutParams.MATCH_PARENT) {
-                    child.setMinimumWidth(measuredWidth);
+                    childParams.width = measuredWidth;
                 }
             }
 
@@ -406,7 +427,7 @@ public class SwipeRevealLayout extends ViewGroup {
             }
 
             if (widthMode == MeasureSpec.AT_MOST) {
-                desiredWidth = (desiredWidth > measuredWidth)? measuredWidth : desiredWidth;
+                desiredWidth = (desiredWidth > measuredWidth) ? measuredWidth : desiredWidth;
             }
         }
 
@@ -419,7 +440,7 @@ public class SwipeRevealLayout extends ViewGroup {
             }
 
             if (heightMode == MeasureSpec.AT_MOST) {
-                desiredHeight = (desiredHeight > measuredHeight)? measuredHeight : desiredHeight;
+                desiredHeight = (desiredHeight > measuredHeight) ? measuredHeight : desiredHeight;
             }
         }
 

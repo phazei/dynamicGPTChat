@@ -194,6 +194,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
         chatNodeFooterAdapter = ChatNodeFooterAdapter()
 
         val chatNodeHeaderAdapter = ChatNodeHeaderAdapter(
+            fragmentManager = childFragmentManager,
             currentSystemMessage = chatTree.gptSettings.systemMessage,
             onSave = { newSystemMessage ->
                 chatTreeViewModel.saveGptSettings(chatTree.gptSettings.apply { systemMessage = newSystemMessage })
@@ -257,17 +258,18 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
      * This makes for nicer scrolling when entering a long system message
      */
     private fun setupRecyclerHeaderScroll(sysMsgHeight : Int) {
-        val totalChildrenHeight = (chatNodeAdapter.layoutManager.findFirstVisibleItemPosition()..chatNodeAdapter.layoutManager.findLastVisibleItemPosition())
-            .mapNotNull { chatNodeAdapter.layoutManager.findViewByPosition(it) }
+        val llm = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
+        val totalChildrenHeight = (llm.findFirstVisibleItemPosition()..llm.findLastVisibleItemPosition())
+            .mapNotNull { llm.findViewByPosition(it) }
             .sumOf { it.height }
         val rcHeight = binding.chatNodeRecyclerView.height
 
         if (sysMsgHeight < rcHeight && totalChildrenHeight > rcHeight) {
             if (!binding.chatNodeRecyclerView.isComputingLayout) {
-                chatNodeAdapter.layoutManager.stackFromEnd = false
+                llm.stackFromEnd = false
                 lifecycleScope.launch {
                     delay(200) // so if it goes to the next line it doesn't jump as much
-                    chatNodeAdapter.layoutManager.stackFromEnd = true
+                    llm.stackFromEnd = true
                     binding.chatNodeRecyclerView.scrollToPosition(0)
                 }
             }

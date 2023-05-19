@@ -3,7 +3,6 @@ package com.phazei.dynamicgptchat.chatnodes
 import android.annotation.SuppressLint
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.text.method.LinkMovementMethod
-import android.text.method.ScrollingMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,12 +12,16 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doBeforeTextChanged
 import androidx.core.widget.doOnTextChanged
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.data.entity.ChatNode
+import com.phazei.dynamicgptchat.data.entity.PromptWithTags
 import com.phazei.dynamicgptchat.databinding.ChatNodeHeaderItemBinding
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
+import com.phazei.dynamicgptchat.prompts.PromptListAdapter
+import com.phazei.dynamicgptchat.prompts.PromptsListFragment
 import io.noties.markwon.Markwon
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tables.TableAwareMovementMethod
@@ -350,6 +353,7 @@ class ChatNodeAdapter(
 }
 
 class ChatNodeHeaderAdapter(
+    private val fragmentManager: FragmentManager,
     private var currentSystemMessage: String,
     private val onSave: (newSystemMessage: String) -> Unit,
     private val onChange: (sysMsgHeight: Int) -> Unit
@@ -359,7 +363,9 @@ class ChatNodeHeaderAdapter(
     init { setHasStableIds(true) }
     override fun getItemId(position: Int): Long { return -10 }
 
-    inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root), PromptsListFragment.OnPromptSelectedListener {
+        private val promptSearchDialog = PromptSearchDialog(this@HeaderViewHolder)
+
         init {
             binding.apply {
                 systemMessageEditText.doBeforeTextChanged { text, start, count, after ->
@@ -368,7 +374,7 @@ class ChatNodeHeaderAdapter(
 
                 systemMessageEditText.doAfterTextChanged { _ ->
                     updatedSystemMessage = systemMessageEditText.text.toString()
-                    checkSystemMessageChanged()
+                    updateSystemMessageButtons()
                 }
 
                 systemMessageEditText.setText(updatedSystemMessage)
@@ -384,18 +390,44 @@ class ChatNodeHeaderAdapter(
                     onSave(updatedSystemMessage)
                     // update current to updated
                     currentSystemMessage = updatedSystemMessage
-                    checkSystemMessageChanged()
+                    updateSystemMessageButtons()
+                }
+
+                systemMessageEditText.setOnFocusChangeListener { _, hasFocus ->
+                    updateSystemMessageButtons()
+                }
+
+                systemMessageInsertPromptButton.setOnClickListener {
+                    //open dialog
+                    promptSearchDialog.show(fragmentManager, "promptSearchDialog")
                 }
             }
         }
 
-        private fun checkSystemMessageChanged() {
+        private fun updateSystemMessageButtons() {
             binding.apply {
+                val textFocused = systemMessageEditText.hasFocus()
                 val hasChanges = updatedSystemMessage != currentSystemMessage
-                editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
-                editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+                if (hasChanges || textFocused) {
+                    binding.systemMessageButtons.visibility = View.VISIBLE
+
+                    editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+                    editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+
+                    systemMessageInsertPromptButton.visibility = if (!hasChanges && textFocused) View.VISIBLE else View.GONE
+                } else {
+                    binding.systemMessageButtons.visibility = View.GONE
+                }
             }
         }
+
+        // @PromptListFragment
+        override val listType: PromptListAdapter.ListType = PromptListAdapter.ListType.SELECT
+        override fun onPromptSelected(promptWithTags: PromptWithTags) {
+            binding.systemMessageEditText.setText(promptWithTags.prompt.body)
+            promptSearchDialog.dismiss()
+        }
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
