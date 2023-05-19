@@ -16,6 +16,14 @@
             tools:layout="@layout/fragment_app_settings" />
     </navigation>
 
+    <navigation android:id="@+id/request_test_graph" app:startDestination="@id/RequestTestFragment">
+        <fragment
+            android:id="@+id/RequestTestFragment"
+            android:name="com.phazei.dynamicgptchat.requesttest.RequestTestFragment"
+            android:label="@string/app_settings_label"
+            tools:layout="@layout/fragment_app_settings" />
+    </navigation>
+
     <navigation android:id="@+id/about_graph" app:startDestination="@id/AboutFragment">
         <fragment
             android:id="@+id/AboutFragment"

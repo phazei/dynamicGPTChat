@@ -19,6 +19,12 @@
             android:icon="@drawable/sharp_settings_applications_24"
             android:title="@string/settings" />
         <item
+            android:id="@+id/request_test_graph"
+            android:icon="@drawable/test_flask"
+            android:iconTintMode="@null"
+            android:title="Test Area"
+            />
+        <item
             android:visible="false"
             android:id="@+id/about_graph"
             android:icon="@drawable/round_info_24"

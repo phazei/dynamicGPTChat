@@ -1,6 +1,7 @@
 package com.phazei.dynamicgptchat
 
 import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
@@ -12,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.view.GravityCompat
+import androidx.core.view.get
+import androidx.core.view.size
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -69,12 +72,18 @@ class MainActivity : AppCompatActivity() {
                 R.id.chat_tree_graph,
                 R.id.prompts_graph,
                 R.id.app_settings_graph,
-                R.id.about_graph
+                R.id.about_graph,
+                R.id.request_test_graph
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+        navView.setItemIconSize(100)
+        navView.menu.get(3).iconTintList = null
+        navView.menu.get(3).iconTintMode = null
+        // navView.menu.get(3).iconTintBlendMode = null
+        navView.menu.get(3).setIcon(R.drawable.test_flask)
         binding.AboutFragment.setOnClickListener {
             // This has the potential to really screw with the backStack
             // It's essential that About be in the menu even though it's not visible to properly
