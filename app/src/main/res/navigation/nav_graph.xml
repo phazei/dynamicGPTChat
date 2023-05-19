@@ -8,18 +8,21 @@
     <include app:graph="@navigation/chat_tree_graph" />
     <include app:graph="@navigation/prompts_graph" />
 
-    <fragment
-        android:id="@+id/AppSettingsFragment"
-        android:name="com.phazei.dynamicgptchat.settings.AppSettingsFragment"
-        android:label="@string/app_settings_label"
-        tools:layout="@layout/fragment_app_settings" />
+    <navigation android:id="@+id/app_settings_graph" app:startDestination="@id/AppSettingsFragment">
+        <fragment
+            android:id="@+id/AppSettingsFragment"
+            android:name="com.phazei.dynamicgptchat.settings.AppSettingsFragment"
+            android:label="@string/app_settings_label"
+            tools:layout="@layout/fragment_app_settings" />
+    </navigation>
 
-    <fragment
-        android:id="@+id/AboutFragment"
-        android:name="com.phazei.dynamicgptchat.about.AboutFragment"
-        android:label="@string/about_label"
-        tools:layout="@layout/fragment_about" >
-
-    </fragment>
+    <navigation android:id="@+id/about_graph" app:startDestination="@id/AboutFragment">
+        <fragment
+            android:id="@+id/AboutFragment"
+            android:name="com.phazei.dynamicgptchat.about.AboutFragment"
+            android:label="@string/about_label"
+            tools:layout="@layout/fragment_about" >
+        </fragment>
+    </navigation>
 
 </navigation>

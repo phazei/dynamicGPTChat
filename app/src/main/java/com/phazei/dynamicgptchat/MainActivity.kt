@@ -66,10 +66,10 @@ class MainActivity : AppCompatActivity() {
         // appBarConfiguration = AppBarConfiguration(navController.graph)
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.ChatTreeListFragment,
+                R.id.chat_tree_graph,
                 R.id.prompts_graph,
-                R.id.AppSettingsFragment,
-                R.id.AboutFragment
+                R.id.app_settings_graph,
+                R.id.about_graph
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -81,17 +81,17 @@ class MainActivity : AppCompatActivity() {
             //   have a topLevel menu item.
 
             // navView.setCheckedItem(R.id.AboutFragment)
-            navView.menu.performIdentifierAction(R.id.AboutFragment, Menu.FLAG_ALWAYS_PERFORM_CLOSE)
-            navController.navigate(R.id.AboutFragment, null, NavOptions.Builder()
+            // navView.menu.performIdentifierAction(R.id.AboutFragment, Menu.FLAG_ALWAYS_PERFORM_CLOSE)
+            navController.navigate(R.id.about_graph, null, NavOptions.Builder()
                     //navigating to
                 .setEnterAnim(R.anim.spin_in_crazy)
                 .setExitAnim(R.anim.spin_out_crazy)
                     //hitting back
                 .setPopEnterAnim(R.anim.spin_in_crazy)
                 .setPopExitAnim(R.anim.spin_out_crazy)
-                .setLaunchSingleTop(true)
-                .setRestoreState(false)
-                .setPopUpTo(R.id.AboutFragment, true)
+                // .setLaunchSingleTop(true)
+                // .setRestoreState(false)
+                .setPopUpTo(R.id.about_graph, true)
                 .build()
             )
         }
@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity() {
             drawerLayout.closeDrawer(GravityCompat.START)
             //manually set active view display for "about" menu
             val typedValue = TypedValue()
-            if (destination.id == R.id.AboutFragment) {
+            if (destination.id == R.id.about_graph) {
                 binding.root.context.theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
                 binding.AboutFragment.setTextColor(typedValue.data)
                 binding.aboutMenuBg.visibility = View.VISIBLE
