@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.databinding.DialogPromptSearchBinding
@@ -22,6 +23,7 @@ class PromptSearchDialog(private val selectedListener: PromptsListFragment.OnPro
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        dialog?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         _binding = DialogPromptSearchBinding.inflate(inflater, container, false)
         return binding.root
     }

@@ -29,8 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
-class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListener {
-
+class PromptsListFragment() : Fragment(), PromptListAdapter.PromptItemClickListener {
     private var _binding: FragmentPromptsListBinding? = null
     private val binding get() = _binding!!
     private val promptsViewModel: PromptsViewModel by activityViewModels()
@@ -51,6 +50,9 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
+        promptSelectedListener?.let { listener ->
+            promptListAdapter.setListType(listener.listType)
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -167,6 +169,9 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
 
     fun setOnPromptSelectedListener(listener: OnPromptSelectedListener) {
         promptSelectedListener = listener
+        if (::promptListAdapter.isInitialized) {
+            promptListAdapter.setListType(promptSelectedListener!!.listType)
+        }
     }
 
     /**
@@ -189,6 +194,7 @@ class PromptsListFragment : Fragment(), PromptListAdapter.PromptItemClickListene
      * When recyclerView item is clicked
      */
     interface OnPromptSelectedListener {
+        val listType: PromptListAdapter.ListType
         fun onPromptSelected(promptWithTags: PromptWithTags)
     }
 

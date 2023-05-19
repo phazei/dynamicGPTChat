@@ -39,7 +39,7 @@ class PromptsFragment : Fragment(), PromptsListFragment.OnPromptSelectedListener
         sharedViewModel.onFabClick.value = { onAddFABClick() }
 
         promptsListFragment = childFragmentManager.findFragmentById(R.id.prompts_list_fragment) as PromptsListFragment
-        promptsListFragment.setOnPromptSelectedListener(this)
+        promptsListFragment.setOnPromptSelectedListener(this@PromptsFragment)
 
     }
 
@@ -60,6 +60,7 @@ class PromptsFragment : Fragment(), PromptsListFragment.OnPromptSelectedListener
      *  From @PromptsListFragment interface - communicate with RecyclerView, when an item is selected from the
      *  recycler this is the action that will be performed
      */
+    override val listType: PromptListAdapter.ListType = PromptListAdapter.ListType.EDIT
     override fun onPromptSelected(promptWithTags: PromptWithTags) {
         openPromptFormDialog(promptWithTags)
     }

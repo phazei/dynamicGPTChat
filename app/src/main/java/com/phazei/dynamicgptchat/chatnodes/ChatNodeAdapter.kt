@@ -20,6 +20,7 @@ import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
 import com.phazei.dynamicgptchat.databinding.ChatNodeHeaderItemBinding
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
+import com.phazei.dynamicgptchat.prompts.PromptListAdapter
 import com.phazei.dynamicgptchat.prompts.PromptsListFragment
 import io.noties.markwon.Markwon
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
@@ -421,6 +422,7 @@ class ChatNodeHeaderAdapter(
         }
 
         // @PromptListFragment
+        override val listType: PromptListAdapter.ListType = PromptListAdapter.ListType.SELECT
         override fun onPromptSelected(promptWithTags: PromptWithTags) {
             binding.systemMessageEditText.setText(promptWithTags.prompt.body)
             promptSearchDialog.dismiss()

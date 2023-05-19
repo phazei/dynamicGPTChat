@@ -27,6 +27,9 @@ class PromptListAdapter(
     private val viewBinderHelper = ViewBinderHelper()
     private val promptWithTagsList: MutableList<PromptWithTags> = mutableListOf()
     private var activePromptPosition: Int? = null
+    private var listType: ListType = ListType.EDIT
+
+    enum class ListType { EDIT, SELECT }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PromptWithTagsViewHolder {
         val binding = PromptListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -79,6 +82,9 @@ class PromptListAdapter(
             binding.promptEdit.setOnClickListener {
                 itemClickListener.onSelectClick(promptWithTagsList[bindingAdapterPosition], bindingAdapterPosition)
             }
+            binding.promptSelect.setOnClickListener {
+                itemClickListener.onSelectClick(promptWithTagsList[bindingAdapterPosition], bindingAdapterPosition)
+            }
 
             binding.promptCopy.setOnClickListener {
                 val prompt = promptWithTagsList[bindingAdapterPosition].prompt
@@ -98,6 +104,15 @@ class PromptListAdapter(
                 binding.promptBody.maxLines = Int.MAX_VALUE
             } else {
                 binding.promptBody.maxLines = 3
+            }
+            if (listType == ListType.EDIT) {
+                binding.promptSelect.visibility = View.GONE
+                binding.promptButtonLayout.visibility = View.VISIBLE
+                binding.promptRevealLayout.setLockDrag(false)
+            } else if (listType == ListType.SELECT) {
+                binding.promptSelect.visibility = View.VISIBLE
+                binding.promptButtonLayout.visibility = View.GONE
+                binding.promptRevealLayout.setLockDrag(true)
             }
 
 
@@ -148,6 +163,7 @@ class PromptListAdapter(
             binding.promptItem.setBackgroundColor(typedValue.data)
             binding.promptEdit.backgroundTintList = ColorStateList.valueOf(typedValue.data)
             binding.promptCopy.backgroundTintList = ColorStateList.valueOf(typedValue.data)
+            binding.promptSelect.backgroundTintList = ColorStateList.valueOf(typedValue.data)
 
         }
     }
@@ -159,6 +175,11 @@ class PromptListAdapter(
         val alphaAnimation = ObjectAnimator.ofFloat(holder.itemView, View.ALPHA, 1f, 0.5f, 1f, 0.5f, 1f)
         alphaAnimation.duration = 1000 // milliseconds
         alphaAnimation.start()
+    }
+
+    fun setListType(type: ListType) {
+        listType = type
+        notifyDataSetChanged()
     }
 
     fun getItemPosition(promptWithTags: PromptWithTags): Int {
