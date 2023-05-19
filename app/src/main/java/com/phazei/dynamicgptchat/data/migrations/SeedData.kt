@@ -48,7 +48,7 @@ class SeedData(private var context: Context, private var database: AppDatabase) 
             Prompt(title="Wrong Explanations", body="""
                 Please provide a concise, profoundly wrong explanation of [SUBJECT]. Your explanation should demonstrate a
                 complete misunderstanding of the topic and include entirely inaccurate information that contradicts the
-                well-established understanding of air. Be creative and imaginative in constructing your explanation,
+                well-established understanding of the topic. Be creative and imaginative in constructing your explanation,
                 incorporating logical inconsistencies, flawed reasoning, and baseless assertions.
                 Feel free to let your imagination run wild and have fun crafting your response!
                 """.trimIndent()),
