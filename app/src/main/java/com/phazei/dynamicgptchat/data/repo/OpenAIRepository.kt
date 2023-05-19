@@ -151,6 +151,9 @@ class OpenAIRepository @Inject constructor(
         return requestJob
     }
 
+    suspend fun chatCompleteText(chatCompletionRequest: ChatCompletionRequest): ChatCompletion {
+        return openAI.chatCompletion(chatCompletionRequest)
+    }
     suspend fun completeText(completionRequest: CompletionRequest): TextCompletion {
         return openAI.completion(completionRequest)
     }

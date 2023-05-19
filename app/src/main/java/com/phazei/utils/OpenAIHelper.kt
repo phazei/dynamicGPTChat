@@ -17,8 +17,15 @@ object OpenAIHelper {
                         && !it.id.id.contains("text-search")
                         && !it.id.id.contains("edit")
                         && !it.id.id.contains("embedding")
+                        && !it.id.id.contains("whisper")
+                        && !it.id.id.startsWith("if-")
             }
-            else -> models
+            else -> models.filter {
+                !it.id.id.contains(":")
+                        && !it.id.id.contains("embedding")
+                        && !it.id.id.contains("whisper")
+                        && !it.id.id.startsWith("if-")
+            }
         }.map { it.id.id }.sorted().toMutableList()
     }
 
