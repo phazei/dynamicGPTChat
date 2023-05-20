@@ -132,7 +132,7 @@ class OpenAIRepository @Inject constructor(
                         //errors will only reach here if they skipped the catch
                         when (e) {
                             null -> onComplete()
-                            is CancellationException -> onError(ChatResponseWrapper.Error(Exception("Manually Halted")))
+                            is CancellationException -> onError(ChatResponseWrapper.Error(Exception("The quest was quashed!!")))
                             else -> throw e
                         }
                     }

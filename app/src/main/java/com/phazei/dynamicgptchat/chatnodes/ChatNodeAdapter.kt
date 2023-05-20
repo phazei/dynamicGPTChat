@@ -333,13 +333,6 @@ class ChatNodeAdapter(
         }
     }
 
-    // flow has changed, might not need to do anything, just show it with empty response
-    fun cancelLastItem() {
-        val lastChatNode = chatNodes[chatNodes.lastIndex]
-        if (lastChatNode.id == 0L) {
-        }
-    }
-
     fun isInit(): Boolean {
         return !chatNodes.isEmpty()
     }

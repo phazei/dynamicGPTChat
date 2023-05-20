@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -125,12 +127,7 @@ class ChatNodeViewModel @Inject constructor(
             }
             is ChatResponseWrapper.Error -> {
                 val error = response.error
-                if (error.message == "Manually Halted") {
-                    chatNode.finishReason = error.message.toString()
-                } else {
-                    chatNode.error = error.message ?: "Unknown Error Type: ${error.javaClass.simpleName} : Cause: ${error.cause.toString()}"
-                }
-
+                chatNode.error = error.message ?: "Unknown Error Type: ${error.javaClass.simpleName} : Cause: ${error.cause?.toString() ?: "No cause"}"
                 handleChatComplete(chatNode)
             }
         }
@@ -144,23 +141,15 @@ class ChatNodeViewModel @Inject constructor(
     private fun handleChatComplete(chatNode: ChatNode) {
         viewModelScope.launch {
             chatRepository.saveChatNode(chatNode)
-
-            if (!chatNode.parent.parentInitialized()) {
-                // this is first message of conversation, generate title
-                viewModelScope.launch {
-                    chatNode.chatTree?.let {
-                        val msg = "User: ${chatNode.prompt}" + "\nAssistant: ${chatNode.response}"
-                        it.title = aiHelperRequests.getChatNodeTitle(msg)
-                        chatRepository.saveChatTree(it)
-                        titleUpdate.emit(it.title)
-                    }
+            if (chatNode.error == null) {
+                if (!chatNode.parent.parentInitialized()) {
+                    // this is first message of conversation, generate title
+                    updateChatTreeTitle(chatNode)
                 }
+                moderateChatNodeResponse(chatNode)
             }
-
-            // will be triggered even on error, does it matter? probably not
-            moderateChatNodeResponse(chatNode)
-            delay(300)
             //one final update just in case it glitched previously
+            delay(300)
             emitSingleChatNodeUpdate(chatNode)
         }
     }
@@ -185,13 +174,25 @@ class ChatNodeViewModel @Inject constructor(
         }
     }
 
+    private fun updateChatTreeTitle(chatNode: ChatNode) {
+        viewModelScope.launch {
+            chatNode.chatTree?.let {
+                val msg = "User: ${chatNode.prompt}" + "\nAssistant: ${chatNode.response}"
+                flow {
+                    emit(aiHelperRequests.getChatNodeTitle(msg))
+                }.catch {
+                    // ignore failed title request
+                }.collect { title ->
+                    it.title = title
+                    chatRepository.saveChatTree(it)
+                    titleUpdate.emit(it.title)
+                }
+            }
+        }
+    }
+
     fun cancelRequest(chatTreeId: Long) {
         openAIRepository.manage.cancelRequest(chatTreeId)
-        //need to see if we want to keep the latest chatNode, or dump it
-        //has it even been saved?
-        //if it was streaming and has data, save it and keep it as active
-        //otherwise dump it
-        //need to update adapter as well
     }
 
     /**

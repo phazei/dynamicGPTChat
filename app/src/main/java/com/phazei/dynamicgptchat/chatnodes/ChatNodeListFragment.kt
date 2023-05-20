@@ -185,7 +185,6 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
     private fun cancelChatRequest() {
         chatNodeViewModel.cancelRequest(chatTree.id)
-        chatNodeAdapter.cancelLastItem()
     }
 
     // @ChatNodeAdapter
