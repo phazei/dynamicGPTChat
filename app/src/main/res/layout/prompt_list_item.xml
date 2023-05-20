@@ -38,30 +38,6 @@
         android:background="?attr/colorSurfaceVariant"
         >
 
-        <ImageButton
-            android:visibility="visible"
-            android:id="@+id/prompt_select"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_marginTop="10dp"
-            android:src="@drawable/round_finger_point_24"
-            android:padding="10dp"
-
-            android:scaleType="fitXY"
-            app:tint="?attr/colorOnSurface"
-
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="@id/prompt_group_tags"
-            android:contentDescription="@string/prompt_edit" />
-
-        <androidx.constraintlayout.widget.Barrier
-            android:id="@+id/prompt_select_barrier"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:barrierDirection="end"
-            app:constraint_referenced_ids="prompt_select" />
-
         <TextView
             android:id="@+id/prompt_title"
             android:layout_width="0dp"
@@ -75,7 +51,7 @@
             app:layout_constraintVertical_bias="0"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/prompt_button_barrier_h"
-            app:layout_constraintStart_toStartOf="@id/prompt_select_barrier"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/prompt_button_barrier_v"
             />
 
@@ -91,19 +67,31 @@
             app:layout_constraintEnd_toEndOf="parent">
 
             <ImageButton
+                android:id="@+id/prompt_select"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:paddingVertical="10dp"
+                android:paddingStart="5dp"
+                android:paddingEnd="0dp"
+                android:src="@drawable/avd_checked_box"
+                android:scaleType="fitCenter"
+                app:tint="?attr/colorOnSurface"
+                android:contentDescription="@string/prompt_select" />
+            <ImageButton
                 android:id="@+id/prompt_edit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:padding="10dp"
                 android:src="@drawable/round_edit_24"
+                android:scaleType="fitCenter"
                 app:tint="?attr/colorOnSurface"
                 android:contentDescription="@string/prompt_edit" />
-
             <ImageButton
                 android:id="@+id/prompt_copy"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:padding="10dp"
+                android:scaleType="fitCenter"
                 android:src="@drawable/round_content_copy_24"
                 app:tint="?attr/colorOnSurface"
                 android:contentDescription="@string/prompt_copy" />
@@ -130,7 +118,7 @@
             android:layout_marginHorizontal="10dp"
             app:singleLine="false"
             app:layout_constraintTop_toBottomOf="@id/prompt_title"
-            app:layout_constraintStart_toStartOf="@id/prompt_select_barrier"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             />
 

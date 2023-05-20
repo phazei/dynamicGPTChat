@@ -5,15 +5,18 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.util.DisplayMetrics
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.snackbar.Snackbar
+import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.data.entity.PromptWithTags
 import com.phazei.dynamicgptchat.databinding.PromptListItemBinding
 import com.phazei.dynamicgptchat.swipereveal.SwipeRevealLayout
@@ -29,10 +32,17 @@ class PromptListAdapter(
     private var activePromptPosition: Int? = null
     private var listType: ListType = ListType.EDIT
 
+    private lateinit var drawableCheckedBox: AnimatedVectorDrawable
+
     enum class ListType { EDIT, SELECT }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PromptWithTagsViewHolder {
         val binding = PromptListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+
+        if (!::drawableCheckedBox.isInitialized) {
+            drawableCheckedBox = ContextCompat.getDrawable(parent.context, R.drawable.avd_checked_box) as AnimatedVectorDrawable
+        }
+
         return PromptWithTagsViewHolder(binding)
     }
 
@@ -107,11 +117,14 @@ class PromptListAdapter(
             }
             if (listType == ListType.EDIT) {
                 binding.promptSelect.visibility = View.GONE
-                binding.promptButtonLayout.visibility = View.VISIBLE
+                binding.promptEdit.visibility = View.VISIBLE
                 binding.promptRevealLayout.setLockDrag(false)
             } else if (listType == ListType.SELECT) {
                 binding.promptSelect.visibility = View.VISIBLE
-                binding.promptButtonLayout.visibility = View.GONE
+                binding.promptEdit.visibility = View.GONE
+                binding.promptSelect.setImageDrawable(drawableCheckedBox)
+                drawableCheckedBox.start()
+
                 binding.promptRevealLayout.setLockDrag(true)
             }
 

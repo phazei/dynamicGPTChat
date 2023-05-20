@@ -35,6 +35,7 @@
     <!-- Prompt Related -->
     <string name="dialog_title_edit">Edit Prompt</string>
     <string name="dialog_title_add">Create Prompt</string>
+    <string name="prompt_select">Select Prompt</string>
     <string name="prompt_edit">Edit Prompt</string>
     <string name="prompt_copy">Copy Prompt</string>
     <string name="prompt_delete">Click to delete prompt</string>
