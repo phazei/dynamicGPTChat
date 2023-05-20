@@ -21,10 +21,10 @@ class AIHelperRequests @Inject constructor(private val openAIRepository: OpenAIR
         val messages = listOf(
             ChatMessage(ChatRole.System, "Generate a 3 to 5 word title for the text provided."),
             ChatMessage(ChatRole.User, message),
-            ChatMessage(ChatRole.System, "Provide a 3 to 5 word title for the last user message. Make it witty only if accuracy is maintained")
+            ChatMessage(ChatRole.System, "Provide a 3 to 5 word title for the last user message. Make it witty")
         )
         val chatCompletion = openAIRepository.chatCompleteText(getSimpleChatCompletionRequestObject(messages, "gpt-3.5-turbo"))
-        return chatCompletion.choices.joinToString("") { it.message?.content?.trim() + "" }
+        return chatCompletion.choices.joinToString("") { it.message?.content?.trim()?.trim('.', '"','\'') + "" }
     }
 
     suspend fun getGeneralRequest(message: String, model: String?, chat: Boolean = false): String {

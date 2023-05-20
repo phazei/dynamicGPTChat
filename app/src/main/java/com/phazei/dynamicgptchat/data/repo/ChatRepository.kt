@@ -164,13 +164,14 @@ class ChatRepository @Inject constructor(
     /**
      * Loads all children for entire branch and assigns parent as well
      */
-    suspend fun loadChildren(chatNode: ChatNode) {
+    suspend fun loadChildren(chatNode: ChatNode, chatTree: ChatTree? = null) {
         withContext(Dispatchers.IO) {
             suspend fun processChildren(node: ChatNode) {
                 val children = chatNodeDao.getChildrenOfChatNode(node.chatTreeId, node.id)
                 node.children = children
                 children.forEach { child ->
                     child.parent = node
+                    child.chatTree = chatTree
                     processChildren(child)
                 }
             }

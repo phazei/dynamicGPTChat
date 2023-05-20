@@ -11,7 +11,7 @@ object OpenAIHelper {
         return when (mode) {
             "ChatCompletion" -> models.filter { it.id.id.contains("gpt") }
             "Completion" -> models.filter {
-                it.id.id.startsWith("text-")
+                (it.id.id.startsWith("text-") || it.id.id.contains("instruct"))
                         && !it.id.id.contains(":")
                         && !it.id.id.contains("text-similarity")
                         && !it.id.id.contains("text-search")

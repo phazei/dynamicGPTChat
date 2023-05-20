@@ -11,6 +11,7 @@ import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
+import android.text.TextUtils
 import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
@@ -18,8 +19,10 @@ import android.view.*
 import android.view.animation.LinearInterpolator
 import android.view.animation.PathInterpolator
 import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -85,40 +88,46 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
         viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            chatNodeViewModel.activeBranchUpdate
-                .filterNotNull()
-                // when an request completes, it could be from a background chatTree and not the
-                // currently active one, so we don't need to process it and should just leave
-                .filter { (updatedChatNode, _) -> updatedChatNode.chatTreeId == chatTree.id }
-                // .conflate() //conflate could skip items if other trees are triggering here
-                .collect { (updatedChatNode, activeBranch) ->
-                    val isInit = chatNodeAdapter.isInit()
-                    if (!isInit && activeBranch == null) {
-                        // if an individual request completes before the view loads, this will trigger right away
-                        // so shouldn't be loaded yet
-                        return@collect
+            launch {
+                chatNodeViewModel.activeBranchUpdate
+                    .filterNotNull()
+                    // when an request completes, it could be from a background chatTree and not the
+                    // currently active one, so we don't need to process it and should just leave
+                    .filter { (updatedChatNode, _) -> updatedChatNode.chatTreeId == chatTree.id }
+                    // .conflate() //conflate could skip items if other trees are triggering here
+                    .collect { (updatedChatNode, activeBranch) ->
+                        val isInit = chatNodeAdapter.isInit()
+                        if (!isInit && activeBranch == null) {
+                            // if an individual request completes before the view loads, this will trigger right away
+                            // so shouldn't be loaded yet
+                            return@collect
+                        }
+                        if (activeBranch == null) {
+                            // single node update
+                            chatNodeAdapter.updateItem(updatedChatNode)
+                        } else {
+                            // branch update
+                            chatNodeAdapter.updateData(updatedChatNode, activeBranch)
+                            // needs to scroll sooner than it does after adapter binding calls popup
+                            popupMenuHelper.scrollForNodeCycling()
+                        }
+                        val position: Int
+                        if (updatedChatNode.parentNodeId == null && !isInit) { // rootNode
+                            // rootNode should scroll to bottom on first load only
+                            // first childNode could be cycling, so this shouldn't be triggered for that
+                            position = chatNodeAdapter.itemCount - 1 // get leaf item
+                            binding.chatNodeRecyclerView.scrollToPosition(position + 1) //+1 for header
+                        } else {
+                            // position = chatNodeAdapter.getItemPosition(updatedChatNode) // stay by edited item
+                        }
                     }
-                    if (activeBranch == null) {
-                        // single node update
-                        chatNodeAdapter.updateItem(updatedChatNode)
-                    } else {
-                        // branch update
-                        chatNodeAdapter.updateData(updatedChatNode, activeBranch)
-                        //needs to scroll sooner than it does after adapter binding calls popup
-                        popupMenuHelper.scrollForNodeCycling()
-                    }
-                    val position : Int
-                    if (updatedChatNode.parentNodeId == null && !isInit) { // rootNode
-                        //rootNode should scroll to bottom on first load only
-                        //first childNode could be cycling, so this shouldn't be triggered for that
-                        position = chatNodeAdapter.itemCount - 1 // get leaf item
-                        binding.chatNodeRecyclerView.scrollToPosition(position + 1) //+1 for header
-                    } else {
-                        // position = chatNodeAdapter.getItemPosition(updatedChatNode) // stay by edited item
-                    }
+            }
+            launch {
+                chatNodeViewModel.titleUpdate.filterNotNull().collect {
+                    (activity as AppCompatActivity).supportActionBar?.title = chatTree.title
                 }
             }
-        }
+        }}
         // recycler won't be populated until after this is loaded
         viewLifecycleOwner.lifecycleScope.launch {
             // no matter what I've tried, 1 out of 20 times this triggers before the listener is attached and doesn't load
@@ -277,7 +286,10 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
     }
 
     private fun setupMenu() {
-        (activity as AppCompatActivity).supportActionBar?.title = chatTree.title
+        (activity as AppCompatActivity).supportActionBar?.apply {
+            title = chatTree.title
+        }
+        setActionBarTitleAsMarquee()
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
             override fun onPrepareMenu(menu: Menu) {}
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -297,6 +309,16 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 return false
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun setActionBarTitleAsMarquee() {
+        val v: View = requireActivity().window.decorView
+        val toolbar = v.findViewById<View>(R.id.toolbar) as Toolbar
+        //might move in the future, but for now it's great
+        val titleText = toolbar.getChildAt(0) as TextView
+        titleText.ellipsize = TextUtils.TruncateAt.MARQUEE
+        titleText.marqueeRepeatLimit = -1
+        titleText.isSelected = true
     }
 
     /**
@@ -370,7 +392,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
             // popupWindow.contentView == popupView == popupBinding.root
 
-            //hide and show when item is scrolled outside of recycler
+            // hide and show when item is scrolled outside of recycler
             val fadePopupAnimator = ObjectAnimator.ofFloat(popupView, View.ALPHA, 0F).apply {
                 duration = 250
                 addListener(object : AnimatorListenerAdapter() {
@@ -398,11 +420,11 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
                     // Check if the item associated with the popup is visible on the screen
                     if (activeScrollPosition!! in firstVisiblePosition..lastVisiblePosition) {
-                        //make sure it's shown
+                        // make sure it's shown
                         if (fadePopupAnimator.isRunning) { fadePopupAnimator.cancel() }
                         if (!unfadePopupAnimator.isRunning && popupView.alpha != 1F) { unfadePopupAnimator.start() }
                     } else {
-                        //hide it
+                        // hide it
                         if (unfadePopupAnimator.isRunning) { unfadePopupAnimator.cancel() }
                         if (!fadePopupAnimator.isRunning && popupView.alpha != 0F) { fadePopupAnimator.start() }
                     }
@@ -421,13 +443,13 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             popupBinding.apply {
 
                 nodeDelete.setOnClickListener {
-                    //remove item from chatNode.parent.children.  Check if activeChild
+                    // remove item from chatNode.parent.children.  Check if activeChild
                     activePosition?.let { activePos ->
                         activeHolder?.let { holder ->
                             val chatNode = chatNodeAdapter.getItem(activePos)
                             val isLastChild = chatNode.parent.children.size <= 1
                             if (!isLastChild) {
-                                //this is essentially the same as cycling until there are no more nodes left
+                                // this is essentially the same as cycling until there are no more nodes left
                                 isCyclingChildren = true
                                 cyclingPrevYOffset = holder.binding.root.top
                             }
@@ -493,14 +515,14 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                             val chatNode = chatNodeAdapter.getItem(activePos)
                             editAddChatRequest(chatNode, holder.binding.promptTextEdit.text.toString())
 
-                            //close menu
+                            // close menu
                             finish(true)
                         }
                     }
                 }
 
                 nodeEditReplace.setOnClickListener {
-                    //simply saves data to the chat node
+                    // simply saves data to the chat node
                     activePosition?.let { activePos ->
                         activeHolder?.let { holder ->
                             val chatNode = chatNodeAdapter.getItem(activePos)
@@ -508,7 +530,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                             chatNode.response = holder.binding.responseTextEdit.text.toString()
                             chatNodeViewModel.saveChatNode(chatNode)
 
-                            //keep menu open and refresh its data
+                            // keep menu open and refresh its data
                             disableEdit(true)
                         }
                     }
@@ -524,14 +546,14 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
             activeHolder!!.enableEdit()
 
-            //update menu buttons to edit menu
+            // update menu buttons to edit menu
             listOf(popupBinding.nodeEditAdd, popupBinding.nodeEditReplace, popupBinding.nodeEditCancel)
                 .forEach { showButtonAnimation(it, -1) }
             listOf(popupBinding.nodePrev, popupBinding.nodeNext, popupBinding.nodeEdit, popupBinding.nodeRegenerate, popupBinding.nodeDelete)
                 .forEach { hideButtonAnimation(it, -1) }
             resizeAnimator(widthOpened, widthEdit).start()
 
-            //hide main prompt input
+            // hide main prompt input
             val yItemOffset = activeHolder!!.binding.root.top
             binding.inputContainer.visibility = View.GONE
             chatNodeFooterAdapter.updateFooterHeight(binding.inputContainer.height)
@@ -549,23 +571,23 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             activeHolder?.disableEdit(notify)
 
             if (binding.inputContainer.visibility==View.VISIBLE) {
-                //not enabled so skip animations
+                // not enabled so skip animations
                 return
             }
 
-            //update menu buttons back to default
+            // update menu buttons back to default
             listOf(popupBinding.nodePrev, popupBinding.nodeNext, popupBinding.nodeEdit, popupBinding.nodeRegenerate, popupBinding.nodeDelete)
                 .forEach { showButtonAnimation(it) }
             listOf(popupBinding.nodeEditAdd, popupBinding.nodeEditReplace, popupBinding.nodeEditCancel)
                 .forEach { hideButtonAnimation(it) }
             resizeAnimator(widthEdit, widthOpened).start()
 
-            //hide main prompt input
+            // hide main prompt input
             var yItemOffset = 0
             if (activeHolder != null) {
                 yItemOffset = activeHolder!!.binding.root.top
             } else if (previousHolder != null) {
-                //if activeHolder was null, could be resetting for finish
+                // if activeHolder was null, could be resetting for finish
                 yItemOffset = previousHolder!!.binding.root.top
             }
             binding.inputContainer.visibility=View.VISIBLE
@@ -619,7 +641,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 // nothing has changed, should stay the same
                 if (activePosition == previousPosition) {
                     if (popupWindow.isShowing) {
-                        //could be cycling
+                        // could be cycling
                         if (isCyclingChildren) {
                             showPopup = true
                         }
@@ -665,11 +687,11 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
             } else if (isCyclingChildren) {
                 scrollForNodeCycling()
-                popupWindow.animationStyle = 0 //disable animation
+                popupWindow.animationStyle = 0 // disable animation
                 popupWindow.dismiss()
                 popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
                 lifecycleScope.launch { delay(500)
-                    popupWindow.animationStyle = -1 //default animation
+                    popupWindow.animationStyle = -1 // default animation
                 }
                 isCyclingChildren = false
                 cyclingPrevYOffset = 0
@@ -693,7 +715,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
             if (previousHolder != null) {
                 if (previousHolder != activeHolder) {
-                    //very likely the holder is reused
+                    // very likely the holder is reused
                     previousHolder?.deactivate(force)
                 }
                 quickDismiss = activeHolder != null
@@ -799,7 +821,6 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             return (this * density).toInt()
         }
     }
-
 
     /**
      * Helper class to help keep button methods organized

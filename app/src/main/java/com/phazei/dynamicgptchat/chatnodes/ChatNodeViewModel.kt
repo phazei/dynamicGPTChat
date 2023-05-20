@@ -8,6 +8,7 @@ import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.api.moderation.ModerationModel
 import com.aallam.openai.api.moderation.ModerationRequest
 import com.aallam.openai.api.moderation.TextModeration
+import com.phazei.airequests.AIHelperRequests
 import com.phazei.dynamicgptchat.data.*
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
@@ -19,6 +20,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -29,11 +31,15 @@ import javax.inject.Inject
 class ChatNodeViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val openAIRepository: OpenAIRepository,
+    private val aiHelperRequests: AIHelperRequests,
 ) : ViewModel() {
 
     private val _activeBranchUpdate = MutableSharedFlow<Pair<ChatNode, List<ChatNode>?>?>(extraBufferCapacity = 16)
     val activeBranchUpdate: SharedFlow<Pair<ChatNode, List<ChatNode>?>?> = _activeBranchUpdate
     val activeRequests: StateFlow<Map<Long, Job>> = openAIRepository.activeRequests
+
+    val titleUpdate = MutableStateFlow<String?>(null)
+
 
     fun isRequestActive(chatTreeId: Long): Boolean {
         return openAIRepository.manage.isRequestActive(chatTreeId)
@@ -138,6 +144,19 @@ class ChatNodeViewModel @Inject constructor(
     private fun handleChatComplete(chatNode: ChatNode) {
         viewModelScope.launch {
             chatRepository.saveChatNode(chatNode)
+
+            if (!chatNode.parent.parentInitialized()) {
+                // this is first message of conversation, generate title
+                viewModelScope.launch {
+                    chatNode.chatTree?.let {
+                        val msg = "User: ${chatNode.prompt}" + "\nAssistant: ${chatNode.response}"
+                        it.title = aiHelperRequests.getChatNodeTitle(msg)
+                        chatRepository.saveChatTree(it)
+                        titleUpdate.emit(it.title)
+                    }
+                }
+            }
+
             // will be triggered even on error, does it matter? probably not
             moderateChatNodeResponse(chatNode)
             delay(300)
@@ -205,7 +224,7 @@ class ChatNodeViewModel @Inject constructor(
      */
     fun loadChatTreeChildrenAndActiveBranch(chatTree: ChatTree) {
         viewModelScope.launch {
-            chatRepository.loadChildren(chatTree.rootNode)
+            chatRepository.loadChildren(chatTree.rootNode, chatTree)
             updateAndEmitActiveBranch(chatTree.rootNode)
         }
     }

@@ -99,7 +99,8 @@ class RequestTestFragment : Fragment() {
             makeButtonWait()
             binding.responseError.text = ""
             binding.editResponse.setText("")
-            testViewModel.getGeneralRequest(binding.editPrompt.text.toString(), binding.modelSpinner.selectedItem.toString(), binding.toggleChat.isChecked)
+            testViewModel.getConversationTitle(binding.editPrompt.text.toString())
+            // testViewModel.getGeneralRequest(binding.editPrompt.text.toString(), binding.modelSpinner.selectedItem.toString(), binding.toggleChat.isChecked)
                 .onCompletion {
                     makeButtonReady()
                     Snackbar.make(binding.root,"Request Complete", Snackbar.LENGTH_SHORT).show()
