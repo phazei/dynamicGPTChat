@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".chatnodes.PromptSearchDialog">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:padding="0dp"
+        />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/prompts_list_fragment"
         android:name="com.phazei.dynamicgptchat.prompts.PromptsListFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         tools:layout="@layout/fragment_prompts_list" />
 
-</FrameLayout>
+</LinearLayout>

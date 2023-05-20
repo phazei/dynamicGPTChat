@@ -28,7 +28,7 @@
             app:titleMarginStart="16dp"
 
             app:contentInsetStartWithNavigation="0dp"
-            app:navigationIcon="@drawable/round_close_24"
+            app:navigationIcon="@drawable/avd_menu_to_close"
             app:title="Title"
 
             app:menu="@menu/prompt_dialog_menu"

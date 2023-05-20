@@ -1,11 +1,14 @@
 package com.phazei.dynamicgptchat.prompts
 
 import android.app.Dialog
+import android.content.DialogInterface
+import android.graphics.drawable.AnimatedVectorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
@@ -26,11 +29,16 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
     private val binding get() = _binding!!
     private val promptsViewModel: PromptsViewModel by activityViewModels()
 
+    private lateinit var drawableMenuToClose: AnimatedVectorDrawable
+    private lateinit var drawableCloseToMenu: AnimatedVectorDrawable
+
     private lateinit var listener: OnPromptFormDialogListener
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         setStyle(DialogFragment.STYLE_NORMAL, R.style.Theme_DynamicGPTChat_FullScreenDialog)
-        return super.onCreateDialog(savedInstanceState)
+        val componentDialog = super.onCreateDialog(savedInstanceState)
+        componentDialog.window?.setWindowAnimations(R.style.PromptFormDialogSlide)
+        return componentDialog
     }
 
     override fun onCreateView(
@@ -64,10 +72,19 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
                 savePromptWithTags()
                 true
             }
-            toolbar.navigationIcon?.mutate()?.let {
-                it.setTint(ContextCompat.getColor(view.context, R.color.md_theme_light_surface))
-                toolbar.navigationIcon = it
-            }
+
+            // set main toolbar icon in advance
+            drawableCloseToMenu = ContextCompat.getDrawable(view.context, R.drawable.avd_close_to_menu) as AnimatedVectorDrawable
+            drawableCloseToMenu.setTint(ContextCompat.getColor(view.context, R.color.md_theme_light_surface))
+
+            // animate previous menu to close
+            drawableMenuToClose = ContextCompat.getDrawable(view.context, R.drawable.avd_menu_to_close) as AnimatedVectorDrawable
+            drawableMenuToClose.setTint(ContextCompat.getColor(view.context, R.color.md_theme_light_surface))
+            // set both
+            (activity as AppCompatActivity).supportActionBar?.setHomeAsUpIndicator(drawableMenuToClose)
+            toolbar.navigationIcon = drawableMenuToClose
+
+            drawableMenuToClose.start()
         }
 
         setupPromptWithTags()
@@ -85,7 +102,7 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
         binding.promptTitle.setText(promptWithTags.prompt.title)
         binding.promptBody.setText(promptWithTags.prompt.body)
 
-        //tags are setup after full tag list is returned for auto-complete
+        // tags are setup after full tag list is returned for auto-complete
     }
 
     private fun setupPromptTags(tags: List<Tag>) {
@@ -135,6 +152,13 @@ class PromptFormDialog(private val promptWithTags: PromptWithTags) : DialogFragm
         } else {
             Snackbar.make(binding.root, "Please fill in all fields.", Snackbar.LENGTH_LONG).show()
         }
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        (activity as AppCompatActivity).supportActionBar?.setHomeAsUpIndicator(drawableCloseToMenu)
+        binding.toolbar.navigationIcon = drawableCloseToMenu
+        drawableCloseToMenu.start()
+        super.onDismiss(dialog)
     }
 
     interface OnPromptFormDialogListener {

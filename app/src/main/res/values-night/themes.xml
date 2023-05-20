@@ -35,6 +35,8 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">#000000</item>
         <!-- Customize your theme here. -->
+        <item name="bottomSheetDialogTheme">@style/CustomBottomSheetDialog</item>
+        <item name="bottomSheetDragHandleStyle">@style/CustomBottomSheetDragHandle</item>
     </style>
 
     <style name="Theme.DynamicGPTChat.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
