@@ -13,6 +13,8 @@ import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doBeforeTextChanged
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.R
@@ -107,13 +109,23 @@ class ChatNodeAdapter(
         holder.bind(chatNodes[position])
     }
 
-    @Suppress("RedundantEmptyInitializerBlock")
+
     inner class ChatNodeViewHolder(val binding: ChatNodeItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         init {
+            nodeActionListener.isActiveRequest.observe(nodeActionListener.isActiveRequestLifecycleOwner) { isActiveRequest ->
+                // better to listen and update button than to notifyDataSetChanged
+                nodeMenuButtonEnable(!isActiveRequest)
+            }
+
             // Displays popup menu
             binding.nodeMenuButton.setOnClickListener {
+                if (nodeActionListener.isActiveRequest.value != null && nodeActionListener.isActiveRequest.value == true) {
+                    //can't open menu when active request going on
+                    return@setOnClickListener
+                }
+
                 // once node is made active, it's type becomes ITEM_TYPE_ACTIVE
                 // after notification of item change, bind is called again
                 // it's recreated with a new viewHolder, which is what the popup menu needs
@@ -182,6 +194,10 @@ class ChatNodeAdapter(
                 binding.responseTextEdit.setText(editedData["response$bindingAdapterPosition"] ?: chatNode.response)
             }
 
+            nodeActionListener.isActiveRequest.value?.let { isActiveRequest ->
+                nodeMenuButtonEnable(!isActiveRequest)
+            }
+
             //view text
             binding.promptTextView.text = chatNode.prompt
             markwon.setMarkdown(binding.responseTextView, chatNode.response)
@@ -211,6 +227,16 @@ class ChatNodeAdapter(
                 binding.moderationTextView.text = ""
             }
 
+        }
+
+        private fun nodeMenuButtonEnable(isEnabled: Boolean) {
+            binding.nodeMenuButton.isEnabled = isEnabled
+            binding.nodeMenuButton.isClickable = isEnabled
+            if (isEnabled) {
+                binding.nodeMenuButton.backgroundTintList = ContextCompat.getColorStateList(this.itemView.context, R.color.md_theme_dark_primary)
+            } else {
+                binding.nodeMenuButton.backgroundTintList = ContextCompat.getColorStateList(this.itemView.context, R.color.gray)
+            }
         }
 
         fun enableEdit() {
@@ -251,6 +277,7 @@ class ChatNodeAdapter(
 
             if (force || (activeNodePosition != null && bindingAdapterPosition == activeNodePosition)) {
                 val oldActiveNodePosition = activeNodePosition ?: -1
+                previousActiveNodePosition = activeNodePosition
                 activeNodePosition = null
                 notifyItemChanged(oldActiveNodePosition)
             }
@@ -334,10 +361,12 @@ class ChatNodeAdapter(
     }
 
     fun isInit(): Boolean {
-        return !chatNodes.isEmpty()
+        return chatNodes.isNotEmpty()
     }
 
     interface OnNodeActionListener {
+        val isActiveRequest: LiveData<Boolean>
+        val isActiveRequestLifecycleOwner: LifecycleOwner
         fun onNodeSelected()
         fun onEditNode(position: Int)
         // Add other actions as needed
@@ -357,15 +386,16 @@ class ChatNodeHeaderAdapter(
     override fun getItemId(position: Int): Long { return -10 }
 
     inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root), PromptsListFragment.OnPromptSelectedListener {
+        // there's only ever a single header item, so having this duplicated per holder shouldn't matter
         private val promptSearchDialog = PromptSearchDialog(this@HeaderViewHolder)
 
         init {
             binding.apply {
-                systemMessageEditText.doBeforeTextChanged { text, start, count, after ->
+                systemMessageEditText.doBeforeTextChanged { _, _, _, _ ->
                     onChange(binding.root.height)
                 }
 
-                systemMessageEditText.doAfterTextChanged { _ ->
+                systemMessageEditText.doAfterTextChanged {
                     updatedSystemMessage = systemMessageEditText.text.toString()
                     updateSystemMessageButtons()
                 }
@@ -386,7 +416,10 @@ class ChatNodeHeaderAdapter(
                     updateSystemMessageButtons()
                 }
 
-                systemMessageEditText.setOnFocusChangeListener { _, hasFocus ->
+                systemMessageEditText.setOnFocusChangeListener { _, _ ->
+                    updateSystemMessageButtons()
+                }
+                systemMessageInsertPromptButton.setOnFocusChangeListener { _, _ ->
                     updateSystemMessageButtons()
                 }
 
@@ -401,16 +434,11 @@ class ChatNodeHeaderAdapter(
             binding.apply {
                 val textFocused = systemMessageEditText.hasFocus()
                 val hasChanges = updatedSystemMessage != currentSystemMessage
-                if (hasChanges || textFocused) {
-                    binding.systemMessageButtons.visibility = View.VISIBLE
+                val promptButtonFocused = systemMessageInsertPromptButton.isFocused
+                editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+                editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
+                systemMessageInsertPromptButton.visibility = if ((!hasChanges && textFocused) || promptButtonFocused) View.VISIBLE else View.GONE
 
-                    editSystemMessageCancelButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
-                    editSystemMessageSubmitButton.visibility = if (hasChanges) View.VISIBLE else View.GONE
-
-                    systemMessageInsertPromptButton.visibility = if (!hasChanges && textFocused) View.VISIBLE else View.GONE
-                } else {
-                    binding.systemMessageButtons.visibility = View.GONE
-                }
             }
         }
 
@@ -436,7 +464,7 @@ class ChatNodeHeaderAdapter(
 /**
  * this exists only to create padding at the bottom when the input is hidden
  */
-class ChatNodeFooterAdapter(var footerHeight: Int = 0) : RecyclerView.Adapter<ChatNodeFooterAdapter.FooterViewHolder>() {
+class ChatNodeFooterAdapter(private var footerHeight: Int = 0) : RecyclerView.Adapter<ChatNodeFooterAdapter.FooterViewHolder>() {
     init { setHasStableIds(true) }
     override fun getItemId(position: Int): Long { return -11 }
 

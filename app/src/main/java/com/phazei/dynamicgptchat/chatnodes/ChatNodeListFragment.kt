@@ -30,6 +30,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -60,13 +62,16 @@ import kotlinx.coroutines.launch
  */
 @Suppress("LiftReturnOrAssignment")
 @AndroidEntryPoint
-class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
+class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener {
 
     private var _binding: FragmentChatNodeListBinding? = null
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val chatNodeViewModel: ChatNodeViewModel by activityViewModels()
     private val chatTreeViewModel: ChatTreeViewModel by viewModels()
+
+    override val isActiveRequest = MutableLiveData(false)
+    override lateinit var isActiveRequestLifecycleOwner: LifecycleOwner
 
     private lateinit var chatNodeAdapter: ChatNodeAdapter
     private lateinit var chatNodeFooterAdapter: ChatNodeFooterAdapter
@@ -76,6 +81,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
     private val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        isActiveRequestLifecycleOwner = viewLifecycleOwner
         _binding = FragmentChatNodeListBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -143,6 +149,7 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
         chatNodeViewModel.activeRequests.asLiveData().observe(viewLifecycleOwner) { data ->
             // just need to be able to update the button
             chatSubmitButtonHelper.checkSubmitStatusButton()
+            isActiveRequest.value = chatNodeViewModel.isRequestActive(chatTree.id)
         }
 
         dispatcher.addCallback(viewLifecycleOwner) {
@@ -701,6 +708,10 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
             popupWindow.dismiss()
         }
 
+        fun deactivate() {
+            finish()
+        }
+
         /**
          * This will complete the menu action resetting the menu and clearing active
          * Use at end of: save update/save new/cancel edit/delete
@@ -862,6 +873,8 @@ class ChatNodeListFragment : Fragment(), ChatNodeAdapter.OnNodeActionListener {
                 if (!chatNodeViewModel.isRequestActive(chatTree.id)) {
                     // don't try to submit till chatNodes loaded
                     if (chatNodeAdapter.isInit()) {
+                        popupMenuHelper.deactivate()
+
                         // create a new request
                         prepareChatRequest()
                     }

@@ -72,6 +72,7 @@
         app:layout_constraintStart_toStartOf="@id/guideline10"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Can't have non-focusable and selectable text  -->
         <TextView
             android:id="@+id/prompt_text_view"
             android:layout_width="match_parent"
@@ -84,10 +85,12 @@
             android:paddingEnd="12dp"
             android:layout_marginBottom="5dp"
             android:scrollHorizontally="true"
+
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:minLines="2"
             android:textIsSelectable="true"
+
+            android:minLines="2"
             android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/abc_text_size_body_1_material"
             android:text="@string/prompt"
@@ -103,7 +106,6 @@
 
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:inputType="textMultiLine"
             android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/abc_text_size_body_1_material"
@@ -165,15 +167,18 @@
             android:scrollHorizontally="true"
             android:scrollbars="horizontal"
 
-            android:minLines="2"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:textIsSelectable="true"
+
+            android:minLines="2"
             android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/abc_text_size_body_1_material"
             android:text="@string/response"
             />
 <!--        </HorizontalScrollView>-->
 
-        <EditText
+        <com.google.android.material.textfield.TextInputEditText
             android:visibility="gone"
             android:id="@+id/response_text_edit"
             android:enabled="true"

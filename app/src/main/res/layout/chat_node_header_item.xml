@@ -61,6 +61,7 @@
             android:id="@+id/system_message_buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:minWidth="6dp"
             android:layout_gravity="right|center_vertical"
             android:layout_marginStart="-6dp"
             android:paddingBottom="6dp"
@@ -127,12 +128,5 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline10"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
