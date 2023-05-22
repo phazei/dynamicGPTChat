@@ -6,6 +6,7 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Path
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
@@ -18,6 +19,7 @@ import android.util.Log
 import android.view.*
 import android.view.animation.LinearInterpolator
 import android.view.animation.PathInterpolator
+import android.widget.LinearLayout
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.addCallback
@@ -50,6 +52,9 @@ import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.ChatNodeFloatingMenuBinding
 import com.phazei.dynamicgptchat.databinding.FragmentChatNodeListBinding
+import com.skydoves.balloon.Balloon
+import com.skydoves.balloon.BalloonAnimation
+import com.skydoves.balloon.BalloonSizeSpec
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
@@ -360,7 +365,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
 
     @SuppressLint("ClickableViewAccessibility")
     inner class PopupMenuHelper(private val fragment: ChatNodeListFragment, private val context: Context) {
-        private val popupWindow: PopupWindow
+        private val balloon: Balloon
         private val popupBinding: ChatNodeFloatingMenuBinding
 
         private var activeHolder: ChatNodeAdapter.ChatNodeViewHolder? = null
@@ -376,24 +381,29 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
         private val widthEdit = 156.dpToPx()
 
         init {
-            val inflater = LayoutInflater.from(context)
-            val popupView = inflater.inflate(R.layout.chat_node_floating_menu, null)
+            // val inflater = LayoutInflater.from(context)
+            // val popupView = inflater.inflate(R.layout.chat_node_floating_menu, null)
+            // popupBinding = ChatNodeFloatingMenuBinding.bind(popupView)
+
+            balloon = Balloon.Builder(context)
+                .setIsVisibleArrow(false)
+                .setIsAttachedInDecor(true)
+                .setBackgroundDrawable(null)
+                .setLayout(R.layout.chat_node_floating_menu)
+                .setWidth(BalloonSizeSpec.WRAP)
+                .setHeight(BalloonSizeSpec.WRAP)
+                .setBalloonAnimation(BalloonAnimation.FADE)
+                // .setBackgroundColor(Color.TRANSPARENT)
+                .setDismissWhenClicked(false)
+                .setDismissWhenOverlayClicked(false)
+                .setDismissWhenTouchOutside(false)
+                .setFocusable(true)
+                .build()
+            val balloonContentView = balloon.getContentView()
+            val popupView = balloonContentView.findViewById<LinearLayout>(R.id.popup_menu_linear_layout)
+            popupView.postDelayed()
             popupBinding = ChatNodeFloatingMenuBinding.bind(popupView)
 
-            popupWindow = PopupWindow(
-                popupView,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT
-            )
-            popupWindow.apply {
-                isAttachedInDecor = true
-                // Set the popup to be focusable and dismiss when clicked outside
-                // animationStyle = R.style.NodePopupAnimation
-                // isFocusable = true
-                // setBackgroundDrawable(null)
-                // setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-                update()
-            }
             popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
 
             // popupWindow.contentView == popupView == popupBinding.root
@@ -417,7 +427,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
             }
             binding.chatNodeRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    if (!popupWindow.isShowing || activePosition == null) {
+                    if (!balloon.isShowing || activePosition == null) {
                         return
                     }
                     // Get the first and last visible positions of items in the RecyclerView
@@ -442,7 +452,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
 
         private fun setupListeners() {
 
-            popupWindow.setOnDismissListener {
+            balloon.setOnBalloonDismissListener {
             }
 
             // Set onClickListeners for the popup buttons
@@ -619,7 +629,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
 
             // menu has been closed
             if (activePosition == null) {
-                if (popupWindow.isShowing) {
+                if (balloon.isShowing) {
                     if (previousHolder != null) {
                         finish()
                     } else {
@@ -646,7 +656,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
 
                 // nothing has changed, should stay the same
                 if (activePosition == previousPosition) {
-                    if (popupWindow.isShowing) {
+                    if (balloon.isShowing) {
                         // could be cycling
                         if (isCyclingChildren) {
                             showPopup = true
@@ -655,7 +665,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
                         showPopup = true
                     }
                 } else if (previousPosition != null) {
-                    if (popupWindow.isShowing) {
+                    if (balloon.isShowing) {
                         // clicked new menu while already open on another item
                         finish()
                     }
@@ -680,24 +690,24 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
 
             // Show the popup below the anchor view
             val xOffset = activeHolder!!.binding.promptHolder.left
-            val yOffset = -(anchorView.height + popupWindow.contentView.measuredHeight + 10)
+            val yOffset = 30 //-(anchorView.height + balloon.getContentView().measuredHeight + 10)
 
-            if (!popupWindow.isShowing) {
+            if (!balloon.isShowing) {
                 val width = if (chatNodeAdapter.isEditingActive) widthEdit else widthOpened
                 resizeAnimator(widthClosed, width, bounce = true,
                     onStart = {
-                        popupWindow.contentView.alpha = 1F
-                        popupWindow.contentView.visibility = View.VISIBLE
+                        balloon.getContentView().alpha = 1F
+                        balloon.getContentView().visibility = View.VISIBLE
                     }
                 ).start()
-                popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
+                balloon.showAlignTop(anchorView, xOffset, yOffset)
             } else if (isCyclingChildren) {
                 scrollForNodeCycling()
-                popupWindow.animationStyle = 0 // disable animation
-                popupWindow.dismiss()
-                popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
+                // balloon.animationStyle = 0 // disable animation
+                balloon.dismiss()
+                balloon.showAlignTop(anchorView, xOffset, yOffset)
                 lifecycleScope.launch { delay(500)
-                    popupWindow.animationStyle = -1 // default animation
+                    // balloon.animationStyle = -1 // default animation
                 }
                 isCyclingChildren = false
                 cyclingPrevYOffset = 0
@@ -705,7 +715,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
         }
 
         fun dismiss() {
-            popupWindow.dismiss()
+            balloon.dismiss()
         }
 
         fun deactivate() {
@@ -737,10 +747,10 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
                 quickDismiss = false
             }
             if (quickDismiss) {
-                popupWindow.dismiss()
+                balloon.dismiss()
             } else {
-                resizeAnimator(popupWindow.contentView.width, widthClosed, onEnd = {
-                    popupWindow.dismiss()
+                resizeAnimator(balloon.getContentView().width, widthClosed, onEnd = {
+                    balloon.dismiss()
                 }).start()
             }
 
