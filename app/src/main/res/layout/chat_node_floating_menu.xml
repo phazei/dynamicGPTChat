@@ -135,5 +135,10 @@
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/temp_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="hi"
+        />
 </LinearLayout>

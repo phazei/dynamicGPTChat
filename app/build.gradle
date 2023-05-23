@@ -81,6 +81,8 @@ dependencies {
 //    implementation 'com.esotericsoftware.kryo:kryo5:5.5.0'
 
     implementation project(':taginputview')
+    implementation project(':xtooltip')
+
 
     ksp 'androidx.room:room-compiler:2.5.1'
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"

@@ -55,6 +55,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import it.swabbass.android.library.xtooltip.*
+import it.swabbass.android.library.xtooltip.Gravity
 
 
 /**
@@ -360,7 +362,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
 
     @SuppressLint("ClickableViewAccessibility")
     inner class PopupMenuHelper(private val fragment: ChatNodeListFragment, private val context: Context) {
-        private val popupWindow: PopupWindow
+        // private val popupWindow: PopupWindow
         private val popupBinding: ChatNodeFloatingMenuBinding
 
         private var activeHolder: ChatNodeAdapter.ChatNodeViewHolder? = null
@@ -375,43 +377,39 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
         private val widthOpened = 250.dpToPx()
         private val widthEdit = 156.dpToPx()
 
+        private var popupWindow: Tooltip
+
         init {
             val inflater = LayoutInflater.from(context)
             val popupView = inflater.inflate(R.layout.chat_node_floating_menu, null)
             popupBinding = ChatNodeFloatingMenuBinding.bind(popupView)
 
-            popupWindow = PopupWindow(
-                popupView,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT
-            )
-            popupWindow.apply {
-                isAttachedInDecor = true
-                // Set the popup to be focusable and dismiss when clicked outside
-                // animationStyle = R.style.NodePopupAnimation
-                // isFocusable = true
-                // setBackgroundDrawable(null)
-                // setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-                update()
-            }
-            popupView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+            val closePolicy = ClosePolicy.Builder().inside(false,true).outside(false,false).build()
+            popupWindow = Builder(context).closePolicy(closePolicy)
+                    .overlay(false)
+                    .arrow(true)
+                    .anchor(binding.promptInputEditText, 0, 0, false)
+                    .customView(popupBinding.root)
+                    .create()
+
+            popupBinding.root.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
 
             // popupWindow.contentView == popupView == popupBinding.root
 
             // hide and show when item is scrolled outside of recycler
-            val fadePopupAnimator = ObjectAnimator.ofFloat(popupView, View.ALPHA, 0F).apply {
+            val fadePopupAnimator = ObjectAnimator.ofFloat(popupBinding.root, View.ALPHA, 0F).apply {
                 duration = 250
                 addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
-                        popupView.visibility = View.INVISIBLE
+                        popupBinding.root.visibility = View.INVISIBLE
                     }
                 })
             }
-            val unfadePopupAnimator = ObjectAnimator.ofFloat(popupView, View.ALPHA, 1F).apply {
+            val unfadePopupAnimator = ObjectAnimator.ofFloat(popupBinding.root, View.ALPHA, 1F).apply {
                 duration = 250
                 addListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationStart(animation: Animator) {
-                        popupView.visibility = View.VISIBLE
+                        popupBinding.root.visibility = View.VISIBLE
                     }
                 })
             }
@@ -428,11 +426,11 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
                     if (activeScrollPosition!! in firstVisiblePosition..lastVisiblePosition) {
                         // make sure it's shown
                         if (fadePopupAnimator.isRunning) { fadePopupAnimator.cancel() }
-                        if (!unfadePopupAnimator.isRunning && popupView.alpha != 1F) { unfadePopupAnimator.start() }
+                        if (!unfadePopupAnimator.isRunning && popupBinding.root.alpha != 1F) { unfadePopupAnimator.start() }
                     } else {
                         // hide it
                         if (unfadePopupAnimator.isRunning) { unfadePopupAnimator.cancel() }
-                        if (!fadePopupAnimator.isRunning && popupView.alpha != 0F) { fadePopupAnimator.start() }
+                        if (!fadePopupAnimator.isRunning && popupBinding.root.alpha != 0F) { fadePopupAnimator.start() }
                     }
                 }
             })
@@ -442,7 +440,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
 
         private fun setupListeners() {
 
-            popupWindow.setOnDismissListener {
+            popupWindow.doOnHidden {
             }
 
             // Set onClickListeners for the popup buttons
@@ -680,24 +678,25 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
 
             // Show the popup below the anchor view
             val xOffset = activeHolder!!.binding.promptHolder.left
-            val yOffset = -(anchorView.height + popupWindow.contentView.measuredHeight + 10)
+            val yOffset = 0 //-(anchorView.height + popupBinding.root.measuredHeight + 10)
 
             if (!popupWindow.isShowing) {
                 val width = if (chatNodeAdapter.isEditingActive) widthEdit else widthOpened
                 resizeAnimator(widthClosed, width, bounce = true,
                     onStart = {
-                        popupWindow.contentView.alpha = 1F
-                        popupWindow.contentView.visibility = View.VISIBLE
+                        popupBinding.root.alpha = 1F
+                        popupBinding.root.visibility = View.VISIBLE
                     }
                 ).start()
+                // popupWindow.show(binding.root, Gravity.TOP)
                 popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
             } else if (isCyclingChildren) {
                 scrollForNodeCycling()
-                popupWindow.animationStyle = 0 // disable animation
+                // popupWindow.animationStyle = 0 // disable animation
                 popupWindow.dismiss()
-                popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
+                // popupWindow.showAsDropDown(anchorView, xOffset, yOffset)
                 lifecycleScope.launch { delay(500)
-                    popupWindow.animationStyle = -1 // default animation
+                    // popupWindow.animationStyle = -1 // default animation
                 }
                 isCyclingChildren = false
                 cyclingPrevYOffset = 0
@@ -739,7 +738,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
             if (quickDismiss) {
                 popupWindow.dismiss()
             } else {
-                resizeAnimator(popupWindow.contentView.width, widthClosed, onEnd = {
+                resizeAnimator(popupBinding.root.width, widthClosed, onEnd = {
                     popupWindow.dismiss()
                 }).start()
             }

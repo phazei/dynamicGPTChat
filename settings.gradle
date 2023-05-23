@@ -15,3 +15,5 @@ dependencyResolutionManagement {
 rootProject.name = "DynamicGPTChat"
 include ':app'
 include ':taginputview'
+include ':xtooltip'
+project(':xtooltip').projectDir = new File(rootDir, './android-target-tooltip/xtooltip/')

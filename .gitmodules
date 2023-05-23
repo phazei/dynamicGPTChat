@@ -1,0 +1,3 @@
+[submodule "android-target-tooltip"]
+	path = android-target-tooltip
+	url = https://github.com/phazei/android-target-tooltip.git
