@@ -43,6 +43,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SmoothScroller
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.chattrees.ChatTreeViewModel
@@ -77,6 +78,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
     private lateinit var chatNodeFooterAdapter: ChatNodeFooterAdapter
     private lateinit var chatSubmitButtonHelper: ChatSubmitButtonHelper
     private lateinit var popupMenuHelper: PopupMenuHelper
+    private lateinit var settingsDialogHelper: SettingsDialogHelper
     private lateinit var chatTree: ChatTree
     private val dispatcher by lazy { requireActivity().onBackPressedDispatcher }
 
@@ -91,6 +93,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
         chatTree = sharedViewModel.activeChatTree!!
         chatSubmitButtonHelper = ChatSubmitButtonHelper(this)
         popupMenuHelper = PopupMenuHelper(this, requireContext())
+        settingsDialogHelper = SettingsDialogHelper()
 
         viewLifecycleOwner.lifecycleScope.launch {
         viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -320,7 +323,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
     private fun setActionBarTitleAsMarquee() {
         val v: View = requireActivity().window.decorView
         val toolbar = v.findViewById<View>(R.id.toolbar) as Toolbar
-        //might move in the future, but for now it's great
+        // might move in the future, but for now it's great
         val titleText = toolbar.getChildAt(0) as TextView
         titleText.ellipsize = TextUtils.TruncateAt.MARQUEE
         titleText.marqueeRepeatLimit = -1
@@ -356,6 +359,81 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    inner class SettingsDialogHelper() {
+        private val sheetBehavior: BottomSheetBehavior<View>
+        private val chatOptionsDialogView: View
+
+        init {
+            chatOptionsDialogView = binding.chatOptionsDialogView
+            sheetBehavior = BottomSheetBehavior.from(chatOptionsDialogView)
+            val chatOptionsDialog = childFragmentManager.findFragmentById(R.id.chat_options_dialog_view) as ChatTreeOptionsDialog
+            chatOptionsDialog.setSheetBehavior(sheetBehavior)
+
+            // Slide the prompt input up when opening options, makes it appear as one item
+            val layoutParams = binding.inputContainer.layoutParams as ViewGroup.MarginLayoutParams
+            sheetBehavior.addBottomSheetCallback(object : BottomSheetBehavior.BottomSheetCallback() {
+                override fun onStateChanged(bottomSheet: View, newState: Int) {}
+                override fun onSlide(bottomSheet: View, slideOffset: Float) {
+
+                    // Here, slideOffset is a value between 0 (collapsed) and 1 (expanded)
+                    // If bottomSheet's height is MATCH_PARENT, slideOffset directly matches the fraction of the screen height the bottomSheet takes up.
+                    // So, we should multiply slideOffset by the height of the available space (screen height - height of promptInputEditText).
+                    // If bottomSheet's height is different, you'd have to adjust this calculation accordingly.
+
+                    val maxPossibleHeight = bottomSheet.height - 30
+                    layoutParams.bottomMargin = (slideOffset * maxPossibleHeight).toInt()
+                    binding.promptInputEditText.requestLayout()
+                }
+            })
+
+            setupInputGesture()
+        }
+
+        @SuppressLint("ClickableViewAccessibility")
+        /**
+         * Allow opening of dialog by swiping up and down on the text input
+         */
+        private fun setupInputGesture() {
+            var initialY = 0f
+            val threshold = 30f  // Set the swipe threshold
+
+            binding.promptInputEditText.setOnTouchListener { v, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        // record the y-coordinate of the initial touch point
+                        initialY = event.rawY
+                        v.parent.requestDisallowInterceptTouchEvent(true)
+                        false // not consuming the event
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        // calculate the distance swiped
+                        val finalY = event.rawY
+                        val deltaY = finalY - initialY
+
+                        if (deltaY < -threshold) {
+                            // User swiped up, so expand the bottom sheet
+                            sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                            v.parent.requestDisallowInterceptTouchEvent(false)
+                            true // consume the event
+                        } else if (deltaY > threshold) {
+                            // User swiped down, so collapse the bottom sheet
+                            sheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+                            v.parent.requestDisallowInterceptTouchEvent(false)
+                            true // consume the event
+                        } else {
+                            v.parent.requestDisallowInterceptTouchEvent(false)
+                            false // not consuming the event
+                        }
+                    }
+                    else -> {
+                        v.parent.requestDisallowInterceptTouchEvent(true)
+                        false // not consuming the event
+                    }
+                }
+            }
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
