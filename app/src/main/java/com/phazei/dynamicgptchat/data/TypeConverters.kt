@@ -1,7 +1,7 @@
 package com.phazei.dynamicgptchat.data
 
 import androidx.room.TypeConverter
-import com.aallam.openai.api.core.Usage
+import com.phazei.dynamicgptchat.data.pojo.MutableUsage
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson
 import com.squareup.moshi.Moshi
@@ -25,14 +25,14 @@ class UsageTypeConverter {
 
     @ToJson
     @TypeConverter
-    fun usageToJson(usage: Usage?): String? {
-        return usage?.let { moshi.adapter(Usage::class.java).toJson(it) }
+    fun usageToJson(usage: MutableUsage?): String? {
+        return usage?.let { moshi.adapter(MutableUsage::class.java).toJson(it) }
     }
 
     @FromJson
     @TypeConverter
-    fun jsonToUsage(jsonString: String?): Usage? {
-        return jsonString?.let { moshi.adapter(Usage::class.java).fromJson(it) }
+    fun jsonToUsage(jsonString: String?): MutableUsage? {
+        return jsonString?.let { moshi.adapter(MutableUsage::class.java).fromJson(it) }
     }
 }
 

@@ -12,6 +12,8 @@ import com.phazei.airequests.AIHelperRequests
 import com.phazei.dynamicgptchat.data.*
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.ChatTree
+import com.phazei.dynamicgptchat.data.pojo.MutableUsage
+import com.phazei.dynamicgptchat.data.pojo.toMutable
 import com.phazei.dynamicgptchat.data.repo.ChatRepository
 import com.phazei.dynamicgptchat.data.repo.ChatResponseWrapper
 import com.phazei.dynamicgptchat.data.repo.OpenAIRepository
@@ -111,7 +113,7 @@ class ChatNodeViewModel @Inject constructor(
                 // Log.d("LOG", chatComplete.toString())
                 chatNode.response = chatComplete.choices[0].message?.content.toString()
                 chatNode.finishReason = chatComplete.choices[0].finishReason ?: ""
-                chatNode.usage = chatComplete.usage ?: Usage()
+                chatNode.usage += chatComplete.usage?.toMutable() ?: MutableUsage()
             }
             is ChatResponseWrapper.Chunk -> {
                 val chatChunk = response.chatChunk
@@ -119,10 +121,14 @@ class ChatNodeViewModel @Inject constructor(
                 chatNode.response += chatChunk.choices[0].delta?.content ?: ""
                 chatNode.finishReason = chatChunk.choices[0].finishReason ?: ""
                 if (chatChunk.usage == null) {
-                    //TODO: count the chunks and set that as the completion tokens
-                    // chatNode.usage?.completionTokens = (chatNode.usage?.completionTokens ?: 0) + 1
+                    // streaming responses don't currently return "usage" I don't think
                 } else {
-                    chatNode.usage = chatChunk.usage ?: Usage()
+                    if (chatChunk.usage != null) {
+                        chatNode.usage += chatChunk.usage?.toMutable() ?: MutableUsage()
+                    } else {
+                        chatNode.usage.completionTokens += 1
+                        chatNode.usage.totalTokens += 1
+                    }
                 }
             }
             is ChatResponseWrapper.Error -> {
@@ -141,6 +147,14 @@ class ChatNodeViewModel @Inject constructor(
     private fun handleChatComplete(chatNode: ChatNode) {
         viewModelScope.launch {
             chatRepository.saveChatNode(chatNode)
+
+            chatNode.chatTree?.let {
+                it.usage += chatNode.usage
+                viewModelScope.launch {
+                    chatRepository.saveChatTree(it)
+                }
+            }
+
             if (chatNode.error == null) {
                 if (!chatNode.parent.parentInitialized()) {
                     // this is first message of conversation, generate title

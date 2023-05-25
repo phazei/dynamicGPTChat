@@ -22,10 +22,88 @@
         android:minHeight="100dp"
         android:padding="8dp">
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/token_use_group"
+            android:layout_width="match_parent"
+            android:layout_height="50dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tokens Used:"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                />
+            <TextView
+                android:id="@+id/tokens_prompt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Prompts:"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                />
+            <TextView
+                android:id="@+id/tokens_response"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Response:"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/tokens_prompt"
+                app:layout_constraintEnd_toStartOf="@id/tokens_total"
+                />
+            <TextView
+                android:id="@+id/tokens_total"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total:"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <FrameLayout
+            android:id="@+id/submit_type_group"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            tools:ignore="MissingConstraints">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Request Type:"
+                android:labelFor="@id/toggle_enter_key"
+                />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggle_submit_type"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                app:selectionRequired="true"
+                app:checkedButton="@id/enter_key_submit"
+                app:singleSelection="true">
+                <Button
+                    android:id="@+id/stream_submit"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="15dp"
+                    android:text="Streaming" />
+                <Button
+                    android:id="@+id/full_response_submit"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:paddingHorizontal="10dp"
+                    android:text="Full Response" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+        </FrameLayout>
+
         <FrameLayout
             android:id="@+id/enter_key_group"
             android:layout_width="0dp"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            tools:ignore="MissingConstraints">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -62,7 +140,8 @@
         <FrameLayout
             android:id="@+id/moderation_group"
             android:layout_width="0dp"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            tools:ignore="MissingConstraints">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -104,9 +183,11 @@
             app:flow_horizontalStyle="spread"
             app:flow_maxElementsWrap="2"
             app:flow_horizontalAlign="center"
+            app:flow_horizontalBias="0.5"
             app:flow_horizontalGap="30dp"
+            app:flow_verticalGap="10dp"
 
-            app:constraint_referenced_ids="enter_key_group, moderation_group"
+            app:constraint_referenced_ids="token_use_group, submit_type_group, enter_key_group, moderation_group"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
