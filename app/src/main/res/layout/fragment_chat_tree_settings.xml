@@ -28,18 +28,13 @@
         android:padding="16dp">
 
         <!-- Title -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/title_label"
-            android:labelFor="@id/title_edit_text"
-            />
-
         <com.google.android.material.textfield.TextInputLayout
+            style="?attr/textInputFilledStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:hint="@string/title_hint">
+            app:boxBackgroundMode="filled"
+            android:hint="@string/title_label">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/title_edit_text"
@@ -51,18 +46,14 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- System Message -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/system_message_label"
-            android:labelFor="@id/system_message_text"
-            />
-
         <com.google.android.material.textfield.TextInputLayout
+            style="?attr/textInputFilledStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:hint="@string/system_message_hint">
+            app:boxBackgroundMode="filled"
+            app:helperText="@string/system_message_hint"
+            android:hint="@string/system_message_label">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/system_message_text"
@@ -73,6 +64,12 @@
                 android:maxLines="100"/>
 
         </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            />
 
         <!-- Mode -->
         <TextView
@@ -116,8 +113,13 @@
             android:id="@+id/model_details"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
             android:text="" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            />
 
         <!-- Temperature -->
         <TextView
@@ -214,6 +216,12 @@
             android:valueTo="2"
             app:labelBehavior="floating" />
 
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            />
+
         <!-- Stop Start Text -->
         <TextView
             android:layout_width="match_parent"
@@ -294,17 +302,14 @@
             app:labelBehavior="floating" />
 
         <!-- Inject Start Text -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/inject_start_text_label"
-            android:labelFor="@id/inject_start_text" />
-
         <com.google.android.material.textfield.TextInputLayout
+            style="?attr/textInputFilledStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:hint="@string/inject_start_text_hint">
+            app:boxBackgroundMode="filled"
+            app:helperText="@string/inject_start_text_hint"
+            android:hint="@string/inject_start_text_label">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inject_start_text"
@@ -316,17 +321,13 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Inject Restart Text -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/inject_restart_text_label"
-            android:labelFor="@id/inject_restart_text" />
-
         <com.google.android.material.textfield.TextInputLayout
+            style="?attr/textInputFilledStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="10dp"
-            android:hint="@string/inject_restart_text_hint">
+            app:helperText="@string/inject_restart_text_hint"
+            android:hint="@string/inject_restart_text_label">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inject_restart_text"

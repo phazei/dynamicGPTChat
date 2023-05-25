@@ -465,6 +465,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
             )
             popupWindow.apply {
                 isAttachedInDecor = true
+                elevation = 50F
                 // Set the popup to be focusable and dismiss when clicked outside
                 // animationStyle = R.style.NodePopupAnimation
                 // isFocusable = true

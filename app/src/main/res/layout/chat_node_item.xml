@@ -4,9 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="4dp"
-    tools:context=".chatnodes.ChatNodeAdapter"
-    >
+    android:paddingHorizontal="4dp"
+    android:paddingTop="0dp"
+    android:paddingBottom="8dp"
+    android:clipToPadding="false"
+    android:background="?colorSurface"
+    tools:context=".chatnodes.ChatNodeAdapter">
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/chat_node_top_guide"
@@ -23,7 +26,7 @@
         android:gravity="center"
 
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/guideline10"
+        app:layout_constraintWidth_percent="0.1"
         app:layout_constraintTop_toTopOf="@id/prompt_holder"
         app:layout_constraintBottom_toBottomOf="@id/prompt_holder">
 
@@ -67,6 +70,9 @@
         android:layout_height="match_parent"
         android:background="@drawable/message_bubble_right"
         android:backgroundTint="@color/md_theme_dark_primary"
+
+        android:elevation="4dp"
+        android:translationZ="4dp"
 
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="@id/guideline10"
@@ -140,8 +146,11 @@
         android:background="@drawable/message_bubble_left"
         android:backgroundTint="@color/md_theme_light_secondary"
 
-        app:layout_constraintEnd_toEndOf="@id/guideline90"
+        android:elevation="4dp"
+        android:translationZ="4dp"
+
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/guideline90"
         app:layout_constraintTop_toBottomOf="@id/chat_node_barrier">
 
         <!-- had to go with colorOnPrimary due to night mode too dark

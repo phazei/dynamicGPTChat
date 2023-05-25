@@ -48,6 +48,7 @@
             android:padding="8dp">
 
             <com.google.android.material.textfield.TextInputLayout
+                style="?attr/textInputFilledStyle"
                 android:id="@+id/prompt_layout_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -87,6 +88,7 @@
                 app:strokeColor="?attr/colorPrimary" />
 
             <com.google.android.material.textfield.TextInputLayout
+                style="?attr/textInputFilledStyle"
                 android:id="@+id/prompt_layout_body"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

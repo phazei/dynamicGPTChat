@@ -35,6 +35,7 @@
             />
 
         <com.google.android.material.textfield.TextInputLayout
+            style="?attr/textInputFilledStyle"
             android:id="@+id/search_prompt_text_layout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"

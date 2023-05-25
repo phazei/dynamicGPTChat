@@ -89,8 +89,8 @@ class MainActivity : AppCompatActivity() {
             // It's essential that About be in the menu even though it's not visible to properly
             //   have a topLevel menu item.
 
-            // navView.setCheckedItem(R.id.AboutFragment)
-            // navView.menu.performIdentifierAction(R.id.AboutFragment, Menu.FLAG_ALWAYS_PERFORM_CLOSE)
+            // navView.setCheckedItem(R.id.about_graph)
+            // navView.menu.performIdentifierAction(R.id.about_graph, Menu.FLAG_ALWAYS_PERFORM_CLOSE)
             navController.navigate(R.id.about_graph, null, NavOptions.Builder()
                     //navigating to
                 .setEnterAnim(R.anim.spin_in_crazy)
@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity() {
             drawerLayout.closeDrawer(GravityCompat.START)
             //manually set active view display for "about" menu
             val typedValue = TypedValue()
-            if (destination.id == R.id.about_graph) {
+            if (destination.id == R.id.AboutFragment) {
                 binding.root.context.theme.resolveAttribute(com.google.android.material.R.attr.colorPrimary, typedValue, true)
                 binding.AboutFragment.setTextColor(typedValue.data)
                 binding.aboutMenuBg.visibility = View.VISIBLE

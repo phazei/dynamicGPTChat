@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.DynamicGPTChat" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.DynamicGPTChat" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
@@ -23,32 +23,23 @@
 
         <item name="android:colorBackground">@color/md_theme_light_background</item>
         <item name="colorOnBackground">@color/md_theme_light_onBackground</item>
+        <item name="colorOutline">@color/md_theme_light_outline</item>
+        <item name="colorOnSurfaceInverse">@color/md_theme_light_inverseOnSurface</item>
+        <item name="colorSurfaceInverse">@color/md_theme_light_inverseSurface</item>
         <item name="colorSurface">@color/md_theme_light_surface</item>
         <item name="colorOnSurface">@color/md_theme_light_onSurface</item>
         <item name="colorSurfaceVariant">@color/md_theme_light_surfaceVariant</item>
         <item name="colorOnSurfaceVariant">@color/md_theme_light_onSurfaceVariant</item>
-        <item name="colorOutline">@color/md_theme_light_outline</item>
-        <item name="colorOnSurfaceInverse">@color/md_theme_light_inverseOnSurface</item>
-        <item name="colorSurfaceInverse">@color/md_theme_light_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_light_inversePrimary</item>
 
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/md_theme_light_onPrimaryContainer</item>
 
-        <item name="bottomSheetDialogTheme">@style/CustomBottomSheetDialog</item>
-        <item name="bottomSheetDragHandleStyle">@style/CustomBottomSheetDragHandle</item>
-
         <!-- <item name="colorControlActivated">?attr/colorOnSurfaceVariant</item>-->
     </style>
 
-    <style name="Theme.DynamicGPTChat.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
-    <style name="Theme.DynamicGPTChat.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="Theme.DynamicGPTChat.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <style name="Theme.DynamicGPTChat.AppBarOverlay" parent="ThemeOverlay.Material3.Dark" />
+    <style name="Theme.DynamicGPTChat.PopupOverlay" parent="ThemeOverlay.Material3.Light" />
 
     <style name="TooltipTextAppearance">
         <item name="android:textColor">?attr/colorOnPrimary</item>
@@ -56,7 +47,8 @@
         <item name="android:textStyle">bold</item>
     </style>
 
-    <style name="CustomSendButton" parent="Widget.MaterialComponents.Button">
+    <!--  Without this the disabled send button is too transparent and thus too light for it's background  -->
+    <style name="CustomSendButton" parent="Widget.Material3.Button.ElevatedButton">
         <item name="backgroundTint">@color/send_button_style</item>
     </style>
 
@@ -74,28 +66,6 @@
         <item name="android:windowEnterAnimation">@anim/slide_in_enter_micro</item>
         <item name="android:windowExitAnimation">@anim/fade_out_fast</item>
     </style>
-
-    <style name="CustomBottomSheetDialog" parent="@style/ThemeOverlay.Material3.BottomSheetDialog">
-        <item name="bottomSheetStyle">@style/CustomBottomSheet</item>
-    </style>
-
-    <style name="CustomBottomSheet" parent="Widget.Material3.BottomSheet">
-        <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
-    </style>
-
-    <style name="CustomShapeAppearanceBottomSheetDialog" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSizeTopRight">16dp</item>
-        <item name="cornerSizeTopLeft">16dp</item>
-        <item name="cornerSizeBottomRight">0dp</item>
-        <item name="cornerSizeBottomLeft">0dp</item>
-    </style>
-
-    <style name="CustomBottomSheetDragHandle" parent="Widget.Material3.BottomSheet.DragHandle">
-        <item name="tint">?colorOnSurface</item>
-        <item name="android:alpha">0.5</item>
-    </style>
-
 
     <style name="CustomTagInputTagStyle" parent="TagInputTagStyle">
         <!-- Modify tag inputs       -->

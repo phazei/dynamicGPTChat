@@ -51,7 +51,7 @@
     <string name="title_label">Title</string>
     <string name="title_hint">Enter a title</string>
     <string name="system_message_label">System Message</string>
-    <string name="system_message_hint">Pre-message before all others</string>
+    <string name="system_message_hint">Message always sent before all others</string>
     <string name="mode_label">Mode</string>
     <string name="model_label">Model</string>
     <string name="temperature_label">Temperature (%.2f)</string>
@@ -66,9 +66,9 @@
     <string name="number_of_label">Number of (%.0f)</string>
     <string name="best_of_label">Best of (%.0f)</string>
     <string name="inject_start_text_label">Inject Start Text</string>
-    <string name="inject_start_text_hint">Enter text to inject at the start</string>
+    <string name="inject_start_text_hint">Injected before generated output</string>
     <string name="inject_restart_text_label">Inject Restart Text</string>
-    <string name="inject_restart_text_hint">Enter text to inject when restarting</string>
+    <string name="inject_restart_text_hint">Injected between multiple outputs</string>
     <string-array name="mode_options">
         <item>Completion</item>
         <item>ChatCompletion</item>
