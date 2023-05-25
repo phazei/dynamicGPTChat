@@ -1,9 +1,8 @@
 package com.phazei.dynamicgptchat.data.dao
 
 import androidx.room.*
-import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.entity.Prompt
-import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.pojo.PromptWithTags
 
 @Dao
 interface PromptDao : BaseDao<Prompt> {

@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.data.entity.ChatNode
-import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.pojo.PromptWithTags
 import com.phazei.dynamicgptchat.databinding.ChatNodeHeaderItemBinding
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
 import com.phazei.dynamicgptchat.prompts.PromptListAdapter

@@ -15,7 +15,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.R
-import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.pojo.PromptWithTags
 import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.databinding.DialogPromptFormBinding
 import com.phazei.taginputview.TagInputData

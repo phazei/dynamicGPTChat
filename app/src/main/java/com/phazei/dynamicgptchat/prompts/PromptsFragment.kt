@@ -2,7 +2,6 @@ package com.phazei.dynamicgptchat.prompts
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +10,7 @@ import androidx.fragment.app.activityViewModels
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.data.entity.Prompt
-import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.pojo.PromptWithTags
 import com.phazei.dynamicgptchat.databinding.FragmentPromptsBinding
 import dagger.hilt.android.AndroidEntryPoint
 

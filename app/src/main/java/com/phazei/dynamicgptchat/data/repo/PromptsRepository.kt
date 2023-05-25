@@ -6,12 +6,9 @@ import com.phazei.dynamicgptchat.data.dao.PromptDao
 import com.phazei.dynamicgptchat.data.dao.PromptTagDao
 import com.phazei.dynamicgptchat.data.dao.TagDao
 import com.phazei.dynamicgptchat.data.entity.Prompt
-import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.pojo.PromptWithTags
 import com.phazei.dynamicgptchat.data.entity.PromptTag
 import com.phazei.dynamicgptchat.data.entity.Tag
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 

@@ -1,10 +1,9 @@
 package com.phazei.dynamicgptchat.prompts
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.phazei.dynamicgptchat.data.entity.Prompt
-import com.phazei.dynamicgptchat.data.entity.PromptWithTags
+import com.phazei.dynamicgptchat.data.pojo.PromptWithTags
 import com.phazei.dynamicgptchat.data.entity.Tag
 import com.phazei.dynamicgptchat.data.repo.PromptsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
