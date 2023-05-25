@@ -70,7 +70,7 @@
     <string name="inject_restart_text_label">Inject Restart Text</string>
     <string name="inject_restart_text_hint">Injected between multiple outputs</string>
     <string-array name="mode_options">
-        <item>Completion</item>
+<!--        <item>Completion</item>-->
         <item>ChatCompletion</item>
     </string-array>
     <string-array name="model_options">
@@ -131,5 +131,21 @@
 
     <string name="stop_and_load_dot">M 5 2.5 A 2.5 2.5 0 0 1 2.5 5 A 2.5 2.5 0 0 1 0 2.5 A 2.5 2.5 0 0 1 2.5 0 A 2.5 2.5 0 0 1 5 2.5 Z</string>
     <string name="knightrider_rect">M 0 6 L 0 0 L 12 0 L 12 6 Z</string>
+
+    <!--  Chat Options Dialog  -->
+    <string name="chat_options_toggle">Chat Options Toggle</string>
+    <string name="tokens_used_label">Tokens Used:</string>
+    <string name="tokens_prompts">Prompts:\n%d</string>
+    <string name="tokens_response">Response:\n%d</string>
+    <string name="tokens_total">Total:\n%d</string>
+    <string name="request_type_label">Request Type:</string>
+    <string name="request_type_streaming">Streaming</string>
+    <string name="request_type_full_response">Full Response</string>
+    <string name="enter_key_label">Enter Is:</string>
+    <string name="enter_key_submit">Send</string>
+    <string name="enter_key_new_line">New Line</string>
+    <string name="moderate_response_label">Moderate Response:</string>
+    <string name="moderate_no">No</string>
+    <string name="moderate_yes">Yes</string>
 
 </resources>

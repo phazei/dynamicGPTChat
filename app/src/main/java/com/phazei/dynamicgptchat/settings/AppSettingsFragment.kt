@@ -57,7 +57,7 @@ class AppSettingsFragment : Fragment() {
 
             binding.apiKeyText.doOnTextChanged { text, _, _, _ ->
                 saveApiKeyJob?.cancel()
-                saveApiKeyJob = viewLifecycleOwner.lifecycleScope.launch {
+                saveApiKeyJob = lifecycleScope.launch {
                     delay(debounceDuration)
                     appSettings.openAIkey = text.toString()
                     appSettingsViewModel.updateAppSettings(appSettings.copy())

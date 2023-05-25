@@ -24,7 +24,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -107,41 +109,42 @@ class OpenAIRepository @Inject constructor(
     ): Job {
         val chatTreeId = chatNode.chatTreeId
         val requestJob = CoroutineScope(Dispatchers.IO).launch {
-            if (streaming) {
-                var errorHandled = false
-                openAI.chatCompletions(chatCompletionRequest)
-                    .onEach { response: ChatCompletionChunk ->
-                        onResponse(ChatResponseWrapper.Chunk(response))
-                    }
-                    .catch { e: Throwable ->
-                        when (e) {
-                            is CancellationException -> {
-                                errorHandled = true
-                                onError(ChatResponseWrapper.Error(Exception("The quest was quashed!")))
-                            }
-                            is Exception -> {
-                                errorHandled = true
-                                onError(ChatResponseWrapper.Error(e))
-                            }
-                            else ->
-                                throw e
-                        }
-                    }
-                    .onCompletion { e: Throwable? ->
-                        if (errorHandled) return@onCompletion
-                        //errors will only reach here if they skipped the catch
-                        when (e) {
-                            null -> onComplete()
-                            is CancellationException -> onError(ChatResponseWrapper.Error(Exception("The quest was quashed!!")))
-                            else -> throw e
-                        }
-                    }
-                    .launchIn(this)
+            var errorHandled = false
+
+            // modify both items to be the same flow type so we can use the same handling
+            val chatResponseFlow = if (streaming) {
+                openAI.chatCompletions(chatCompletionRequest).map { ChatResponseWrapper.Chunk(it) }
             } else {
-                val chatCompletion = openAI.chatCompletion(chatCompletionRequest)
-                onResponse(ChatResponseWrapper.Complete(chatCompletion))
-                onComplete()
+                flow { emit(openAI.chatCompletion(chatCompletionRequest)) }.map { ChatResponseWrapper.Complete(it) }
             }
+
+           chatResponseFlow
+            .onEach { response: ChatResponseWrapper ->
+                onResponse(response)
+            }
+            .catch { e: Throwable ->
+                when (e) {
+                    is CancellationException -> {
+                        errorHandled = true
+                        onError(ChatResponseWrapper.Error(Exception("The quest was quashed!")))
+                    }
+                    is Exception -> {
+                        errorHandled = true
+                        onError(ChatResponseWrapper.Error(e))
+                    }
+                    else -> throw e
+                }
+            }
+            .onCompletion { e: Throwable? ->
+                if (errorHandled) return@onCompletion
+                //errors will only reach here if they skipped the catch
+                when (e) {
+                    null -> onComplete()
+                    is CancellationException -> onError(ChatResponseWrapper.Error(Exception("The quest was quashed!!")))
+                    else -> throw e
+                }
+            }
+            .launchIn(this)
         }
         manage.activeRequestsAdd(chatTreeId, requestJob)
         requestJob.invokeOnCompletion {

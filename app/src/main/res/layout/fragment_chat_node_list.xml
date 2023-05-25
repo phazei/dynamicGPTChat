@@ -31,6 +31,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <EditText
+            android:visibility="gone"
+            android:id="@+id/refresh_focus"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:importantForAccessibility="no"
+            android:importantForAutofill="no" />
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/prompt_input_layout"
             android:layout_width="match_parent"
@@ -48,6 +58,8 @@
             app:boxBackgroundColor="?attr/colorSurfaceVariant"
             app:boxStrokeWidth="0dp"
             app:boxStrokeWidthFocused="0dp"
+
+            android:importantForAutofill="no"
 
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent">
@@ -98,8 +110,8 @@
                 tools:ignore="RtlSymmetry" />
 
             <com.google.android.material.button.MaterialButton
-                style="@style/CustomSendButton"
                 android:id="@+id/chat_submit_button"
+                style="@style/CustomSendButton"
                 android:layout_width="50dp"
                 android:layout_height="60dp"
                 android:layout_marginLeft="5dp"
@@ -129,7 +141,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
 
-            android:clickable="true"
             app:behavior_hideable="false"
             app:behavior_peekHeight="10dp"
             style="@style/Widget.Material3.BottomSheet"

@@ -21,7 +21,6 @@ data class GPTSettings(
     @ColumnInfo(name = "logit_bias") var logitBias: MutableMap<Int, Int> = mutableMapOf(),
     @ColumnInfo(name = "inject_start_text") var injectStartText: String = "",
     @ColumnInfo(name = "inject_restart_text") var injectRestartText: String = "",
-    @ColumnInfo(name = "moderate_content") var moderateContent: Boolean = false
 ) {
 
     /**

@@ -11,6 +11,7 @@ import android.graphics.drawable.AnimatedVectorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputType
 import android.text.TextUtils
 import android.text.TextWatcher
 import android.util.DisplayMetrics
@@ -18,6 +19,7 @@ import android.util.Log
 import android.view.*
 import android.view.animation.LinearInterpolator
 import android.view.animation.PathInterpolator
+import android.view.inputmethod.EditorInfo
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.addCallback
@@ -44,6 +46,7 @@ import androidx.recyclerview.widget.RecyclerView.SmoothScroller
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.SharedViewModel
 import com.phazei.dynamicgptchat.chattrees.ChatTreeViewModel
@@ -63,7 +66,7 @@ import kotlinx.coroutines.launch
  */
 @Suppress("LiftReturnOrAssignment")
 @AndroidEntryPoint
-class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener {
+class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener, ChatTreeOptionsDialog.ChatTreeOptionsClickListener {
 
     private var _binding: FragmentChatNodeListBinding? = null
     private val binding get() = _binding!!
@@ -204,6 +207,14 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
     // @ChatNodeAdapter
     override fun onEditNode(position: Int) {
 
+    }
+
+    // @ChatTreeOptionsDialog
+    override fun onSaveOptions() {
+    }
+    // @ChatTreeOptionsDialog
+    override fun onChangeKeyboardEnter() {
+        chatSubmitButtonHelper.setKeyboardIMEOption()
     }
 
     @Suppress("UNUSED_ANONYMOUS_PARAMETER")
@@ -370,6 +381,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
             sheetBehavior = BottomSheetBehavior.from(chatOptionsDialogView)
             val chatOptionsDialog = childFragmentManager.findFragmentById(R.id.chat_options_dialog_view) as ChatTreeOptionsDialog
             chatOptionsDialog.setSheetBehavior(sheetBehavior)
+            chatOptionsDialog.setListener(this@ChatNodeListFragment)
 
             // Slide the prompt input up when opening options, makes it appear as one item
             val layoutParams = binding.inputContainer.layoutParams as ViewGroup.MarginLayoutParams
@@ -377,10 +389,8 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
                 override fun onStateChanged(bottomSheet: View, newState: Int) {}
                 override fun onSlide(bottomSheet: View, slideOffset: Float) {
 
-                    // Here, slideOffset is a value between 0 (collapsed) and 1 (expanded)
+                    // slideOffset is a value between 0 (collapsed) and 1 (expanded)
                     // If bottomSheet's height is MATCH_PARENT, slideOffset directly matches the fraction of the screen height the bottomSheet takes up.
-                    // So, we should multiply slideOffset by the height of the available space (screen height - height of promptInputEditText).
-                    // If bottomSheet's height is different, you'd have to adjust this calculation accordingly.
 
                     val maxPossibleHeight = bottomSheet.height - 30
                     layoutParams.bottomMargin = (slideOffset * maxPossibleHeight).toInt()
@@ -949,6 +959,11 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
             AnimatedVectorDrawableCompat.registerAnimationCallback(drawableSendToStop, animationCallback)
 
             binding.chatSubmitButton.setOnClickListener {
+                if (binding.promptInputEditText.text.toString() == "") {
+                    // button is disabled, but could be triggered via keyboard
+                    return@setOnClickListener
+                }
+
                 if (!chatNodeViewModel.isRequestActive(chatTree.id)) {
                     // don't try to submit till chatNodes loaded
                     if (chatNodeAdapter.isInit()) {
@@ -965,6 +980,46 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener 
             }
 
             setupDisableButtonOnNoPrompt()
+            setupKeyboardIMESubmit()
+            setKeyboardIMEOption()
+        }
+
+        private fun setupKeyboardIMESubmit() {
+            binding.promptInputEditText.setOnEditorActionListener { v, actionId, event ->
+                if (actionId == EditorInfo.IME_ACTION_SEND) {
+                    if (!chatNodeViewModel.isRequestActive(chatTree.id)) {
+                        // don't want to accidentally cancel
+                        binding.chatSubmitButton.performClick()
+                    } else {
+                        Snackbar.make(binding.root,"Can't send! Request on the line.", Snackbar.LENGTH_SHORT).show()
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+        fun setKeyboardIMEOption() {
+            if (chatTree.options.imeSubmit) {
+                binding.promptInputEditText.imeOptions = EditorInfo.IME_ACTION_SEND
+                binding.promptInputEditText.setRawInputType(InputType.TYPE_CLASS_TEXT)
+            } else {
+                binding.promptInputEditText.imeOptions = EditorInfo.IME_NULL
+                binding.promptInputEditText.setRawInputType(InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE)
+            }
+            // only way to update button is to move focus to another item and come back, clearFocus and closing keyboard doesn't work
+            binding.refreshFocus.visibility = View.VISIBLE
+            binding.refreshFocus.requestFocus()
+            lifecycleScope.launch {
+                delay(100)
+                binding.promptInputEditText.requestFocus()
+                binding.refreshFocus.visibility = View.GONE
+            }
+            // To hide a keyboard:
+            // val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            // inputMethodManager.hideSoftInputFromWindow(binding.promptInputEditText.windowToken, 0)
+
+
         }
 
         fun checkSubmitStatusButton() {

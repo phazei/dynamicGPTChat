@@ -226,10 +226,12 @@ class ChatTreeSettingsFragment : Fragment() {
                         message = "Invalid OpenAI Token: Unable to retrieve model list."
                     else -> {
                         message = "Error: ${exception.javaClass} ${exception.message}"
-                        Log.e("TAG", "Error: ${exception.javaClass} ${exception.message}")
                     }
                 }
-                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+                if (isAdded) { // check to make sure view is still added
+                    // if user leaves page before message is shown since the catch will run after view is destroyed this will throw
+                    Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+                }
             }
 
 

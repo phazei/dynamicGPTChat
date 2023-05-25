@@ -49,11 +49,13 @@ class ChatNodeViewModel @Inject constructor(
         return openAIRepository.manage.isRequestActive(chatTreeId)
     }
 
-    fun makeChatCompletionRequest(chatTree: ChatTree, chatNode: ChatNode, streaming: Boolean = true) {
+    fun makeChatCompletionRequest(chatTree: ChatTree, chatNode: ChatNode) {
         if (chatTree.id != chatNode.chatTreeId) {
             throw IllegalArgumentException("chatNode must be child of chatTree")
         }
         chatNode.chatTree = chatTree
+
+        val streaming = chatTree.options.streaming
 
         viewModelScope.launch {
             if (chatNode.id == 0L) {
@@ -172,18 +174,20 @@ class ChatNodeViewModel @Inject constructor(
      * Once request is complete, this will submit the response and retrieve a moderation result
      */
     private fun moderateChatNodeResponse(chatNode: ChatNode) {
-        if (chatNode.chatTree?.gptSettings?.moderateContent == true) {
-            viewModelScope.launch {
-                val moderation: TextModeration
-                try {
-                    moderation = openAIRepository.moderateContent(ModerationRequest(mutableListOf(chatNode.prompt, chatNode.response), ModerationModel.Latest))
-                } catch (e: Exception) {
-                    //ignore, just skip it
-                    return@launch
+        chatNode.chatTree?.let {
+            if (it.options.moderation) {
+                viewModelScope.launch {
+                    val moderation: TextModeration
+                    try {
+                        moderation = openAIRepository.moderateContent(ModerationRequest(mutableListOf(chatNode.prompt, chatNode.response), ModerationModel.Latest))
+                    } catch (e: Exception) {
+                        //ignore, just skip it
+                        return@launch
+                    }
+                    chatNode.moderation = OpenAIHelper.formatModerationDetails(moderation)
+                    chatRepository.saveChatNode(chatNode)
+                    emitSingleChatNodeUpdate(chatNode)
                 }
-                chatNode.moderation = OpenAIHelper.formatModerationDetails(moderation)
-                chatRepository.saveChatNode(chatNode)
-                emitSingleChatNodeUpdate(chatNode)
             }
         }
     }
