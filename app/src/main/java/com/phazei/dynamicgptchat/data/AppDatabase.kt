@@ -30,7 +30,7 @@ import javax.inject.Singleton
     exportSchema = true,
     // autoMigrations = [AutoMigration(from = 1, to = 2)]
 )
-@TypeConverters(DateConverter::class, UsageTypeConverter::class, ListTypeConverter::class, MapConverter::class)
+@TypeConverters(DateConverter::class, UsageTypeConverter::class, ListTypeConverter::class, MapConverter::class, ChatOptionsConverter::class)
 @Singleton
 abstract class AppDatabase : RoomDatabase() {
 

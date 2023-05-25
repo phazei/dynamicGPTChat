@@ -1,6 +1,7 @@
 package com.phazei.dynamicgptchat.data
 
 import androidx.room.TypeConverter
+import com.phazei.dynamicgptchat.data.pojo.ChatTreeOptions
 import com.phazei.dynamicgptchat.data.pojo.MutableUsage
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.ToJson
@@ -65,5 +66,25 @@ class MapConverter {
     @TypeConverter
     fun fromMapToString(map: MutableMap<Int, Int>?): String? {
         return adapter.toJson(map)
+    }
+}
+
+class ChatOptionsConverter {
+    private val moshi = Moshi.Builder().build()
+
+    @TypeConverter
+    fun fromChatTreeOptions(options: ChatTreeOptions): String {
+        val adapter = moshi.adapter(ChatTreeOptions::class.java)
+        return adapter.toJson(options)
+    }
+
+    @TypeConverter
+    fun toChatTreeOptions(json: String): ChatTreeOptions {
+        return try {
+            val adapter = moshi.adapter(ChatTreeOptions::class.java)
+            adapter.fromJson(json) ?: ChatTreeOptions()
+        } catch (e: Exception) {
+            ChatTreeOptions() // return a default ChatTreeOptions on any error
+        }
     }
 }

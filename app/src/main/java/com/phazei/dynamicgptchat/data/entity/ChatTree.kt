@@ -1,6 +1,7 @@
 package com.phazei.dynamicgptchat.data.entity
 
 import androidx.room.*
+import com.phazei.dynamicgptchat.data.pojo.ChatTreeOptions
 import com.phazei.dynamicgptchat.data.pojo.MutableUsage
 
 @Entity(
@@ -31,6 +32,7 @@ data class ChatTree(
     @ColumnInfo(name = "gpt_settings_id") var gptSettingsId: Long? = null,
     @ColumnInfo(name = "root_chat_node_id") var rootChatNodeId: Long? = null,
 ) : BaseEntity() {
+    var options: ChatTreeOptions = ChatTreeOptions()
     @Embedded(prefix = "use_") var usage: MutableUsage = MutableUsage()
     var tempPrompt: String = ""
 
