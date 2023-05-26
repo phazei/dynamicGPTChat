@@ -11,23 +11,34 @@
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:id="@+id/dialog_chat_drag_handle"
         android:layout_width="match_parent"
-        android:layout_height="10dp"
+        android:layout_height="12dp"
         android:layout_gravity="center|top"
-        android:padding="0dp"
+        android:paddingHorizontal="0dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="2dp"
         android:contentDescription="@string/chat_options_toggle"
         />
 
+    <!--  This must have clickable to stuff behind it isn't clicked,
+          but if parent has clickable, then it blocks drag handle on some devices
+      -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
         android:minHeight="100dp"
-        android:padding="8dp">
+        android:paddingHorizontal="8dp"
+        android:paddingBottom="10dp"
+
+        android:clickable="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/token_use_group"
             android:layout_width="match_parent"
-            android:layout_height="50dp">
+            android:layout_height="wrap_content"
+            android:minHeight="60dp"
+            android:padding="4dp"
+            app:layout_constraintTop_toTopOf="parent"
+            >
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -39,31 +50,52 @@
                 />
             <TextView
                 android:id="@+id/tokens_prompt"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                app:layout_constraintHorizontal_weight=".33"
+                android:gravity="center"
                 android:text="@string/tokens_prompts"
+
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tokens_response"
                 />
             <TextView
                 android:id="@+id/tokens_response"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                app:layout_constraintHorizontal_weight=".33"
+                android:gravity="center"
                 android:text="@string/tokens_response"
+
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@id/tokens_prompt"
                 app:layout_constraintEnd_toStartOf="@id/tokens_total"
                 />
             <TextView
                 android:id="@+id/tokens_total"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                app:layout_constraintHorizontal_weight=".33"
+                android:gravity="center"
                 android:text="@string/tokens_total"
+
+                app:layout_constraintStart_toEndOf="@id/tokens_response"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/dialog_divider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            app:layout_constraintTop_toBottomOf="@id/token_use_group"
+            app:layout_constraintBottom_toTopOf="@id/chat_option_flow_group"
+            app:layout_constraintStart_toStartOf="parent"
+            />
 
         <FrameLayout
             android:id="@+id/submit_type_group"
@@ -180,6 +212,7 @@
         </FrameLayout>
 
         <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/chat_option_flow_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
 
@@ -187,14 +220,14 @@
             app:flow_horizontalStyle="spread"
             app:flow_maxElementsWrap="2"
             app:flow_horizontalAlign="center"
-            app:flow_horizontalBias="0.5"
+            app:flow_horizontalBias="0"
             app:flow_horizontalGap="30dp"
             app:flow_verticalGap="10dp"
 
-            app:constraint_referenced_ids="token_use_group, submit_type_group, enter_key_group, moderation_group"
+            app:constraint_referenced_ids="dialog_divider, submit_type_group, enter_key_group, moderation_group"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/token_use_group"
             app:layout_constraintBottom_toBottomOf="parent"
             />
 

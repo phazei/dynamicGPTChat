@@ -66,7 +66,7 @@ class ChatNodeViewModel @Inject constructor(
                 chatRepository.saveChatNode(chatNode, true)
             }
 
-            //clear out previous items if they exists
+            //clear out previous items if they exist
             chatNode.response = ""
             chatNode.error = null
             chatNode.moderation = null
@@ -122,15 +122,12 @@ class ChatNodeViewModel @Inject constructor(
                 // Log.d("LOG", chatChunk.toString())
                 chatNode.response += chatChunk.choices[0].delta?.content ?: ""
                 chatNode.finishReason = chatChunk.choices[0].finishReason ?: ""
-                if (chatChunk.usage == null) {
-                    // streaming responses don't currently return "usage" I don't think
+                if (chatChunk.usage != null) {
+                    chatNode.usage += chatChunk.usage?.toMutable() ?: MutableUsage()
                 } else {
-                    if (chatChunk.usage != null) {
-                        chatNode.usage += chatChunk.usage?.toMutable() ?: MutableUsage()
-                    } else {
-                        chatNode.usage.completionTokens += 1
-                        chatNode.usage.totalTokens += 1
-                    }
+                    // TODO: count prompt tokens with tokenizer library
+                    chatNode.usage.completionTokens += 1
+                    chatNode.usage.totalTokens += 1
                 }
             }
             is ChatResponseWrapper.Error -> {

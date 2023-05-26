@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -117,6 +118,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
                         if (activeBranch == null) {
                             // single node update
                             chatNodeAdapter.updateItem(updatedChatNode)
+                            settingsDialogHelper.updateTokenTotals()
                         } else {
                             // branch update
                             chatNodeAdapter.updateData(updatedChatNode, activeBranch)
@@ -374,13 +376,13 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
 
     inner class SettingsDialogHelper() {
         private val sheetBehavior: BottomSheetBehavior<View>
-        private val chatOptionsDialogView: View
+        private val chatOptionsDialogView: FragmentContainerView
+        private val chatOptionsDialog: ChatTreeOptionsDialog
 
         init {
             chatOptionsDialogView = binding.chatOptionsDialogView
             sheetBehavior = BottomSheetBehavior.from(chatOptionsDialogView)
-            val chatOptionsDialog = childFragmentManager.findFragmentById(R.id.chat_options_dialog_view) as ChatTreeOptionsDialog
-            chatOptionsDialog.setSheetBehavior(sheetBehavior)
+            chatOptionsDialog = childFragmentManager.findFragmentById(R.id.chat_options_dialog_view) as ChatTreeOptionsDialog
             chatOptionsDialog.setListener(this@ChatNodeListFragment)
 
             // Slide the prompt input up when opening options, makes it appear as one item
@@ -392,7 +394,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
                     // slideOffset is a value between 0 (collapsed) and 1 (expanded)
                     // If bottomSheet's height is MATCH_PARENT, slideOffset directly matches the fraction of the screen height the bottomSheet takes up.
 
-                    val maxPossibleHeight = bottomSheet.height - 30
+                    val maxPossibleHeight = bottomSheet.height - 20
                     layoutParams.bottomMargin = (slideOffset * maxPossibleHeight).toInt()
                     binding.promptInputEditText.requestLayout()
                 }
@@ -401,10 +403,10 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
             setupInputGesture()
         }
 
-        @SuppressLint("ClickableViewAccessibility")
         /**
          * Allow opening of dialog by swiping up and down on the text input
          */
+        @SuppressLint("ClickableViewAccessibility")
         private fun setupInputGesture() {
             var initialY = 0f
             val threshold = 30f  // Set the swipe threshold
@@ -443,6 +445,10 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
                     }
                 }
             }
+        }
+
+        fun updateTokenTotals() {
+            chatOptionsDialog.updateTokenTotals()
         }
     }
 
