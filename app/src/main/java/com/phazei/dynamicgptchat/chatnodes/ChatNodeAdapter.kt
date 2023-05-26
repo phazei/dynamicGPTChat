@@ -1,13 +1,25 @@
 package com.phazei.dynamicgptchat.chatnodes
 
 import android.annotation.SuppressLint
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.drawable.AnimatedVectorDrawable
+import android.graphics.drawable.BitmapDrawable
+import android.text.Layout
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.SpannableStringBuilder
+import android.text.Spanned
 import android.text.method.LinkMovementMethod
+import android.text.style.DynamicDrawableSpan
+import android.text.style.ImageSpan
+import android.text.style.LeadingMarginSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doBeforeTextChanged
@@ -24,6 +36,7 @@ import com.phazei.dynamicgptchat.databinding.ChatNodeHeaderItemBinding
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
 import com.phazei.dynamicgptchat.prompts.PromptListAdapter
 import com.phazei.dynamicgptchat.prompts.PromptsListFragment
+import com.phazei.utils.Solacon
 import io.noties.markwon.Markwon
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tables.TableAwareMovementMethod
@@ -200,10 +213,12 @@ class ChatNodeAdapter(
 
             //view text
             binding.promptTextView.text = chatNode.prompt
-            markwon.setMarkdown(binding.responseTextView, chatNode.response)
+            binding.responseTextView.text = setupMarkdownResponse(chatNode)
             binding.responseTextView.movementMethod = LinkMovementMethod.getInstance()
             //horizontally scrolling textViews have terrible functionality compared to <HorizontalScrollView>
             binding.responseTextView.setHorizontallyScrolling(false)
+
+            binding.responseProfileIcon.setImageBitmap(Solacon.generateBitmap(chatNode.model, 256))
 
 
             binding.nodeIndexCount.text = "${chatNode.parent.children.indexOf(chatNode)+1}/${chatNode.parent.children.size}"
@@ -229,6 +244,23 @@ class ChatNodeAdapter(
 
         }
 
+        fun setupMarkdownResponse(chatNode: ChatNode): SpannableStringBuilder {
+            val iconSize = 90
+            val lines = 2
+
+            // Add a LeadingMarginSpan to indent the text that wraps around the image
+            val span = object : LeadingMarginSpan.LeadingMarginSpan2 {
+                override fun getLeadingMarginLineCount(): Int { return lines }
+                override fun getLeadingMargin(first: Boolean): Int { return if (first) iconSize + 10 else 0 }
+                override fun drawLeadingMargin(c: Canvas, p: Paint, x: Int, dir: Int, top: Int, baseline: Int, bottom: Int, text: CharSequence, start: Int, end: Int, first: Boolean, l: Layout) {}
+            }
+            // Set the new Spannable with the image as the TextView content
+            val markdown = markwon.toMarkdown(chatNode.response)
+            val markdownBuilder = SpannableStringBuilder(markdown)
+            markdownBuilder.setSpan(span, 0, markdown.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
+            return markdownBuilder
+        }
+
         private fun nodeMenuButtonEnable(isEnabled: Boolean) {
             binding.nodeMenuButton.isEnabled = isEnabled
             binding.nodeMenuButton.isClickable = isEnabled
@@ -247,6 +279,8 @@ class ChatNodeAdapter(
 
             binding.responseTextEdit.visibility = View.VISIBLE
             binding.responseTextView.visibility = View.GONE
+
+            binding.responseProfileIcon.alpha = 0.3F
         }
 
         fun disableEdit(notify: Boolean = false) {
@@ -257,6 +291,8 @@ class ChatNodeAdapter(
 
             binding.responseTextEdit.visibility = View.GONE
             binding.responseTextView.visibility = View.VISIBLE
+
+            binding.responseProfileIcon.alpha = 1F
 
             editedData.clear()
 

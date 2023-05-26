@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/md_theme_light_surfaceVariant"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:centerX="50%"
+                android:centerY="50%"
+                android:endColor="@color/md_theme_light_onPrimaryContainer"
+                android:gradientRadius="85%"
+                android:startColor="#FFFFFFFF"
+                android:type="radial" />
+        </shape>
+    </item>
+</layer-list>

@@ -53,7 +53,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:src="@drawable/round_menu_24"
-            app:tint="?attr/colorOnSurface"
+            app:tint="?attr/colorOnPrimary"
             android:scaleType="fitXY"
             android:padding="5dp"
             android:background="@drawable/ripple_round_icon"
@@ -139,7 +139,7 @@
         app:constraint_referenced_ids="prompt_holder" />
 
     <!-- Response -->
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/response_holder"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -161,6 +161,16 @@
 <!--            android:layout_height="wrap_content"-->
 <!--            android:scrollbars="none"-->
 <!--            >-->
+        <ImageView
+            android:id="@+id/response_profile_icon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginStart="6dp"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            />
         <TextView
             android:id="@+id/response_text_view"
             android:layout_width="match_parent"
@@ -184,6 +194,11 @@
             android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/abc_text_size_body_1_material"
             android:text="@string/response"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             />
 <!--        </HorizontalScrollView>-->
 
@@ -212,7 +227,13 @@
             android:text="@string/response"
             android:nextFocusUp="@id/prompt_text_edit"
             android:nextFocusDown="@id/prompt_text_edit"
-            android:contentDescription="@string/response" />
+            android:contentDescription="@string/response"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
 
         <ImageView
             android:visibility="gone"
@@ -226,7 +247,7 @@
             android:paddingBottom="6dp"
             android:contentDescription="@string/response"
             android:src="@drawable/knightrider" />
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!--  Extra messages  -->
     <LinearLayout

@@ -54,6 +54,7 @@ class ChatNodeViewModel @Inject constructor(
             throw IllegalArgumentException("chatNode must be child of chatTree")
         }
         chatNode.chatTree = chatTree
+        chatNode.model = chatTree.gptSettings.model
 
         val streaming = chatTree.options.streaming
 

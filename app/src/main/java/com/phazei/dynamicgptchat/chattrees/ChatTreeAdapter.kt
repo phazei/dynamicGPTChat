@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.data.entity.ChatTree
 import com.phazei.dynamicgptchat.databinding.ChatTreeItemBinding
 import com.phazei.dynamicgptchat.swipereveal.ViewBinderHelper
+import com.phazei.utils.Solacon
 import java.util.*
 
 class ChatTreeAdapter(
@@ -91,6 +92,9 @@ class ChatTreeAdapter(
             binding.apply {
                 chatTreeTitleText.text = chatTree.title
                 chatTreeSettingsText.text = chatTree.gptSettings.toString()
+
+                chatTreeModelIcon.setImageBitmap(Solacon.generateBitmap(chatTree.gptSettings.model, 256))
+
             }
         }
     }
