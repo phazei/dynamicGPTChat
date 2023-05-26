@@ -1,11 +1,34 @@
 package com.phazei.utils
 
 import android.annotation.SuppressLint
+import com.aallam.openai.api.BetaOpenAI
+import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.model.Model
 import com.aallam.openai.api.moderation.TextModeration
+import com.knuddels.jtokkit.Encodings
+import com.knuddels.jtokkit.api.Encoding
+import com.knuddels.jtokkit.api.EncodingRegistry
 import java.text.SimpleDateFormat
+import kotlin.jvm.optionals.getOrNull
 
+@OptIn(BetaOpenAI::class)
 object OpenAIHelper {
+
+    private val encodingRegistry: EncodingRegistry by lazy {
+        Encodings.newLazyEncodingRegistry()
+    }
+
+    fun countTokens(text: String, model: String = "gpt-3.5-turbo"): Int {
+        var encoding: Encoding? = null
+        encoding = encodingRegistry.getEncodingForModel(model)
+            .orElse(encodingRegistry.getEncodingForModel("gpt-3.5-turbo").getOrNull())
+        return encoding.countTokensOrdinary(text)
+    }
+
+    fun countPromptTokens(messages: List<ChatMessage>, model: String): Int {
+        val messageText = messages.joinToString("") { it.content }
+        return countTokens(messageText, model)
+    }
 
     fun filterModelList(mode: String, models: List<Model>): MutableList<String> {
         return when (mode) {

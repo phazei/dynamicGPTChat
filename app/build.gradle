@@ -65,6 +65,7 @@ dependencies {
     implementation 'com.squareup.moshi:moshi-kotlin:1.14.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0'
     implementation 'org.jetbrains.kotlin:kotlin-reflect:1.7.10'
+    implementation 'com.knuddels:jtokkit:0.5.0'
 
     implementation 'io.noties.markwon:core:4.6.2'
     implementation 'io.noties.markwon:linkify:4.6.2'

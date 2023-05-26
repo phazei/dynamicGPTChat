@@ -3,6 +3,7 @@ package com.phazei.dynamicgptchat.chatnodes
 import androidx.lifecycle.*
 import com.aallam.openai.api.BetaOpenAI
 import com.aallam.openai.api.chat.ChatCompletionRequest
+import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.core.Usage
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.api.moderation.ModerationModel
@@ -50,6 +51,8 @@ class ChatNodeViewModel @Inject constructor(
     }
 
     fun makeChatCompletionRequest(chatTree: ChatTree, chatNode: ChatNode) {
+        var tokenPromptCount: Int = 0
+
         if (chatTree.id != chatNode.chatTreeId) {
             throw IllegalArgumentException("chatNode must be child of chatTree")
         }
@@ -86,16 +89,27 @@ class ChatNodeViewModel @Inject constructor(
                 // n = chatTree.gptSettings.n,
             )
 
+            var shouldSaveTokenCount = false
             val job = openAIRepository.sendChatCompletionRequest(
                 chatNode,
                 chatCompletionRequest,
                 onResponse = { ChatResponseWrapper ->
+                    // if there's at least one valid response, tokens should be counted
+                    shouldSaveTokenCount = true && streaming
                     handleChatResponse(chatNode, ChatResponseWrapper)
                 },
                 onComplete = {
+                    if (shouldSaveTokenCount) {
+                        addChatNodeUsageCount(chatNode, chatCompletionRequest.messages)
+                    }
                     handleChatComplete(chatNode)
                 },
                 onError = { error ->
+                    // should addChatNodeUsageCount also be added here?
+                    // if user manually cancels a streaming request tokens could have already been used
+                    if (shouldSaveTokenCount && chatNode.response != "") {
+                        addChatNodeUsageCount(chatNode, chatCompletionRequest.messages)
+                    }
                     handleChatResponse(chatNode, error)
                 },
                 streaming = streaming
@@ -123,13 +137,7 @@ class ChatNodeViewModel @Inject constructor(
                 // Log.d("LOG", chatChunk.toString())
                 chatNode.response += chatChunk.choices[0].delta?.content ?: ""
                 chatNode.finishReason = chatChunk.choices[0].finishReason ?: ""
-                if (chatChunk.usage != null) {
-                    chatNode.usage += chatChunk.usage?.toMutable() ?: MutableUsage()
-                } else {
-                    // TODO: count prompt tokens with tokenizer library
-                    chatNode.usage.completionTokens += 1
-                    chatNode.usage.totalTokens += 1
-                }
+                // chatComplete.usage is always null on streamed responses
             }
             is ChatResponseWrapper.Error -> {
                 val error = response.error
@@ -253,6 +261,16 @@ class ChatNodeViewModel @Inject constructor(
         viewModelScope.launch {
             val activeBranch = chatRepository.getActiveBranch(newChatNode)
             _activeBranchUpdate.emit(Pair(newChatNode, activeBranch))
+        }
+    }
+
+    private fun addChatNodeUsageCount(chatNode: ChatNode, messages: List<ChatMessage>) {
+        val tokenPromptCount = OpenAIHelper.countPromptTokens(messages, chatNode.model)
+        val tokenResponseCount = OpenAIHelper.countTokens(chatNode.response, chatNode.model)
+        chatNode.usage.apply {
+            promptTokens += tokenPromptCount
+            completionTokens += tokenResponseCount
+            totalTokens += tokenPromptCount + tokenResponseCount
         }
     }
 
