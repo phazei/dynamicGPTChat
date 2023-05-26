@@ -5,6 +5,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import java.lang.Math.pow
+import java.math.BigInteger
+import java.security.MessageDigest
 import kotlin.math.*
 
 /**
@@ -19,6 +21,29 @@ class IdenticonFlorash() {
     private val twoPi = PI * 2
     private val phi = (1 + sqrt(5.0)) / 2
 
+    companion object {
+        private val instance = IdenticonFlorash()
+        private val cache = HashMap<String, Bitmap>()
+
+        fun generateBitmap(value: String, size: Int = 256, complexity: Float = 0.5F): Bitmap {
+            val hash = generateVariableHex(value, complexity)
+            return cache.getOrPut(hash) { instance.generateBitmap(hash, size) }
+        }
+
+        private fun hashString(input: String, salt: String = ""): String {
+            val md = MessageDigest.getInstance("SHA-256")
+            return BigInteger(1, md.digest((salt + input).toByteArray())).toString(16).padStart(64, '0')
+        }
+
+        private fun generateVariableHex(input: String, complexity: Float): String {
+            val salt1 = "first salt"
+            val salt2 = "second salt"
+            val concatenatedHash = hashString(input, salt1) + hashString(input, salt2)
+            val length = (32 + (complexity * (128 - 32))).toInt()
+            return concatenatedHash.substring(0, length)
+        }
+    }
+
     private fun createHSLString(h: Int, s: Int, l: Int): Int {
         return Color.HSVToColor(floatArrayOf((h % 360).toFloat(), (100 - (s % 100)).toFloat() / 100, (100 - (l % 100)).toFloat() / 100))
     }
@@ -28,6 +53,9 @@ class IdenticonFlorash() {
     }
 
     private fun getHashColor(hash: String): Int {
+        // The purpose of this function is to add drastic
+        // visible color differentiation for sequential
+        // or sequentially similar sha1 hex strings.
         val sum = hashSum(hash)
         val initialHue = (sum * 360) / (255 * (hash.length / 2))
         val offsetHue = (initialHue + (sum / PI)).toInt() * 360
@@ -78,9 +106,9 @@ class IdenticonFlorash() {
         val mainHue = getHashColor(hash)
         val parameters = createHashParameters(hash)
         val center = size / 2
-        val shapes = parameters.map { params ->
-            val fill = createHSLString(params["fill"]!!.toInt(), 100, 66)
-            val stroke = createHSLString(params["stroke"]!!.toInt(), 100, 22 + (11 * params["fill"]!!.toInt()))
+        val shapes = parameters.mapIndexed { index, params ->
+            val fill = createHSLString(params["fill"]!!.toInt() + mainHue, 100, 66)
+            val stroke = createHSLString(params["stroke"]!!.toInt() + mainHue, 100, 22 + (11 * index))
             val m = params["m"]!!
             val n1 = params["n1"]!!
             val n2 = params["n2"]!!

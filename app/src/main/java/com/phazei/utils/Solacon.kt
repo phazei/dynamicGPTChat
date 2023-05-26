@@ -1,6 +1,11 @@
 package com.phazei.utils
 
 import android.graphics.*
+import android.util.Log
+import okhttp3.internal.toHexString
+import java.math.BigInteger
+import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -17,6 +22,15 @@ class Solacon() {
     private var rgb: String? = null
     private var hashValue: Int = 0
 
+    companion object {
+        private val instance = Solacon()
+        private val cache = ConcurrentHashMap<String, Bitmap>()
+
+        fun generateBitmap(value: String, size: Int, customRGB: String? = null): Bitmap {
+            return cache.getOrPut(value) { instance.generateBitmap(value, size, customRGB) }
+        }
+    }
+
     fun generateBitmap(value: String, size: Int, customRGB: String? = null): Bitmap {
         width = size
         height = size
@@ -26,8 +40,8 @@ class Solacon() {
         val canvas = Canvas(bitmap)
 
         hashValue = sdbm(value)
-        rgb = customRGB ?: setRGBFromHash()
-
+        rgb = customRGB ?: setHSLFromHash(value)
+        // Log.d("TAG", "value $value ======= color $rgb ======= hash $hashValue")
         val slices = (hashValue and 0x07) + 3
         val wAngle = Math.PI * 2 / slices
 
@@ -35,7 +49,7 @@ class Solacon() {
         for (i in 0..5) {
             data[i][0] = ((hashValue ushr (i * 3) and 0x07) / 7.0)
             data[i][1] = ((hashValue ushr (i * 3 + 1) and 0x07) / 7.0)
-            data[i][2] = (hashValue ushr (i * 3 + 2) and 0x07).toDouble()
+            data[i][2] = (hashValue ushr (i * 4 + 8) and 0x0F).toDouble()
         }
 
         for (i in 0 until slices) {
@@ -56,7 +70,7 @@ class Solacon() {
 
         val paint = Paint()
         paint.color = Color.parseColor(rgb)
-        paint.alpha = (255 * (alpha / 7.0)).toInt()
+        paint.alpha = 32 + ((224 * (alpha / 15.0)).toInt()) // Shift alpha up by 64
         paint.style = Paint.Style.FILL
 
         canvas.drawPath(path, paint)
@@ -88,11 +102,44 @@ class Solacon() {
         return PointF(x, y)
     }
 
-    private fun setRGBFromHash(): String {
-        val r = (hashValue and 0x0F) / 15.0
-        val g = (hashValue ushr 4 and 0x0F) / 15.0
-        val b = (hashValue ushr 8 and 0x0F) / 15.0
-        return String.format("#%02x%02x%02x", (r * 255).toInt(), (g * 255).toInt(), (b * 255).toInt())
+    private fun setHSLFromHash(input: String): String {
+        //use sha1 for balanced randomness
+        val hash = sha1(input)
+        var hue = ((hash.substring(0, 4).toInt(16) / 65536f) * 360).toInt() % 360
+        // scale number from 0-50, then add 50 for 55-100 range
+        val saturation = ((hash.substring(4, 8).toInt(16) / 65536f) * 70 + 30).toInt() % 101
+        // scale number from 0-40, then add 40 for 50-90 range
+        var lightness = ((hash.substring(8, 12).toInt(16) / 65536f) * 50 + 40).toInt() % 101
+
+        //adjustments to avoid undesirable colors
+        // Adjust hue to avoid orange-brown colors
+        if (hue in 30..70) {
+            val gradient = (hue - 40) / 40.0
+            // gradient 0 - 1, shift to 65-360 & 0-25
+            hue = (70 + (gradient * 310)).toInt() % 360
+            // Scale lightness if hue is in the orange range
+            lightness = (lightness + gradient * 10).toInt().coerceAtMost(100)
+        }
+
+        // Violet is great, but it doesn't contrast with the default app color
+        // Adjust hue to avoid violet
+        if (hue in 260..285) {
+            val gradient = (hue - 260) / 20.0
+            hue = (285 + (gradient * 20)).toInt() % 360
+        }
+
+
+        val hsv = floatArrayOf(hue.toFloat(), saturation.toFloat() / 100, lightness.toFloat() / 100)
+        val rgbColor = Color.HSVToColor(hsv)
+
+        return String.format("#%02x%02x%02x", Color.red(rgbColor), Color.green(rgbColor), Color.blue(rgbColor))
+    }
+
+    private fun sha1(input: String): String {
+        val bytes = input.toByteArray()
+        val md = MessageDigest.getInstance("SHA-1")
+        val digest = md.digest(bytes)
+        return digest.fold("", { str, it -> str + "%02x".format(it) })
     }
 
     private fun sdbm(s: String): Int {
