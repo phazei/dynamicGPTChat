@@ -223,6 +223,10 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
     override fun onChangeKeyboardEnter() {
         chatSubmitButtonHelper.setKeyboardIMEOption()
     }
+    override fun onChangeResponseWrap() {
+        // need to update entire list if this changes
+        chatNodeAdapter.notifyDataSetChanged()
+    }
 
     @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private fun setupRecycler() {

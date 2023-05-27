@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.data.entity.ChatNode
+import com.phazei.dynamicgptchat.data.pojo.ChatTreeOptions
 import com.phazei.dynamicgptchat.data.pojo.PromptWithTags
 import com.phazei.dynamicgptchat.databinding.ChatNodeHeaderItemBinding
 import com.phazei.dynamicgptchat.databinding.ChatNodeItemBinding
@@ -247,6 +248,32 @@ class ChatNodeAdapter(
                 binding.nodeMenuButton.backgroundTintList = ContextCompat.getColorStateList(this.itemView.context, R.color.md_theme_dark_primary)
             } else {
                 binding.nodeMenuButton.backgroundTintList = ContextCompat.getColorStateList(this.itemView.context, R.color.gray)
+            }
+        }
+
+        private fun adjustResponseWrap(chatNode: ChatNode) {
+            val minWidth = 500
+            when (chatNode.chatTree?.options?.responseWrap) {
+                ChatTreeOptions.Wrap.CUSTOM -> {
+                    binding.responseTextView.maxWidth = chatNode.chatTree?.options?.responseWrapSize?.coerceAtLeast(minWidth) ?: minWidth
+                }
+                ChatTreeOptions.Wrap.NOWRAP -> {
+                    binding.responseTextView.maxWidth = Int.MAX_VALUE
+                }
+                else -> {
+                    if (binding.responseHorizontalScroll.width > 0) {
+                        //it's already been laid out
+                        binding.responseTextView.maxWidth = binding.responseHorizontalScroll.width.coerceAtLeast(minWidth)
+                    } else {
+                        val vto = binding.responseHorizontalScroll.viewTreeObserver
+                        vto.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                            override fun onGlobalLayout() {
+                                binding.responseHorizontalScroll.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                                binding.responseTextView.maxWidth = binding.responseHorizontalScroll.width.coerceAtLeast(minWidth)
+                            }
+                        })
+                    }
+                }
             }
         }
 

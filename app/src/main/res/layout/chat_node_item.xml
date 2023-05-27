@@ -153,14 +153,6 @@
         app:layout_constraintEnd_toEndOf="@id/guideline90"
         app:layout_constraintTop_toBottomOf="@id/chat_node_barrier">
 
-        <!-- had to go with colorOnPrimary due to night mode too dark
-            need to redo all colors anyway
-         -->
-<!--        <HorizontalScrollView-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:scrollbars="none"-->
-<!--            >-->
         <ImageView
             android:id="@+id/response_profile_icon"
             android:layout_width="32dp"
@@ -184,7 +176,7 @@
             >
         <TextView
             android:id="@+id/response_text_view"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxWidth="500dp"
 
@@ -195,9 +187,6 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:layout_marginBottom="5dp"
-
-            android:scrollHorizontally="true"
-            android:scrollbars="horizontal"
 
             android:focusable="true"
             android:focusableInTouchMode="true"
@@ -213,7 +202,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             />
-<!--        </HorizontalScrollView>-->
+        </HorizontalScrollView>
 
         <com.google.android.material.textfield.TextInputEditText
             android:visibility="gone"

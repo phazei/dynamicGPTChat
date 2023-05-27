@@ -40,13 +40,15 @@
             app:layout_constraintTop_toTopOf="parent"
             >
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="@string/tokens_used_label"
+                android:textStyle="bold"
+
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:textStyle="bold"
                 />
             <TextView
                 android:id="@+id/tokens_prompt"
@@ -91,20 +93,44 @@
             android:id="@+id/dialog_divider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
 
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/token_use_group"
             app:layout_constraintBottom_toTopOf="@id/chat_option_flow_group"
+
+            />
+
+        <androidx.constraintlayout.helper.widget.Flow
+            android:id="@+id/chat_option_flow_group"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            app:flow_wrapMode="chain"
+            app:flow_horizontalStyle="packed"
+            app:flow_maxElementsWrap="1"
+            app:flow_horizontalAlign="start"
+            app:flow_horizontalBias="0.5"
+            app:flow_horizontalGap="30dp"
+            app:flow_verticalGap="10dp"
+
+            app:constraint_referenced_ids="submit_type_group, enter_key_group, response_wrap_group, moderation_group"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/dialog_divider"
+            app:layout_constraintBottom_toBottomOf="parent"
             />
 
         <FrameLayout
             android:id="@+id/submit_type_group"
-            android:layout_width="0dp"
+            android:layout_width="170dp"
             android:layout_height="wrap_content"
             tools:ignore="MissingConstraints">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+
                 android:text="@string/request_type_label"
                 android:labelFor="@id/toggle_request_type"
                 />
@@ -137,12 +163,14 @@
 
         <FrameLayout
             android:id="@+id/enter_key_group"
-            android:layout_width="0dp"
+            android:layout_width="150dp"
             android:layout_height="wrap_content"
             tools:ignore="MissingConstraints">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+
                 android:text="@string/enter_key_label"
                 android:labelFor="@id/toggle_enter_key"
                 />
@@ -173,14 +201,90 @@
             </com.google.android.material.button.MaterialButtonToggleGroup>
         </FrameLayout>
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/response_wrap_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:ignore="MissingConstraints">
+            <TextView
+                android:id="@+id/toggle_response_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="Response wrap:"
+                android:labelFor="@id/toggle_response_wrap"
+
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggle_response_wrap"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+
+                app:selectionRequired="true"
+                app:checkedButton="@id/response_wrap"
+                app:singleSelection="true"
+                app:layout_constraintTop_toBottomOf="@id/toggle_response_label"
+                >
+                <Button
+                    android:id="@+id/response_wrap"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="15dp"
+                    android:text="Wrap" />
+                <Button
+                    android:id="@+id/response_no_wrap"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:paddingHorizontal="12dp"
+                    android:minWidth="0dp"
+                    android:text="No Wrap" />
+                <Button
+                    android:id="@+id/response_custom"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="100dp"
+                    android:layout_height="match_parent"
+                    android:minWidth="0dp"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="50dp"
+                    android:text="Size:" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+            <EditText
+                android:id="@+id/response_custom_size"
+                android:enabled="false"
+                android:layout_width="45dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="7dp"
+                android:layout_marginBottom="3dp"
+                android:gravity="center"
+
+                android:text=""
+                android:inputType="number"
+                android:maxLength="4"
+                android:textSize="14dp"
+                android:contentDescription="Custom Wrap size"
+
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
         <FrameLayout
             android:id="@+id/moderation_group"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:ignore="MissingConstraints">
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+
                 android:text="@string/moderate_response_label"
                 android:labelFor="@id/toggle_moderation"
                 />
@@ -206,30 +310,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:minWidth="0dp"
-                    android:paddingHorizontal="20dp"
+                    android:paddingHorizontal="18dp"
                     android:text="@string/moderate_yes" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
         </FrameLayout>
-
-        <androidx.constraintlayout.helper.widget.Flow
-            android:id="@+id/chat_option_flow_group"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-
-            app:flow_wrapMode="chain"
-            app:flow_horizontalStyle="spread"
-            app:flow_maxElementsWrap="2"
-            app:flow_horizontalAlign="center"
-            app:flow_horizontalBias="0"
-            app:flow_horizontalGap="30dp"
-            app:flow_verticalGap="10dp"
-
-            app:constraint_referenced_ids="dialog_divider, submit_type_group, enter_key_group, moderation_group"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/token_use_group"
-            app:layout_constraintBottom_toBottomOf="parent"
-            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

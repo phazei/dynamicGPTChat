@@ -134,17 +134,17 @@
 
     <!--  Chat Options Dialog  -->
     <string name="chat_options_toggle">Chat Options Toggle</string>
-    <string name="tokens_used_label">Tokens Used:</string>
+    <string name="tokens_used_label">Tokens                     Used:</string>
     <string name="tokens_prompts">Prompts:\n%d</string>
     <string name="tokens_response">Response:\n%d</string>
     <string name="tokens_total">Total:\n%d</string>
     <string name="request_type_label">Request Type:</string>
     <string name="request_type_streaming">Streaming</string>
-    <string name="request_type_full_response">Full Response</string>
+    <string name="request_type_full_response">Simple</string>
     <string name="enter_key_label">Enter Is:</string>
     <string name="enter_key_submit">Send</string>
     <string name="enter_key_new_line">New Line</string>
-    <string name="moderate_response_label">Moderate Response:</string>
+    <string name="moderate_response_label">Moderate:</string>
     <string name="moderate_no">No</string>
     <string name="moderate_yes">Yes</string>
 
