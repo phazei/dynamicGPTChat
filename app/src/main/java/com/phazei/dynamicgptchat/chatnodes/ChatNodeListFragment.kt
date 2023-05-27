@@ -161,6 +161,9 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
             isActiveRequest.value = chatNodeViewModel.isRequestActive(chatTree.id)
         }
 
+        /**
+         * OnBackPressedDispatcher
+         */
         dispatcher.addCallback(viewLifecycleOwner) {
             if (settingsDialogHelper.sheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
                 settingsDialogHelper.sheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
@@ -453,12 +456,20 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
 
                         if (deltaY < -threshold) {
                             // User swiped up, so expand the bottom sheet
-                            sheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+                            if (sheetBehavior.state == BottomSheetBehavior.STATE_HALF_EXPANDED) {
+                                sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                            } else if (sheetBehavior.state != BottomSheetBehavior.STATE_EXPANDED) {
+                                sheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+                            }
                             v.parent.requestDisallowInterceptTouchEvent(false)
                             true // consume the event
                         } else if (deltaY > threshold) {
                             // User swiped down, so collapse the bottom sheet
-                            sheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+                            if (sheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+                                sheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+                            } else {
+                                sheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+                            }
                             v.parent.requestDisallowInterceptTouchEvent(false)
                             true // consume the event
                         } else {

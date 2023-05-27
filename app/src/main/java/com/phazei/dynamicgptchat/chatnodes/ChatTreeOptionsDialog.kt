@@ -28,6 +28,7 @@ class ChatTreeOptionsDialog : Fragment() {
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private lateinit var sheetBehavior: BottomSheetBehavior<View>
+    private var sheetStableState = BottomSheetBehavior.STATE_COLLAPSED
     private lateinit var listener: ChatTreeOptionsClickListener
     private lateinit var parent: View
 
@@ -58,14 +59,15 @@ class ChatTreeOptionsDialog : Fragment() {
         })
         coordinatorLayout.addOnLayoutChangeListener { _, _, _, _, bottom, _, _, _, oldBottom ->
             val deltaY = oldBottom - bottom
-            val keyboardOpened = deltaY > 220
-            val keyboardClosed = deltaY < -220
+            val keyboardOpened = deltaY > 20
+            val keyboardClosed = deltaY < -20
 
             if (keyboardOpened || keyboardClosed) {
                 updateSheetExpandedHeights(coordinatorLayout, view)
-
                 if (keyboardOpened) {
-                    if (sheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED
+                    // after NestedScrollView was added to behavior, it was always in
+                    // STATE_SETTLING when keyboard moved so had to add sheetStableState to fix
+                    if (sheetStableState == BottomSheetBehavior.STATE_EXPANDED
                         && !binding.responseCustomSize.hasFocus()
                     ) {
                         sheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
@@ -90,10 +92,10 @@ class ChatTreeOptionsDialog : Fragment() {
                         saveOptions()
                     }
                     when (newState) {
-                        BottomSheetBehavior.STATE_HIDDEN -> {}
-                        BottomSheetBehavior.STATE_EXPANDED -> {}
-                        BottomSheetBehavior.STATE_HALF_EXPANDED -> {}
-                        BottomSheetBehavior.STATE_COLLAPSED -> {}
+                        BottomSheetBehavior.STATE_HIDDEN -> { sheetStableState = BottomSheetBehavior.STATE_HIDDEN}
+                        BottomSheetBehavior.STATE_EXPANDED -> { sheetStableState = BottomSheetBehavior.STATE_EXPANDED}
+                        BottomSheetBehavior.STATE_HALF_EXPANDED -> { sheetStableState = BottomSheetBehavior.STATE_HALF_EXPANDED}
+                        BottomSheetBehavior.STATE_COLLAPSED -> { sheetStableState = BottomSheetBehavior.STATE_COLLAPSED}
                         BottomSheetBehavior.STATE_DRAGGING -> {}
                         BottomSheetBehavior.STATE_SETTLING -> {}
                     }
@@ -174,7 +176,7 @@ class ChatTreeOptionsDialog : Fragment() {
         val dialogHeight = child.height
         val offsetHeight = parentHeight - dialogHeight
 
-        val halfHeight = binding.tokenUseGroup.height + binding.dialogChatDragHandle.height
+        val halfHeight = binding.optionsHalfViewLayout.height + binding.dialogChatDragHandle.height
         val halfRatio: Float = halfHeight.toFloat() / parentHeight
 
         sheetBehavior.expandedOffset = offsetHeight
@@ -230,5 +232,4 @@ class ChatTreeOptionsDialog : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
 }
