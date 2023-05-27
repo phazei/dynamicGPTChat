@@ -1,25 +1,13 @@
 package com.phazei.dynamicgptchat.chatnodes
 
 import android.annotation.SuppressLint
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.graphics.drawable.AnimatedVectorDrawable
-import android.graphics.drawable.BitmapDrawable
-import android.text.Layout
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.SpannableStringBuilder
-import android.text.Spanned
 import android.text.method.LinkMovementMethod
-import android.text.style.DynamicDrawableSpan
-import android.text.style.ImageSpan
-import android.text.style.LeadingMarginSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.core.widget.doBeforeTextChanged
@@ -38,9 +26,11 @@ import com.phazei.dynamicgptchat.prompts.PromptListAdapter
 import com.phazei.dynamicgptchat.prompts.PromptsListFragment
 import com.phazei.utils.Solacon
 import io.noties.markwon.Markwon
+import io.noties.markwon.SoftBreakAddsNewLinePlugin
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tables.TableAwareMovementMethod
 import io.noties.markwon.ext.tables.TablePlugin
+import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.image.ImagesPlugin
 import io.noties.markwon.image.glide.GlideImagesPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
@@ -96,6 +86,8 @@ class ChatNodeAdapter(
 
         if (!::markwon.isInitialized) {
             markwon = Markwon.builder(parent.context)
+                .usePlugin(SoftBreakAddsNewLinePlugin.create())
+                .usePlugin(HtmlPlugin.create())
                 .usePlugin(LinkifyPlugin.create())
                 .usePlugin(ImagesPlugin.create())
                 .usePlugin(GlideImagesPlugin.create(parent.context))
@@ -211,15 +203,19 @@ class ChatNodeAdapter(
                 nodeMenuButtonEnable(!isActiveRequest)
             }
 
-            //view text
+            /**
+             * Setup all the view texts
+             */
             binding.promptTextView.text = chatNode.prompt
-            binding.responseTextView.text = setupMarkdownResponse(chatNode)
+            // unable to wrap text around image, so make some space with spaces on first line alone
+            // (had attempted with LeadingMarginSpan.LeadingMarginSpan2 but it affects all lines)
+            markwon.setMarkdown(binding.responseTextView, "\u00A0".repeat(8) + chatNode.response)
             binding.responseTextView.movementMethod = LinkMovementMethod.getInstance()
-            //horizontally scrolling textViews have terrible functionality compared to <HorizontalScrollView>
-            binding.responseTextView.setHorizontallyScrolling(false)
+
+            adjustResponseWrap(chatNode)
 
             binding.responseProfileIcon.setImageBitmap(Solacon.generateBitmap(chatNode.model, 256))
-
+            binding.responseProfileIcon.contentDescription = "Model: ${chatNode.model}"
 
             binding.nodeIndexCount.text = "${chatNode.parent.children.indexOf(chatNode)+1}/${chatNode.parent.children.size}"
 
@@ -242,23 +238,6 @@ class ChatNodeAdapter(
                 binding.moderationTextView.text = ""
             }
 
-        }
-
-        fun setupMarkdownResponse(chatNode: ChatNode): SpannableStringBuilder {
-            val iconSize = 90
-            val lines = 2
-
-            // Add a LeadingMarginSpan to indent the text that wraps around the image
-            val span = object : LeadingMarginSpan.LeadingMarginSpan2 {
-                override fun getLeadingMarginLineCount(): Int { return lines }
-                override fun getLeadingMargin(first: Boolean): Int { return if (first) iconSize + 10 else 0 }
-                override fun drawLeadingMargin(c: Canvas, p: Paint, x: Int, dir: Int, top: Int, baseline: Int, bottom: Int, text: CharSequence, start: Int, end: Int, first: Boolean, l: Layout) {}
-            }
-            // Set the new Spannable with the image as the TextView content
-            val markdown = markwon.toMarkdown(chatNode.response)
-            val markdownBuilder = SpannableStringBuilder(markdown)
-            markdownBuilder.setSpan(span, 0, markdown.length, Spanned.SPAN_INCLUSIVE_INCLUSIVE)
-            return markdownBuilder
         }
 
         private fun nodeMenuButtonEnable(isEnabled: Boolean) {
