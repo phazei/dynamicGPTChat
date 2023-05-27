@@ -49,6 +49,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <androidx.constraintlayout.helper.widget.Flow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        app:flow_wrapMode="chain"
+        app:flow_horizontalStyle="spread"
+        app:flow_maxElementsWrap="2"
+        app:flow_horizontalAlign="center"
+
+        app:flow_horizontalBias=".5"
+        app:flow_horizontalGap="10dp"
+        app:flow_verticalBias="0.5"
+
+        app:constraint_referenced_ids="model_spinner, toggle_chat, submit_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/edit_response"
+        app:layout_constraintBottom_toBottomOf="@id/response_error"
+        />
+
     <Spinner
         android:id="@+id/model_spinner"
         android:layout_width="wrap_content"
@@ -72,24 +91,24 @@
         android:text="Submit"
         tools:ignore="MissingConstraints" />
 
-    <androidx.constraintlayout.helper.widget.Flow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <ImageView
+        android:id="@+id/icon_solacon"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
 
-        app:flow_wrapMode="chain"
-        app:flow_horizontalStyle="spread"
-        app:flow_maxElementsWrap="2"
-        app:flow_horizontalAlign="center"
-
-        app:flow_horizontalBias=".5"
-        app:flow_horizontalGap="10dp"
-        app:flow_verticalBias="0.5"
-
-        app:constraint_referenced_ids="model_spinner, toggle_chat, submit_button"
+        app:layout_constraintTop_toTopOf="@id/submit_button"
+        app:layout_constraintBottom_toBottomOf="@id/submit_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edit_response"
-        app:layout_constraintBottom_toBottomOf="@id/response_error"
-        />
+        tools:ignore="ContentDescription" />
+    <ImageView
+        android:id="@+id/icon_florash"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+
+        app:layout_constraintTop_toTopOf="@id/submit_button"
+        app:layout_constraintBottom_toBottomOf="@id/submit_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/response_error"

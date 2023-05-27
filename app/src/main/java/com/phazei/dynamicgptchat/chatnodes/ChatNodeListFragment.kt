@@ -16,6 +16,7 @@ import android.text.TextUtils
 import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.TypedValue
 import android.view.*
 import android.view.animation.LinearInterpolator
 import android.view.animation.PathInterpolator
@@ -161,10 +162,14 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
         }
 
         dispatcher.addCallback(viewLifecycleOwner) {
-            // ensure that the temporary text typed into the prompt box is saved before leaving the page
-            saveTempPrompt()
-            this.isEnabled = false
-            dispatcher.onBackPressed()
+            if (settingsDialogHelper.sheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED) {
+                settingsDialogHelper.sheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
+            } else {
+                // ensure that the temporary text typed into the prompt box is saved before leaving the page
+                saveTempPrompt()
+                this.isEnabled = false
+                dispatcher.onBackPressed()
+            }
         }
     }
 
@@ -333,14 +338,28 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
-    private fun setActionBarTitleAsMarquee() {
+    private fun getTitleTextView(): TextView {
         val v: View = requireActivity().window.decorView
         val toolbar = v.findViewById<View>(R.id.toolbar) as Toolbar
         // might move in the future, but for now it's great
-        val titleText = toolbar.getChildAt(0) as TextView
-        titleText.ellipsize = TextUtils.TruncateAt.MARQUEE
+        return toolbar.getChildAt(0) as TextView
+    }
+    private fun setActionBarTitleAsMarquee() {
+        val titleText = getTitleTextView()
+        val textSize = resources.getDimension(androidx.appcompat.R.dimen.abc_text_size_medium_material)
+        titleText.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
+
         titleText.marqueeRepeatLimit = -1
+        titleText.ellipsize = TextUtils.TruncateAt.MARQUEE
         titleText.isSelected = true
+    }
+    private fun setActionBarTitleReset() {
+        val titleText = getTitleTextView()
+        val textSize = resources.getDimension(androidx.appcompat.R.dimen.abc_text_size_large_material)
+        titleText.setTextSize(TypedValue.COMPLEX_UNIT_PX, textSize)
+
+        titleText.ellipsize = TextUtils.TruncateAt.END
+        titleText.isSelected = false
     }
 
     /**
@@ -360,13 +379,17 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
 
     override fun onPause() {
         super.onPause()
+
         // otherwise remains on screen on next fragment
         popupMenuHelper.dismiss()
+        setActionBarTitleReset()
     }
 
     override fun onResume() {
         super.onResume()
+
         popupMenuHelper.stateManagement()
+        setActionBarTitleAsMarquee()
     }
 
     override fun onDestroyView() {
@@ -375,7 +398,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
     }
 
     inner class SettingsDialogHelper() {
-        private val sheetBehavior: BottomSheetBehavior<View>
+        val sheetBehavior: BottomSheetBehavior<View>
         private val chatOptionsDialogView: FragmentContainerView
         private val chatOptionsDialog: ChatTreeOptionsDialog
 
@@ -426,7 +449,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
 
                         if (deltaY < -threshold) {
                             // User swiped up, so expand the bottom sheet
-                            sheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+                            sheetBehavior.state = BottomSheetBehavior.STATE_HALF_EXPANDED
                             v.parent.requestDisallowInterceptTouchEvent(false)
                             true // consume the event
                         } else if (deltaY > threshold) {
