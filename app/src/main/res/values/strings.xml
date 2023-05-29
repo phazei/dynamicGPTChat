@@ -28,11 +28,8 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
-    <!--    Settings Page-->
-    <string name="undo">Undo</string>
-    <string name="items_not_saved">Items Not Saved</string>
 
-    <!-- Prompt Related -->
+    <!-- Prompt Page -->
     <string name="dialog_title_edit">Edit Prompt</string>
     <string name="dialog_title_add">Create Prompt</string>
     <string name="prompt_select">Select Prompt</string>
@@ -46,7 +43,10 @@
 
 
 
-    <!--  Settings Related  -->
+    <!-- Chat Node Settings Page-->
+    <string name="undo">Undo</string>
+    <string name="items_not_saved">Items Not Saved</string>
+
     <string name="save">Save</string>
     <string name="title_label">Title</string>
     <string name="title_hint">Enter a title</string>
@@ -54,6 +54,7 @@
     <string name="system_message_hint">Message always sent before all others</string>
     <string name="mode_label">Mode</string>
     <string name="model_label">Model</string>
+    <string name="model_details">Model Details</string>
     <string name="temperature_label">Temperature (%.2f)</string>
     <string name="max_tokens_label">Max Tokens (%.0f)</string>
     <string name="top_p_label">TopP (%.2f)</string>
@@ -106,26 +107,35 @@
     <string name="enter_prompt">Enter prompt</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
-    <string name="error_message">Error message</string>
-
 
     <!-- Node Page -->
     <string name="system_message_save">Save System Message</string>
     <string name="system_message_cancel">Discard Edited System Message</string>
     <string name="system_message_insert_prompt">Insert Prompt</string>
+    <string name="menu_copy">Copy</string>
+    <string name="menu_select_all">Select All</string>
+    <string name="title_items_selected">%d items selected</string>
 
-    <string name="response">Response</string>
-    <string name="prompt">Prompt</string>
-    <string name="openai_api_key">OpenAI API Key</string>
-    <string name="api_key_hint">Stored and encrypted locally</string>
 
-    <string name="moderation_message">Moderation result</string>
+    <!--  Chat Node Popup Menu  -->
     <string name="create_new_message">Create new message</string>
     <string name="replace_current_message">Replace current message</string>
     <string name="cancel_editing_message">Cancel editing message</string>
     <string name="regenerate">Regenerate</string>
+
+    <!-- chat node list item -->
+    <string name="response">Response</string>
+    <string name="prompt">Prompt</string>
+    <string name="moderation_message">Moderation result</string>
+    <string name="error_message">Error message</string>
+
+
+    <!--  App Settings  -->
+    <string name="openai_api_key">OpenAI API Key</string>
+    <string name="api_key_hint">Stored and encrypted locally</string>
     <string name="theme">Theme</string>
-    <string name="model_details">Model Details</string>
+
+    <!--  About page  -->
     <string name="about">About</string>
     <string name="about_app">About this application</string>
 

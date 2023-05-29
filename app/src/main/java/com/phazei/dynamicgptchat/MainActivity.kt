@@ -2,6 +2,7 @@ package com.phazei.dynamicgptchat
 
 import android.annotation.SuppressLint
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
@@ -80,10 +81,15 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         navView.setItemIconSize(100)
-        navView.menu.get(3).iconTintList = null
-        navView.menu.get(3).iconTintMode = null
-        // navView.menu.get(3).iconTintBlendMode = null
-        navView.menu.get(3).setIcon(R.drawable.test_flask)
+
+        // attempting to make this icon full color:
+        navView.menu[3].iconTintList = null
+        navView.menu[3].iconTintMode = null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            navView.menu[3].iconTintBlendMode = null
+        }
+        navView.menu[3].setIcon(R.drawable.test_flask)
+
         binding.AboutFragment.setOnClickListener {
             // This has the potential to really screw with the backStack
             // It's essential that About be in the menu even though it's not visible to properly
@@ -122,6 +128,7 @@ class MainActivity : AppCompatActivity() {
             }
             // printNavBackStack(navController)
         }
+
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 appSettingsRepository.themeFlow.collect { theme ->

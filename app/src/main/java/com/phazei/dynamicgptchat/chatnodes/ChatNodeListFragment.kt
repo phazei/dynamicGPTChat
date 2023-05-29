@@ -5,6 +5,8 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Path
 import android.graphics.drawable.AnimatedVectorDrawable
@@ -17,14 +19,23 @@ import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.TypedValue
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.animation.LinearInterpolator
 import android.view.animation.PathInterpolator
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
@@ -40,6 +51,10 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.selection.SelectionPredicates
+import androidx.recyclerview.selection.SelectionTracker
+import androidx.recyclerview.selection.StableIdKeyProvider
+import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
@@ -80,6 +95,9 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
     override lateinit var isActiveRequestLifecycleOwner: LifecycleOwner
 
     private lateinit var chatNodeAdapter: ChatNodeAdapter
+    private var actionMode : ActionMode? = null
+    private lateinit var tracker: SelectionTracker<Long>
+
     private lateinit var chatNodeFooterAdapter: ChatNodeFooterAdapter
     private lateinit var chatSubmitButtonHelper: ChatSubmitButtonHelper
     private lateinit var popupMenuHelper: PopupMenuHelper
@@ -258,16 +276,41 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
             }
             adapter = concatAdapter
             recycledViewPool.setMaxRecycledViews(ChatNodeAdapter.ITEM_TYPE_ACTIVE, 0)
+            itemAnimator = null // disable all animations
         }
-        // need to not animate movement sometimes
-        // binding.chatNodeRecyclerView.itemAnimator = object : DefaultItemAnimator() {
-        //     override fun animateMove(holder: RecyclerView.ViewHolder?, fromX: Int, fromY: Int, toX: Int, toY: Int): Boolean {
-        //         return true
-        //         // return super.animateMove(holder, fromX, fromY, toX, toY)
-        //     }
-        // }
-        binding.chatNodeRecyclerView.itemAnimator = null
 
+        // Initialize SelectionTracker
+        tracker = SelectionTracker.Builder<Long>(
+            "mySelection",
+            binding.chatNodeRecyclerView,
+            StableIdKeyProvider(binding.chatNodeRecyclerView),
+            ChatNodeAdapter.ItemsDetailsLookup(binding.chatNodeRecyclerView),
+            StorageStrategy.createLongStorage()
+        ).withSelectionPredicate(
+            SelectionPredicates.createSelectAnything()
+        ).build()
+
+        tracker.addObserver(object : SelectionTracker.SelectionObserver<Long>() {
+            override fun onSelectionChanged() {
+                super.onSelectionChanged()
+                // don't want to include the #0 root Node in the selected count
+                val itemsSelected = tracker.selection.size() - 1
+                actionMode?.apply {
+                    if (itemsSelected >= 0) {
+                        title = getString(R.string.title_items_selected, itemsSelected)
+                    } else if (actionModeCallback.simpleClear) {
+                        // when items are manually cleared (via select all toggle) this is triggered
+                        // right before the #0 root Node is re-added
+                        actionModeCallback.simpleClear = false
+                    } else {
+                        finish()
+                    }
+                }
+            }
+        })
+
+        chatNodeAdapter.tracker = tracker
+        chatNodeHeaderAdapter.tracker = tracker
         // for ease of access and scrolling
         chatNodeAdapter.layoutManager = binding.chatNodeRecyclerView.layoutManager as LinearLayoutManager
 
@@ -295,6 +338,93 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
                 }
             }
         })
+    }
+
+    private val actionModeCallback = object : ActionMode.Callback {
+        var simpleClear = false
+
+        override fun onCreateActionMode(mode: ActionMode, menu: Menu?): Boolean {
+            mode.menuInflater.inflate(R.menu.chat_copy_action_mode, menu)
+            return true
+        }
+        override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+            popupMenuHelper.deactivate()
+            chatSubmitButtonHelper.setSubmitEnabled(false)
+            settingsDialogHelper.sheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            requireActivity().currentFocus?.clearFocus()
+            chatNodeAdapter.notifyDataSetChanged() //to remove all menu buttons
+
+            //hide keyboard
+            val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(binding.promptInputEditText.windowToken, 0)
+
+            mode?.title = getString(R.string.title_items_selected, 0)
+
+            // tracker only enabled when at least 1 item is selected
+            // in the case of chatNodes, long press will be reserved for other functions, so can't utilize
+            // long click to init first selected item, will start with 0 selected.
+            // to work around this issue, the root chatNode which isn't displayed but does exist in the list
+            // will be used as the first selected item and always maintain it's selection
+            tracker.setItemsSelected(listOf(chatNodeAdapter.getItem(0).id), true)
+
+            return false
+        }
+
+        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+            return when (item.itemId) {
+                R.id.action_select_all -> {
+                    // allow select all to toggle selection
+                    if (tracker.selection.size() >= chatNodeAdapter.itemCount) {
+                        simpleClear = true
+                        tracker.clearSelection()
+                        // must have item #0 (root node) selected to maintain active tracker
+                        tracker.setItemsSelected(listOf(chatNodeAdapter.getItem(0).id), true)
+                    } else {
+                        tracker.setItemsSelected(chatNodeAdapter.getAllItems().map { it.id }, true)
+                    }
+                    true
+                }
+                R.id.action_copy -> {
+                    copyChatNodesToClipboard()
+                    mode.finish()
+                    true
+                }
+                else -> false
+            }
+        }
+
+        override fun onDestroyActionMode(mode: ActionMode) {
+            chatSubmitButtonHelper.setSubmitEnabled(true)
+            actionMode = null // this is mostly to be able to track if it's enabled or not
+            chatNodeAdapter.notifyDataSetChanged() //to add all menu buttons
+
+            // must be cleared to disable tracker
+            tracker.clearSelection()
+        }
+
+        private fun copyChatNodesToClipboard() {
+            val stringBuilder = StringBuilder()
+
+            //need the list to be in the same order as they appear in recyclerView, not in order selected
+            val orderedSelection = chatNodeAdapter.getAllItems().filter { tracker.isSelected(it.id) }
+
+            if (tracker.isSelected(ChatNodeHeaderAdapter.ITEM_ID)) {
+                stringBuilder.append("System: ${chatTree.gptSettings.systemMessage}\n\n")
+            }
+
+            for (chatNode in orderedSelection) {
+                if (!chatNode.parentInitialized()) continue // I am root
+                stringBuilder.append("User: ${chatNode.prompt}\n")
+                stringBuilder.append("Assistant: ${chatNode.response}\n\n")
+            }
+            val string = stringBuilder.toString()
+            if (string.isNotEmpty()) {
+                val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipData = ClipData.newPlainText("ChatNodes", string)
+                clipboard.setPrimaryClip(clipData)
+                Snackbar.make(binding.root, "Copied to clipboard", Snackbar.LENGTH_SHORT).show()
+            }
+        }
     }
 
     /**
@@ -333,6 +463,10 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
                 when (menuItem.itemId) {
                     R.id.chat_settings -> {
                         findNavController().navigate(R.id.action_ChatNodeListFragment_to_ChatTreeSettingsFragment)
+                        return true
+                    }
+                    R.id.chat_copy -> {
+                        actionMode = (requireActivity() as AppCompatActivity).startSupportActionMode(actionModeCallback)
                         return true
                     }
                     android.R.id.home -> {
@@ -983,6 +1117,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
         private val drawableStop = ContextCompat.getDrawable(requireContext(), R.drawable.round_stop_36)
         private var lastSet: Method? = null
         private var temporalDisabled = false
+        private var manualDisabled = false
 
         fun setupChatSubmitButton() {
             // callback will change SendToStop into LoadingStop after animation is complete
@@ -1003,8 +1138,8 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
             AnimatedVectorDrawableCompat.registerAnimationCallback(drawableSendToStop, animationCallback)
 
             binding.chatSubmitButton.setOnClickListener {
-                if (binding.promptInputEditText.text.toString() == "") {
-                    // button is disabled, but could be triggered via keyboard
+                if (!binding.chatSubmitButton.isEnabled) {
+                    // even if button is disabled, could be triggered via keyboard
                     return@setOnClickListener
                 }
 
@@ -1066,6 +1201,11 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
 
         }
 
+        fun setSubmitEnabled(isEnabled: Boolean) {
+            manualDisabled = !isEnabled
+            checkSubmitStatusButton()
+        }
+
         fun checkSubmitStatusButton() {
             if (chatNodeViewModel.isRequestActive(chatTree.id)) {
                 markSubmitStoppable()
@@ -1098,7 +1238,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
 
             // allow sending spaces, but not empty returns
             val empty = binding.promptInputEditText.text?.trim { it == '\r' || it == '\n' }.isNullOrEmpty()
-            val isEnabled = !empty && !temporalDisabled
+            val isEnabled = !empty && !temporalDisabled && !manualDisabled
             binding.chatSubmitButton.isEnabled = isEnabled
             lastSet = Method.SEND
         }

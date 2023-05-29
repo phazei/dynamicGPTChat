@@ -5,6 +5,7 @@ import android.graphics.drawable.AnimatedVectorDrawable
 import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
@@ -15,6 +16,8 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import androidx.recyclerview.selection.ItemDetailsLookup
+import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.phazei.dynamicgptchat.R
@@ -60,6 +63,8 @@ class ChatNodeAdapter(
     private lateinit var drawableMenuToClose: AnimatedVectorDrawable
     private lateinit var drawableCloseToMenu: AnimatedVectorDrawable
     // private lateinit var knightriderWaiting: AnimatedVectorDrawable
+
+    var tracker: SelectionTracker<Long>? = null
 
     init {
         setHasStableIds(true)
@@ -128,7 +133,7 @@ class ChatNodeAdapter(
             // Displays popup menu
             binding.nodeMenuButton.setOnClickListener {
                 if (nodeActionListener.isActiveRequest.value != null && nodeActionListener.isActiveRequest.value == true) {
-                    //can't open menu when active request going on
+                    // can't open menu when active request going on
                     return@setOnClickListener
                 }
 
@@ -137,11 +142,11 @@ class ChatNodeAdapter(
                 // it's recreated with a new viewHolder, which is what the popup menu needs
                 // to attach to
 
-                //only needed for animated button x->menu
+                // only needed for animated button x->menu
                 previousActiveNodePosition = activeNodePosition
 
                 if (activeNodePosition == bindingAdapterPosition) {
-                    //disable it after clicking a second time
+                    // disable it after clicking a second time
                     activeNodePosition = null
                     notifyItemChanged(bindingAdapterPosition)
                     nodeActionListener.onNodeSelected()
@@ -239,6 +244,22 @@ class ChatNodeAdapter(
                 binding.moderationTextView.text = ""
             }
 
+            if (tracker != null) {
+                markSelectedState()
+            }
+        }
+
+        private fun markSelectedState() {
+            tracker?.let {
+                itemView.isActivated = it.isSelected(itemId)
+                if (it.selection.size() > 0) {
+                    binding.menuButtonGroup.visibility = View.GONE
+                    binding.chatNodeSelected.visibility = if (itemView.isActivated) View.VISIBLE else View.GONE
+                } else {
+                    binding.menuButtonGroup.visibility = View.VISIBLE
+                    binding.chatNodeSelected.visibility = View.GONE
+                }
+            }
         }
 
         private fun nodeMenuButtonEnable(isEnabled: Boolean) {
@@ -262,9 +283,11 @@ class ChatNodeAdapter(
                 }
                 else -> {
                     if (binding.responseHorizontalScroll.width > 0) {
-                        //it's already been laid out
+                        // it's already been laid out
                         binding.responseTextView.maxWidth = binding.responseHorizontalScroll.width.coerceAtLeast(minWidth)
                     } else {
+                        val tempWidth = (itemView.context.resources.displayMetrics.widthPixels * 0.85).toInt()
+                        binding.responseTextView.maxWidth = tempWidth.coerceAtLeast(minWidth)
                         val vto = binding.responseHorizontalScroll.viewTreeObserver
                         vto.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                             override fun onGlobalLayout() {
@@ -324,6 +347,11 @@ class ChatNodeAdapter(
                 notifyItemChanged(oldActiveNodePosition)
             }
         }
+
+        fun getItemDetails() = object : ItemDetailsLookup.ItemDetails<Long>() {
+            override fun getPosition(): Int { return absoluteAdapterPosition }
+            override fun getSelectionKey(): Long { return itemId }
+        }
     }
 
     fun getItemPosition(chatNode: ChatNode): Int {
@@ -332,6 +360,10 @@ class ChatNodeAdapter(
 
     fun getItem(position: Int): ChatNode {
         return chatNodes[position]
+    }
+
+    fun getAllItems(): List<ChatNode> {
+        return chatNodes.toList()
     }
 
     /**
@@ -414,6 +446,20 @@ class ChatNodeAdapter(
         // Add other actions as needed
     }
 
+    class ItemsDetailsLookup(private val recyclerView: RecyclerView): ItemDetailsLookup<Long>() {
+        override fun getItemDetails(e: MotionEvent): ItemDetails<Long>? {
+            recyclerView.findChildViewUnder(e.x, e.y)?.let{
+                val viewHolder = recyclerView.getChildViewHolder(it)
+                if (viewHolder is ChatNodeAdapter.ChatNodeViewHolder) {
+                    return viewHolder.getItemDetails()
+                } else if (viewHolder is ChatNodeHeaderAdapter.HeaderViewHolder) {
+                    return viewHolder.getItemDetails()
+                }
+            }
+            // returning null clears selection and exits copy mode since it thinks an empty space was clicked.
+            return null
+        }
+    }
 }
 
 class ChatNodeHeaderAdapter(
@@ -423,9 +469,27 @@ class ChatNodeHeaderAdapter(
     private val onChange: (sysMsgHeight: Int) -> Unit
 ) : RecyclerView.Adapter<ChatNodeHeaderAdapter.HeaderViewHolder>() {
     private var updatedSystemMessage: String = currentSystemMessage
+    var tracker: SelectionTracker<Long>? = null
+
+    companion object {
+        const val ITEM_ID = -10L
+    }
 
     init { setHasStableIds(true) }
-    override fun getItemId(position: Int): Long { return -10 }
+
+    override fun getItemId(position: Int): Long { return ITEM_ID }
+
+    override fun getItemCount(): Int = 1
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
+        val binding = ChatNodeHeaderItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return HeaderViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: HeaderViewHolder, position: Int) {
+        holder.bind()
+    }
+
 
     inner class HeaderViewHolder(val binding: ChatNodeHeaderItemBinding) : RecyclerView.ViewHolder(binding.root), PromptsListFragment.OnPromptSelectedListener {
         // there's only ever a single header item, so having this duplicated per holder shouldn't matter
@@ -466,9 +530,22 @@ class ChatNodeHeaderAdapter(
                 }
 
                 systemMessageInsertPromptButton.setOnClickListener {
-                    //open dialog
+                    // open dialog
                     promptSearchDialog.show(fragmentManager, "promptSearchDialog")
                 }
+            }
+        }
+
+        fun bind() {
+            if (tracker != null) {
+                markSelectedState()
+            }
+        }
+
+        private fun markSelectedState() {
+            tracker?.let {
+                itemView.isActivated = it.isSelected(itemId)
+                binding.chatNodeSelected.visibility = if (itemView.isActivated) View.VISIBLE else View.GONE
             }
         }
 
@@ -491,16 +568,11 @@ class ChatNodeHeaderAdapter(
             promptSearchDialog.dismiss()
         }
 
+        fun getItemDetails() = object : ItemDetailsLookup.ItemDetails<Long>() {
+            override fun getPosition(): Int { return absoluteAdapterPosition }
+            override fun getSelectionKey(): Long { return ITEM_ID }
+        }
     }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HeaderViewHolder {
-        val binding = ChatNodeHeaderItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return HeaderViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: HeaderViewHolder, position: Int) {}
-
-    override fun getItemCount(): Int = 1
 }
 
 /**

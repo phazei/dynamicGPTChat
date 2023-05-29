@@ -34,12 +34,27 @@
 
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/md_theme_light_onPrimaryContainer</item>
+        <item name="colorControlNormal">?attr/colorPrimary</item>
 
-        <!-- <item name="colorControlActivated">?attr/colorOnSurfaceVariant</item>-->
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionBarTheme">@style/CustomActionBarTheme</item>
+
+
     </style>
 
     <style name="Theme.DynamicGPTChat.AppBarOverlay" parent="ThemeOverlay.Material3.Dark" />
     <style name="Theme.DynamicGPTChat.PopupOverlay" parent="ThemeOverlay.Material3.Light" />
+
+    <!--  This is for ActionMode when selecting items from recycler  -->
+    <style name="CustomActionBarTheme" parent="ThemeOverlay.Material3.Dark.ActionBar">
+        <item name="android:backgroundTint">@color/md_theme_light_onPrimaryContainer</item>
+        <item name="actionModeCloseDrawable">@drawable/round_close_24</item>
+        <item name="actionModeCloseButtonStyle">@style/CustomActionBarClose</item>
+    </style>
+    <style name="CustomActionBarClose" parent="Widget.AppCompat.ActionButton.CloseMode">
+        <item name="android:tint">@color/md_theme_light_surface</item> <!-- whatever color -->
+    </style>
+
 
     <style name="TooltipTextAppearance">
         <item name="android:textColor">?attr/colorOnPrimary</item>

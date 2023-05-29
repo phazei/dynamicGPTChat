@@ -33,10 +33,19 @@
         <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">#000000</item>
-        <!-- Customize your theme here. -->
+        <item name="android:statusBarColor">@color/black</item>
+        <item name="colorControlNormal">?attr/colorPrimary</item>
+
+        <item name="windowActionModeOverlay">true</item>
+        <item name="actionBarTheme">@style/CustomActionBarTheme</item>
     </style>
 
     <style name="Theme.DynamicGPTChat.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark" />
+
+    <style name="CustomActionBarTheme" parent="ThemeOverlay.Material3.Dark.ActionBar">
+        <item name="android:backgroundTint">@color/black</item>
+        <item name="actionModeCloseDrawable">@drawable/round_close_24</item>
+        <item name="actionModeCloseButtonStyle">@style/CustomActionBarClose</item>
+    </style>
 
 </resources>

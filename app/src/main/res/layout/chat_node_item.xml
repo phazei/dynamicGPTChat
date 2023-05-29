@@ -11,6 +11,7 @@
     android:background="?colorSurface"
     tools:context=".chatnodes.ChatNodeAdapter">
 
+    <!--  Anchor for popup  -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/chat_node_top_guide"
         android:layout_width="wrap_content"
@@ -19,6 +20,7 @@
         app:layout_constraintGuide_percent="0" />
 
     <LinearLayout
+        android:id="@+id/menu_button_group"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="vertical"
@@ -63,6 +65,7 @@
 
     </LinearLayout>
 
+    <!--  Prompt  -->
     <FrameLayout
         android:visibility="visible"
         android:id="@+id/prompt_holder"
@@ -178,7 +181,6 @@
             android:id="@+id/response_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:maxWidth="500dp"
 
             android:theme="@style/textHandleOnColor"
             android:gravity="start"
@@ -272,7 +274,7 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:textColor="?attr/colorOnErrorContainer"
-            android:text="@string/error_message"/>
+            android:contentDescription="@string/error_message"/>
 
         <TextView
             android:visibility="gone"
@@ -287,7 +289,7 @@
             android:paddingStart="12dp"
             android:paddingEnd="12dp"
             android:textColor="?attr/colorOnTertiary"
-            android:text="@string/moderation_message"/>
+            android:contentDescription="@string/moderation_message"/>
     </LinearLayout>
 
     <androidx.constraintlayout.widget.Guideline
@@ -303,5 +305,21 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.9" />
+
+    <FrameLayout
+        android:visibility="gone"
+        android:id="@+id/chat_node_selected"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="?attr/colorSurface"
+
+        android:alpha="0.4"
+        android:elevation="10dp"
+
+        app:layout_constraintTop_toTopOf="@id/prompt_holder"
+        app:layout_constraintBottom_toBottomOf="@id/response_holder"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
