@@ -17,6 +17,7 @@ Features
 *   All customizable model features
 *   Prompt tagging and applying
 *   Direct connection to the OpenAI API (requires your own API key)
+*   Full markdown support, can also disable wrapping for full width responses
 
 
 Future Plans
