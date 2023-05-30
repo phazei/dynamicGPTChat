@@ -287,7 +287,15 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
             ChatNodeAdapter.ItemsDetailsLookup(binding.chatNodeRecyclerView),
             StorageStrategy.createLongStorage()
         ).withSelectionPredicate(
-            SelectionPredicates.createSelectAnything()
+            object : SelectionTracker.SelectionPredicate<Long>() {
+                override fun canSelectMultiple(): Boolean = true
+                override fun canSetStateAtPosition(position: Int, nextState: Boolean): Boolean { return actionMode != null }
+                override fun canSetStateForKey(key: Long, nextState: Boolean): Boolean {
+                    // if actionMode isn't set, then can't set state for any key
+                    // this prevents long click from enabling selection mode
+                    return actionMode != null
+                }
+            }
         ).build()
 
         tracker.addObserver(object : SelectionTracker.SelectionObserver<Long>() {
@@ -348,6 +356,10 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
             return true
         }
         override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
+            // while in onPrepareActionMode, chatNodeListFragment.actionMode hasn't been set yet
+            // it needs to be set early since it's used to check if selections can happen
+            actionMode = mode
+
             popupMenuHelper.deactivate()
             chatSubmitButtonHelper.setSubmitEnabled(false)
             settingsDialogHelper.sheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
@@ -365,8 +377,8 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
             // long click to init first selected item, will start with 0 selected.
             // to work around this issue, the root chatNode which isn't displayed but does exist in the list
             // will be used as the first selected item and always maintain it's selection
-            tracker.setItemsSelected(listOf(chatNodeAdapter.getItem(0).id), true)
-
+            tracker.select(chatNodeAdapter.getItem(0).id)
+            // doesn't appear to make any difference regardless of the boolean returned
             return false
         }
 
@@ -378,7 +390,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
                         simpleClear = true
                         tracker.clearSelection()
                         // must have item #0 (root node) selected to maintain active tracker
-                        tracker.setItemsSelected(listOf(chatNodeAdapter.getItem(0).id), true)
+                        tracker.select(chatNodeAdapter.getItem(0).id)
                     } else {
                         tracker.setItemsSelected(chatNodeAdapter.getAllItems().map { it.id }, true)
                     }
@@ -420,7 +432,7 @@ class ChatNodeListFragment() : Fragment(), ChatNodeAdapter.OnNodeActionListener,
             val string = stringBuilder.toString()
             if (string.isNotEmpty()) {
                 val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                val clipData = ClipData.newPlainText("ChatNodes", string)
+                val clipData = ClipData.newPlainText("ChatMessages", string)
                 clipboard.setPrimaryClip(clipData)
                 Snackbar.make(binding.root, "Copied to clipboard", Snackbar.LENGTH_SHORT).show()
             }

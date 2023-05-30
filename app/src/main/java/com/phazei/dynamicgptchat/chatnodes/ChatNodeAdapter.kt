@@ -1,9 +1,13 @@
 package com.phazei.dynamicgptchat.chatnodes
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.text.method.LinkMovementMethod
 import android.util.Log
+import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -20,6 +24,7 @@ import androidx.recyclerview.selection.ItemDetailsLookup
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.phazei.dynamicgptchat.R
 import com.phazei.dynamicgptchat.data.entity.ChatNode
 import com.phazei.dynamicgptchat.data.pojo.ChatTreeOptions
@@ -121,6 +126,7 @@ class ChatNodeAdapter(
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
     inner class ChatNodeViewHolder(val binding: ChatNodeItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
@@ -165,6 +171,21 @@ class ChatNodeAdapter(
                 if (bindingAdapterPosition == activeNodePosition) {
                     editedData["response$bindingAdapterPosition"] = text.toString()
                 }
+            }
+
+            binding.errorTextView.setOnLongClickListener { _ ->
+                val clipboard = itemView.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipData = ClipData.newPlainText("ChatError", getItem(bindingAdapterPosition).error)
+                clipboard.setPrimaryClip(clipData)
+                Snackbar.make(binding.root, "Copied error to clipboard", Snackbar.LENGTH_SHORT).show()
+                false
+            }
+            binding.errorTextView.setOnLongClickListener { _ ->
+                val clipboard = itemView.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clipData = ClipData.newPlainText("ChatModeration", getItem(bindingAdapterPosition).moderation)
+                clipboard.setPrimaryClip(clipData)
+                Snackbar.make(binding.root, "Copied moderation to clipboard", Snackbar.LENGTH_SHORT).show()
+                false
             }
         }
 
