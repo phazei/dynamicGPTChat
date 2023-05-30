@@ -1,0 +1,535 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "525efea8ea7f7279dc420e88c394e750",
+    "entities": [
+      {
+        "tableName": "chat_trees",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `gpt_settings_id` INTEGER, `root_chat_node_id` INTEGER, `options` TEXT NOT NULL, `tempPrompt` TEXT NOT NULL, `updated_at` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `use_promptTokens` INTEGER NOT NULL, `use_completionTokens` INTEGER NOT NULL, `use_totalTokens` INTEGER NOT NULL, FOREIGN KEY(`root_chat_node_id`) REFERENCES `chat_nodes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`gpt_settings_id`) REFERENCES `gpt_settings`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gptSettingsId",
+            "columnName": "gpt_settings_id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "rootChatNodeId",
+            "columnName": "root_chat_node_id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "options",
+            "columnName": "options",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tempPrompt",
+            "columnName": "tempPrompt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usage.promptTokens",
+            "columnName": "use_promptTokens",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usage.completionTokens",
+            "columnName": "use_completionTokens",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usage.totalTokens",
+            "columnName": "use_totalTokens",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_chat_trees_root_chat_node_id",
+            "unique": false,
+            "columnNames": [
+              "root_chat_node_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_chat_trees_root_chat_node_id` ON `${TABLE_NAME}` (`root_chat_node_id`)"
+          },
+          {
+            "name": "index_chat_trees_gpt_settings_id",
+            "unique": false,
+            "columnNames": [
+              "gpt_settings_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_chat_trees_gpt_settings_id` ON `${TABLE_NAME}` (`gpt_settings_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "chat_nodes",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "root_chat_node_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "gpt_settings",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "gpt_settings_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "chat_nodes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `chat_tree_id` INTEGER NOT NULL, `parent_node_id` INTEGER, `prompt` TEXT NOT NULL, `response` TEXT NOT NULL, `finish_reason` TEXT NOT NULL, `model` TEXT NOT NULL, `moderation` TEXT, `error` TEXT, `active_child_index` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `use_promptTokens` INTEGER NOT NULL, `use_completionTokens` INTEGER NOT NULL, `use_totalTokens` INTEGER NOT NULL, FOREIGN KEY(`chat_tree_id`) REFERENCES `chat_trees`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`parent_node_id`) REFERENCES `chat_nodes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chatTreeId",
+            "columnName": "chat_tree_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parentNodeId",
+            "columnName": "parent_node_id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "prompt",
+            "columnName": "prompt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "response",
+            "columnName": "response",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "finishReason",
+            "columnName": "finish_reason",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "model",
+            "columnName": "model",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "moderation",
+            "columnName": "moderation",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "error",
+            "columnName": "error",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "activeChildIndex",
+            "columnName": "active_child_index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usage.promptTokens",
+            "columnName": "use_promptTokens",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usage.completionTokens",
+            "columnName": "use_completionTokens",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "usage.totalTokens",
+            "columnName": "use_totalTokens",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_chat_nodes_chat_tree_id",
+            "unique": false,
+            "columnNames": [
+              "chat_tree_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_chat_nodes_chat_tree_id` ON `${TABLE_NAME}` (`chat_tree_id`)"
+          },
+          {
+            "name": "index_chat_nodes_parent_node_id",
+            "unique": false,
+            "columnNames": [
+              "parent_node_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_chat_nodes_parent_node_id` ON `${TABLE_NAME}` (`parent_node_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "chat_trees",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "chat_tree_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "chat_nodes",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "parent_node_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "gpt_settings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `system_message` TEXT NOT NULL, `mode` TEXT NOT NULL, `model` TEXT NOT NULL, `temperature` REAL NOT NULL, `max_tokens` INTEGER NOT NULL, `top_p` REAL NOT NULL, `frequency_penalty` REAL NOT NULL, `presence_penalty` REAL NOT NULL, `n` INTEGER NOT NULL, `best_of` INTEGER NOT NULL, `stop` TEXT NOT NULL, `logit_bias` TEXT NOT NULL, `inject_start_text` TEXT NOT NULL, `inject_restart_text` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "systemMessage",
+            "columnName": "system_message",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mode",
+            "columnName": "mode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "model",
+            "columnName": "model",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "temperature",
+            "columnName": "temperature",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "maxTokens",
+            "columnName": "max_tokens",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topP",
+            "columnName": "top_p",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frequencyPenalty",
+            "columnName": "frequency_penalty",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "presencePenalty",
+            "columnName": "presence_penalty",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "n",
+            "columnName": "n",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bestOf",
+            "columnName": "best_of",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "stop",
+            "columnName": "stop",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "logitBias",
+            "columnName": "logit_bias",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "injectStartText",
+            "columnName": "inject_start_text",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "injectRestartText",
+            "columnName": "inject_restart_text",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "prompts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `body` TEXT NOT NULL, `updated_at` INTEGER NOT NULL, `created_at` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "body",
+            "columnName": "body",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "prompts_tags",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`prompt_id` INTEGER NOT NULL, `tag_id` INTEGER NOT NULL, PRIMARY KEY(`prompt_id`, `tag_id`), FOREIGN KEY(`prompt_id`) REFERENCES `prompts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`tag_id`) REFERENCES `tags`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "promptId",
+            "columnName": "prompt_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tagId",
+            "columnName": "tag_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "prompt_id",
+            "tag_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_prompts_tags_prompt_id",
+            "unique": false,
+            "columnNames": [
+              "prompt_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_prompts_tags_prompt_id` ON `${TABLE_NAME}` (`prompt_id`)"
+          },
+          {
+            "name": "index_prompts_tags_tag_id",
+            "unique": false,
+            "columnNames": [
+              "tag_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_prompts_tags_tag_id` ON `${TABLE_NAME}` (`tag_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "prompts",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "prompt_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          },
+          {
+            "table": "tags",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "tag_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "tags",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_tags_name",
+            "unique": true,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_tags_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '525efea8ea7f7279dc420e88c394e750')"
+    ]
+  }
+}
