@@ -12,18 +12,25 @@ Features
 -----------------------
 *   Multi-threaded editable chats
 *   All customizable model features
-*   Prompt saving and applying
+*   Prompt tagging and applying
 *   Direct connection to the OpenAI API (requires your own API key)
 
 
 Future Plans
 -----------------------
 
-*   JSON responses for more metadata and potential API requests
-*   Better compression of chat history to extend context
-*   Automation?
+*   Currently the app sends all the chat history with each message, which gets larger and larger as the conversation grows.
+    I'd like to add some options to make that more efficient.  Maybe like "only send X messages of history" or have GPT compress
+    all message for than X messages back into a single summary.  ETC.  Welcome to suggestions.
+*   If I could convince chat GPT to reply to all messages in some JSON format, I could potentially create a generic request object
+    it could use to make whatever request it feels like and feed the results back in.
+*   Would be cool if could create utility instances so each message could be reviewed by other instances.  For example, return 3 results
+    and have GPT pick the best of them.
+*   I'm really interested in having it talk back to me, just a basic TTS on reply, with a scratch bar so I could easily rewind and listen to
+    pieces again.  Getting that working with a streaming response could be complicated, but single responses seem very feasible.
+*   Voice to Text, using android or Whisper.  I think whisper is cheap enough to use.  Seems like an easy one to build.
 
-We're always open to new ideas and suggestions from the community, and we plan to continuously expand the app's capabilities. One potential enhancement could involve enabling GPT to make its own HTTP requests through additional keys in its responses.
+We're always open to new ideas and suggestions from the community, and we plan to continuously expand the app's capabilities.
 
 
 Open Source & Privacy
