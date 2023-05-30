@@ -81,7 +81,7 @@ class ChatTreeListFragment : Fragment(), ChatTreeAdapter.ChatTreeItemClickListen
         }
 
         // create a new ChatTree instance
-        val chatTree = ChatTree("New Tree #${chatTreeViewModel.chatTrees.value?.size}")
+        val chatTree = ChatTree("New Chat #${chatTreeViewModel.chatTrees.value?.size?.plus(1)}")
 
         binding.chatTreeRecyclerView.layoutManager?.scrollToPosition(0)
         chatTreeViewModel.addChatTree(chatTree)

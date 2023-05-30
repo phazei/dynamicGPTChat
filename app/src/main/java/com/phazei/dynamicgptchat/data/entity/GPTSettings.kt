@@ -35,9 +35,7 @@ data class GPTSettings(
     }
 
     override fun toString(): String {
-        return "model: $model, temperature: $temperature, maxTokens: $maxTokens"
+        return "model: $model, temp: $temperature, maxTokens: $maxTokens"
     }
-
-
 
 }
