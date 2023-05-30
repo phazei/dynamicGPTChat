@@ -51,7 +51,8 @@
                 android:paddingEnd="50dp"
                 android:singleLine="true"
                 android:inputType="text|textNoSuggestions"
-                android:maxLines="1" />
+                android:maxLines="1"
+                tools:ignore="RtlSymmetry" />
 
         </com.google.android.material.textfield.TextInputLayout>
 

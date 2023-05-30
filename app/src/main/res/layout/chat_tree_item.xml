@@ -80,8 +80,10 @@
                     android:id="@+id/chat_tree_model_icon"
                     android:layout_width="60dp"
                     android:layout_height="60dp"
-                    android:layout_marginLeft="5dp"
+                    android:layout_marginStart="5dp"
                     android:background="@drawable/profile_radial_gradient"
+                    android:importantForAccessibility="no"
+
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -96,7 +98,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    >
+                    tools:ignore="RtlSymmetry">
 
                     <TextView
                         android:id="@+id/chat_tree_title_text"

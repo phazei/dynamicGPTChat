@@ -20,10 +20,10 @@
             <TextView
                 android:id="@+id/about_text"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:padding="20dp"
                 app:layout_constraintVertical_bias="0.2"
-                android:text="ABOUT"
+                android:text="@string/about"
                 android:contentDescription="@string/about_app"
                 />
 
@@ -47,6 +47,8 @@
             app:layout_constraintHorizontal_bias="0.33"
             app:layout_constraintVertical_bias="0.9"
 
+            android:contentDescription="@string/easter_egg"
+
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/solacon"
             app:layout_constraintTop_toTopOf="parent"
@@ -60,6 +62,8 @@
             android:src="@drawable/round_info_24"
             app:layout_constraintHorizontal_bias="0.66"
             app:layout_constraintVertical_bias="0.9"
+
+            android:contentDescription="@string/easter_egg"
 
             app:layout_constraintStart_toEndOf="@id/florash"
             app:layout_constraintEnd_toEndOf="parent"

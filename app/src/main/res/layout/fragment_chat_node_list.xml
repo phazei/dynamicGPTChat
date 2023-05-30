@@ -39,7 +39,8 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             android:importantForAccessibility="no"
-            android:importantForAutofill="no" />
+            android:importantForAutofill="no"
+            tools:ignore="LabelFor,TextFields" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/prompt_input_layout"
@@ -78,6 +79,8 @@
                 android:minLines="2"
                 android:maxLines="10"
 
+                android:contentDescription="@string/prompt_entry_new"
+
                 tools:ignore="RtlSymmetry" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -99,7 +102,7 @@
                 android:enabled="false"
                 android:layout_width="50dp"
                 android:layout_height="60dp"
-                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
 
                 android:stateListAnimator="@null"
                 android:elevation="3dp"
@@ -114,7 +117,7 @@
                 style="@style/CustomSendButton"
                 android:layout_width="50dp"
                 android:layout_height="60dp"
-                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
                 android:paddingStart="7dp"
 
                 app:icon="@drawable/avd_send_to_stop"

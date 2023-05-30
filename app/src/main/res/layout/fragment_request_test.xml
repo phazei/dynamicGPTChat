@@ -9,45 +9,47 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     android:padding="20dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <EditText
         android:id="@+id/edit_prompt"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Prompt"
 
         android:inputType="textMultiLine"
         android:minLines="3"
         android:overScrollMode="always"
         android:scrollbarStyle="insideInset"
         android:scrollbars="vertical"
-        android:textSize="14sp"
         android:lineSpacingMultiplier=".8"
+        android:textSize="14sp"
+        android:hint="@string/test_enter_prompt"
 
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/edit_response"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:importantForAutofill="no" />
 
     <EditText
         android:id="@+id/edit_response"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:hint="Response Output Here"
 
         android:inputType="textMultiLine"
         android:minLines="3"
         android:overScrollMode="always"
         android:scrollbarStyle="insideInset"
         android:scrollbars="vertical"
-        android:textSize="14sp"
         android:lineSpacingMultiplier=".8"
+        android:textSize="14sp"
+        android:hint="@string/test_response_output_here"
 
         app:layout_constraintTop_toBottomOf="@+id/edit_prompt"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:importantForAutofill="no" />
 
     <androidx.constraintlayout.helper.widget.Flow
         android:layout_width="match_parent"
@@ -80,15 +82,15 @@
         android:id="@+id/toggle_chat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Using Completion"
+        android:text="@string/test_using_completion"
         android:checked="false"
-        />
+        tools:ignore="MissingConstraints" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/submit_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Submit"
+        android:text="@string/test_submit"
         tools:ignore="MissingConstraints" />
 
     <ImageView
@@ -117,7 +119,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginBottom="40dp"
         android:textSize="16sp"
-        android:hint="Error Here"
+        android:hint="@string/test_error_here"
 
         android:minLines="0"
         android:maxLines="5"

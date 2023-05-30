@@ -58,6 +58,8 @@ class PromptListAdapter(
     inner class PromptWithTagsViewHolder(val binding: PromptListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
+        var checksInitialized = false
+
         init {
 
             /**
@@ -123,7 +125,10 @@ class PromptListAdapter(
                 binding.promptSelect.visibility = View.VISIBLE
                 binding.promptEdit.visibility = View.GONE
                 binding.promptSelect.setImageDrawable(drawableCheckedBox)
-                drawableCheckedBox.start()
+                if (!checksInitialized) {
+                    drawableCheckedBox.start()
+                    checksInitialized = true
+                }
 
                 binding.promptRevealLayout.setLockDrag(true)
             }

@@ -223,7 +223,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
 
-                    android:text="Response wrap:"
+                    android:text="@string/response_wrap_label"
                     android:labelFor="@id/toggle_response_wrap"
 
                     app:layout_constraintTop_toTopOf="parent"
@@ -246,9 +246,10 @@
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:minWidth="0dp"
                         android:paddingHorizontal="15dp"
-                        android:text="Wrap" />
+                        android:minWidth="0dp"
+
+                        android:text="@string/response_wrap" />
                     <Button
                         android:id="@+id/response_no_wrap"
                         style="?attr/materialButtonOutlinedStyle"
@@ -256,16 +257,18 @@
                         android:layout_height="match_parent"
                         android:paddingHorizontal="12dp"
                         android:minWidth="0dp"
-                        android:text="No Wrap" />
+
+                        android:text="@string/response_no_wrap" />
                     <Button
                         android:id="@+id/response_custom"
                         style="?attr/materialButtonOutlinedStyle"
                         android:layout_width="100dp"
                         android:layout_height="match_parent"
-                        android:minWidth="0dp"
                         android:paddingStart="10dp"
                         android:paddingEnd="50dp"
-                        android:text="Size:" />
+                        android:minWidth="0dp"
+                        android:labelFor="@id/response_custom_size"
+                        android:text="@string/response_custom" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
                 <EditText
                     android:id="@+id/response_custom_size"
@@ -279,8 +282,9 @@
                     android:text=""
                     android:inputType="number"
                     android:maxLength="4"
-                    android:textSize="14dp"
-                    android:contentDescription="Custom Wrap size"
+                    android:textSize="14sp"
+                    android:contentDescription="@string/response_wrap_custom_size"
+                    android:importantForAutofill="no"
 
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"

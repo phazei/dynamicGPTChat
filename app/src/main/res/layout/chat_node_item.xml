@@ -61,7 +61,7 @@
             android:background="@drawable/ripple_round_icon"
             android:backgroundTint="@color/md_theme_dark_primary"
 
-            android:contentDescription="Menu" />
+            android:contentDescription="@string/popup_menu_show" />
 
     </LinearLayout>
 
@@ -231,7 +231,6 @@
             android:text="@string/response"
             android:nextFocusUp="@id/prompt_text_edit"
             android:nextFocusDown="@id/prompt_text_edit"
-            android:contentDescription="@string/response"
 
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"

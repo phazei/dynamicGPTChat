@@ -7,7 +7,8 @@
     android:layout_height="wrap_content"
     android:padding="0dp"
     app:dragEdge="right"
-    app:mode="normal">
+    app:mode="normal"
+    tools:context=".prompts.PromptListAdapter">
 
     <LinearLayout
         android:id="@+id/prompt_swipe_buttons"
@@ -22,8 +23,8 @@
             android:focusableInTouchMode="false"
             android:paddingHorizontal="20dp"
             android:background="?attr/colorErrorContainer"
-            android:drawableEnd="@drawable/round_delete_sweep_24"
-            android:drawableTint="?attr/colorOnErrorContainer"
+            app:drawableEndCompat="@drawable/round_delete_sweep_24"
+            app:drawableTint="?attr/colorOnErrorContainer"
             android:singleLine="true"
             android:contentDescription="@string/prompt_delete"
             tools:ignore="ButtonStyle, TextContrastCheck" />
@@ -47,7 +48,7 @@
             android:minHeight="36dp"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:text="Title"
+            android:contentDescription="@string/prompt_title"
             app:layout_constraintVertical_bias="0"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/prompt_button_barrier_h"
@@ -116,6 +117,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginHorizontal="10dp"
+
+            android:contentDescription="@string/prompt_tags"
             app:singleLine="false"
             app:layout_constraintTop_toBottomOf="@id/prompt_title"
             app:layout_constraintStart_toStartOf="parent"
@@ -129,7 +132,7 @@
             android:layout_marginTop="10dp"
             android:layout_marginHorizontal="10dp"
             android:textSize="16sp"
-            android:text="Body"
+            android:contentDescription="@string/prompt_body"
             android:minLines="2"
             android:maxLines="3"
             android:ellipsize="end"

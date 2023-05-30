@@ -54,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="0dp"
 
-                android:hint="Prompt Title"
+                android:hint="@string/prompt_title"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 >
@@ -77,7 +77,7 @@
 
                 android:background="?attr/colorSurfaceVariant"
 
-                android:hint="Prompt Tags"
+                android:hint="@string/prompt_tags"
                 android:maxLength="16"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
@@ -94,7 +94,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginTop="10dp"
 
-                android:hint="Prompt Body"
+                android:hint="@string/prompt_body"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/prompt_tags"
                 app:layout_constraintBottom_toBottomOf="parent"
