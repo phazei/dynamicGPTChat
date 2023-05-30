@@ -3,6 +3,9 @@ DynamicGPTChat: A Fun and Customizable Mobile App for ChatGPT
 
 Welcome to DynamicGPTChat, a mobile app built for those who want a more enjoyable and tailored experience using ChatGPT. This app was created for fun, with the goal of providing a better mobile solution for ChatGPT users. It comes with a range of features that mostly match those found on the ChatGPT website, along with some additional customization options.
 
+
+[![IMAGE ALT TEXT](https://img.youtube.com/vi/_lXz7aTZLr4/0.jpg)](https://www.youtube.com/watch?v=_lXz7aTZLr4 "DynamicGPTChat Demo")
+
 <p float="left">
     <img src="./images/app_chats_list.jpg" alt="Chats" height="400"/>
     <img src="./images/app_messages_list.jpg" alt="Messages" height="400"/>
